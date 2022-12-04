@@ -17,12 +17,13 @@ fn main() {
 		let mut nums: Vec<u32> = vec![];
 		for p in pairs {
 			let mut numbers: Vec<&str> = p.split('-').collect();
+			// println!("{:?}", numbers);
 			nums.push(numbers[0].parse().unwrap());
 			nums.push(numbers[1].parse().unwrap());
 		}
 
-		if (nums[0] >= nums[2] && nums[0] <= nums[3]) ||
-			(nums[2] >= nums[0] && nums[2] <= nums[1]) {
+		if (nums[0] >= nums[2] && nums[1] <= nums[3]) ||
+			(nums[2] >= nums[0] && nums[3] <= nums[1]) {
 				ans += 1;
 		}
 	}
