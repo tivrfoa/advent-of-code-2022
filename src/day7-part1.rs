@@ -46,8 +46,9 @@ fn main() {
                 prev_dir_index_stack.push(curr_dir_index);
                 let len = dirs[curr_dir_index].dirs_index.len();
                 for i in 0..len {
-                    if dirs[dirs[curr_dir_index].dirs_index[i]].name == dir {
-                        curr_dir_index = dirs[curr_dir_index].dirs_index[i];
+                    let child_index = dirs[curr_dir_index].dirs_index[i];
+                    if dirs[child_index].name == dir {
+                        curr_dir_index = child_index;
                         break;
                     }
                 }
