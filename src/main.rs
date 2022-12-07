@@ -1,6 +1,7 @@
 use std::env;
 use std::fs;
 
+#[derive(Debug)]
 struct Dir {
 	name: String,
 	size: usize,
@@ -39,9 +40,12 @@ fn main() {
 
 			if dir == ".." {
 				let size = dirs[curr_dir_index].size; // adds up the size of child dir
+				println!("{:?}", prev_dir_index_stack);
+				println!("{:#?}", dirs);
 				curr_dir_index = prev_dir_index_stack.pop().unwrap();
 				dirs[curr_dir_index].size += size;
 			} else {
+				prev_dir_index_stack.push(curr_dir_index);
 				let len = dirs[curr_dir_index].dirs_index.len();
 				for i in 0..len {
 					if dirs[dirs[curr_dir_index].dirs_index[i]].name == dir {
@@ -67,6 +71,9 @@ fn main() {
 			dirs[curr_dir_index].size += size;
 		}
 	}
+
+	// println!("{:#?}", dirs);
+	dbg!(dirs);
 }
 
 fn get_file_contents() -> String {
