@@ -40,8 +40,6 @@ fn main() {
 
 			if dir == ".." {
 				let size = dirs[curr_dir_index].size; // adds up the size of child dir
-				println!("{:?}", prev_dir_index_stack);
-				println!("{:#?}", dirs);
 				curr_dir_index = prev_dir_index_stack.pop().unwrap();
 				dirs[curr_dir_index].size += size;
 			} else {
@@ -70,6 +68,15 @@ fn main() {
 					.unwrap();
 			dirs[curr_dir_index].size += size;
 		}
+	}
+
+
+	// I need to compute all remaining prev_dir_index_stack to
+	// add child dirs sizes
+	for i in prev_dir_index_stack.iter().rev() {
+		let size = dirs[curr_dir_index].size; // adds up the size of child dir
+		curr_dir_index = *i;
+		dirs[curr_dir_index].size += size;
 	}
 
 	// println!("{:#?}", dirs);
