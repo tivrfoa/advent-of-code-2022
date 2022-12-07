@@ -1,25 +1,74 @@
 use std::env;
 use std::fs;
 
+struct Dir {
+	name: String,
+	size: usize,
+	dirs_index: Vec<usize>,
+}
+
+impl Dir {
+	fn new(name: String) -> Self {
+		Self {
+			name,
+			size: 0,
+			dirs_index: vec![],
+		}
+	}
+}
+
 fn main() {
 	let contents = get_file_contents();
 
-	for line in contents.lines() {
-		let line = line.as_bytes();
-		let mut i = 13;
-		'i:
-			while i < line.len() {
-				for j in i-13..=i {
-					for z in j + 1..=i {
-						if line[j] == line[z] {
-							i = j + 14;
-							continue 'i;
-						}
+	let mut dirs: Vec<Dir> = vec![];
+	let mut root = Dir {
+		name: "/".into(),
+		size: 0,
+		dirs_index: vec![],
+	};
+	dirs.push(root);
+
+	let mut curr_dir = &mut dirs[0];
+	let mut curr_size = 0;
+	let mut curr_dir_index = 0;
+	let mut prev_dir_index_stack = vec![];
+
+	for line in contents.lines().skip(1) {
+		if line.starts_with("$ cd") {
+			curr_size = 0;
+			let dir = line.split_ascii_whitespace().skip(2).next().unwrap();
+
+			if dir == ".." {
+				let size = curr_dir.size; // adds up the size of child dir
+				curr_dir_index = prev_dir_index_stack.pop().unwrap();
+				curr_dir = &mut dirs[curr_dir_index];
+				curr_dir.size += size;
+			} else {
+				let len = curr_dir.dirs_index.len();
+				for i in 0..len {
+					if dirs[curr_dir.dirs_index[i]].name == dir {
+						curr_dir_index = curr_dir.dirs_index[i];
+						curr_dir = &mut dirs[curr_dir_index];
+						break;
 					}
 				}
-				println!("{}", i + 1);
-				return;
 			}
+		} else if line.starts_with("$ ls") {
+			// just skip?
+		} else if line.starts_with("dir ") {
+			let dir = line.split_ascii_whitespace().skip(1).next().unwrap();
+			dirs.push(Dir::new(dir.into()));
+			let len = dirs.len();
+			curr_dir.dirs_index.push(len - 1);
+		} else {
+			let size: usize = line
+					.split_ascii_whitespace()
+					.next()
+					.unwrap()
+					.parse()
+					.unwrap();
+			curr_dir.size += size;
+		}
 	}
 }
 
