@@ -28,7 +28,6 @@ fn main() {
 	};
 	dirs.push(root);
 
-	let mut curr_dir = &mut dirs[0];
 	let mut curr_size = 0;
 	let mut curr_dir_index = 0;
 	let mut prev_dir_index_stack = vec![];
@@ -39,16 +38,14 @@ fn main() {
 			let dir = line.split_ascii_whitespace().skip(2).next().unwrap();
 
 			if dir == ".." {
-				let size = curr_dir.size; // adds up the size of child dir
+				let size = dirs[curr_dir_index].size; // adds up the size of child dir
 				curr_dir_index = prev_dir_index_stack.pop().unwrap();
-				curr_dir = &mut dirs[curr_dir_index];
-				curr_dir.size += size;
+				dirs[curr_dir_index].size += size;
 			} else {
-				let len = curr_dir.dirs_index.len();
+				let len = dirs[curr_dir_index].dirs_index.len();
 				for i in 0..len {
-					if dirs[curr_dir.dirs_index[i]].name == dir {
-						curr_dir_index = curr_dir.dirs_index[i];
-						curr_dir = &mut dirs[curr_dir_index];
+					if dirs[dirs[curr_dir_index].dirs_index[i]].name == dir {
+						curr_dir_index = dirs[curr_dir_index].dirs_index[i];
 						break;
 					}
 				}
@@ -59,7 +56,7 @@ fn main() {
 			let dir = line.split_ascii_whitespace().skip(1).next().unwrap();
 			dirs.push(Dir::new(dir.into()));
 			let len = dirs.len();
-			curr_dir.dirs_index.push(len - 1);
+			dirs[curr_dir_index].dirs_index.push(len - 1);
 		} else {
 			let size: usize = line
 					.split_ascii_whitespace()
@@ -67,7 +64,7 @@ fn main() {
 					.unwrap()
 					.parse()
 					.unwrap();
-			curr_dir.size += size;
+			dirs[curr_dir_index].size += size;
 		}
 	}
 }
