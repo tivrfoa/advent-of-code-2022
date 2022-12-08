@@ -1,95 +1,71 @@
 use std::env;
 use std::fs;
 
-#[derive(Debug)]
-struct Dir {
-    name: String,
-    size: usize,
-    dirs_index: Vec<usize>,
-}
-
-impl Dir {
-    fn new(name: String) -> Self {
-        Self {
-            name,
-            size: 0,
-            dirs_index: vec![],
-        }
-    }
-}
+const ZERO: u8 = '0' as u8;
 
 fn main() {
+	let mut visible_trees = 0;
     let contents = get_file_contents();
+	let mut grid: Vec<Vec<u8>> = vec![];
 
-    let mut dirs: Vec<Dir> = vec![];
-    let mut root = Dir {
-        name: "/".into(),
-        size: 0,
-        dirs_index: vec![],
-    };
-    dirs.push(root);
-
-    let mut curr_size = 0;
-    let mut curr_dir_index = 0;
-    let mut prev_dir_index_stack = vec![];
-
-    for line in contents.lines().skip(1) {
-        if line.starts_with("$ cd") {
-            curr_size = 0;
-            let dir = line.split_ascii_whitespace().skip(2).next().unwrap();
-
-            if dir == ".." {
-                let size = dirs[curr_dir_index].size; // adds up the size of child dir
-                curr_dir_index = prev_dir_index_stack.pop().unwrap();
-                dirs[curr_dir_index].size += size;
-            } else {
-                prev_dir_index_stack.push(curr_dir_index);
-                let len = dirs[curr_dir_index].dirs_index.len();
-                for i in 0..len {
-                    let child_index = dirs[curr_dir_index].dirs_index[i];
-                    if dirs[child_index].name == dir {
-                        curr_dir_index = child_index;
-                        break;
-                    }
-                }
-            }
-        } else if line.starts_with("$ ls") {
-            // just skip?
-        } else if line.starts_with("dir ") {
-            let dir = line.split_ascii_whitespace().skip(1).next().unwrap();
-            dirs.push(Dir::new(dir.into()));
-            let len = dirs.len();
-            dirs[curr_dir_index].dirs_index.push(len - 1);
-        } else {
-            let size: usize = line
-                .split_ascii_whitespace()
-                .next()
-                .unwrap()
-                .parse()
-                .unwrap();
-            dirs[curr_dir_index].size += size;
-        }
+    for line in contents.lines() {
+		let mut row = vec![];
+		for c in line.chars() {
+			row.push(c as u8 - ZERO);
+		}
+		grid.push(row);
     }
 
-    // I need to compute all remaining prev_dir_index_stack to
-    // add child dirs sizes
-    for parent_index in prev_dir_index_stack.iter().rev() {
-        let size = dirs[curr_dir_index].size; // adds up the size of child dir
-        curr_dir_index = *parent_index;
-        dirs[curr_dir_index].size += size;
-    }
+	let rows = grid.len();
+	let cols = grid[0].len();
+	println!("{} x {} grid", rows, cols);
+	let visible_rows = rows * 2;
+	let visible_cols = cols * 2;
+	visible_trees = visible_rows + visible_cols - 4; // - 4 to avoid double counting
 
-    let space_available: usize = 70000000 - dirs[0].size;
-    const GOAL: usize = 30000000;
-    let mut min = dirs[0].size;
+	let mut visible_grid: Vec<Vec<bool>> = vec![vec![false; cols]; rows];
+	for row in 0..rows {
+		visible_grid[row][0] = true;
+		visible_grid[row][cols - 1] = true;
+	}
+	for col in 0..cols {
+		visible_grid[0][col] = true;
+		visible_grid[rows - 1][col] = true;
+	}
 
-    for dir in dirs.iter() {
-        if dir.size < min && space_available + dir.size >= GOAL {
-            min = dir.size;
-        }
-    }
+	for r in 1..rows - 1 {
+		for c in 1..cols - 1 {
+			// left
+			if visible_grid[r][c - 1] && grid[r][c - 1] < grid[r][c] {
+				visible_grid[r][c] = true;
+				visible_trees += 1;
+				continue;
+			}
 
-    println!("min dir to delete: {}", min);
+			// right
+			if visible_grid[r][c + 1] && grid[r][c + 1] < grid[r][c] {
+				visible_grid[r][c] = true;
+				visible_trees += 1;
+				continue;
+			}
+
+			// top
+			if visible_grid[r - 1][c] && grid[r - 1][c] < grid[r][c] {
+				visible_grid[r][c] = true;
+				visible_trees += 1;
+				continue;
+			}
+
+			// bottom
+			if visible_grid[r + 1][c] && grid[r + 1][c] < grid[r][c] {
+				visible_grid[r][c] = true;
+				visible_trees += 1;
+				continue;
+			}
+		}
+	}
+
+    println!("ans: {}", visible_trees);
 }
 
 fn get_file_contents() -> String {
