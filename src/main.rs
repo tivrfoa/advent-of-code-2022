@@ -3,6 +3,10 @@ use std::fs;
 
 const ZERO: u8 = '0' as u8;
 
+const NOT_VISIBLE: i8 = -1;
+const VISIBLE: i8 = 1;
+const NOT_VISITED: i8 = 0;
+
 fn main() {
 	let mut visible_trees = 0;
     let contents = get_file_contents();
@@ -19,52 +23,133 @@ fn main() {
 	let rows = grid.len();
 	let cols = grid[0].len();
 	println!("{} x {} grid", rows, cols);
-	let visible_rows = rows * 2;
-	let visible_cols = cols * 2;
-	visible_trees = visible_rows + visible_cols - 4; // - 4 to avoid double counting
 
-	let mut visible_grid: Vec<Vec<bool>> = vec![vec![false; cols]; rows];
+	let mut visible_grid: Vec<Vec<i8>> = vec![vec![0; cols]; rows];
 	for row in 0..rows {
-		visible_grid[row][0] = true;
-		visible_grid[row][cols - 1] = true;
+		visible_grid[row][0] = 1;
+		visible_grid[row][cols - 1] = 1;
+		visible_trees += 2;
 	}
-	for col in 0..cols {
-		visible_grid[0][col] = true;
-		visible_grid[rows - 1][col] = true;
+	for col in 1..cols - 1 {
+		visible_grid[0][col] = 1;
+		visible_grid[rows - 1][col] = 1;
+		visible_trees += 2;
 	}
+
+	println!("vt {}", visible_trees);
+
+	// for x in 0..rows {
+	// 	println!("{:?}", visible_grid[x]);
+	// }
 
 	for r in 1..rows - 1 {
 		for c in 1..cols - 1 {
+
 			// left
-			if visible_grid[r][c - 1] && grid[r][c - 1] < grid[r][c] {
-				visible_grid[r][c] = true;
-				visible_trees += 1;
-				continue;
-			}
+			let is_visible_from_left   = {
+				let mut is_visible = false;
+				if visible_grid[r][c - 1] == NOT_VISIBLE {
+				} else if visible_grid[r][c - 1] == VISIBLE {
+					if grid[r][c - 1] < grid[r][c] {
+						is_visible = true;
+					}
+				} else { // not visited
+					// then should go until col == 0
+					for j in (0..c).rev() {
+						if visible_grid[r][j] == NOT_VISIBLE || grid[r][j] >= grid[r][c] {
+							break;
+						}
+						if visible_grid[r][j] == VISIBLE {
+							is_visible = true;
+							break;
+						}
+					}
+				}
+				is_visible
+			};
 
 			// right
-			if visible_grid[r][c + 1] && grid[r][c + 1] < grid[r][c] {
-				visible_grid[r][c] = true;
-				visible_trees += 1;
-				continue;
-			}
-
-			// top
-			if visible_grid[r - 1][c] && grid[r - 1][c] < grid[r][c] {
-				visible_grid[r][c] = true;
-				visible_trees += 1;
-				continue;
-			}
+			let is_visible_from_right   = {
+				let mut is_visible = false;
+				if visible_grid[r][c + 1] == NOT_VISIBLE {
+				} else if visible_grid[r][c + 1] == VISIBLE {
+					if grid[r][c + 1] < grid[r][c] {
+						is_visible = true;
+					}
+				} else { // not visited
+					// then should go until c == cols
+					for j in c+1..cols {
+						if visible_grid[r][j] == NOT_VISIBLE || grid[r][j] >= grid[r][c] {
+							break;
+						}
+						if visible_grid[r][j] == VISIBLE {
+							is_visible = true;
+							break;
+						}
+					}
+				}
+				is_visible
+			};
 
 			// bottom
-			if visible_grid[r + 1][c] && grid[r + 1][c] < grid[r][c] {
-				visible_grid[r][c] = true;
+			let is_visible_from_bottom   = {
+				let mut is_visible = false;
+				if visible_grid[r + 1][c] == NOT_VISIBLE {
+				} else if visible_grid[r + 1][c] == VISIBLE {
+					if grid[r + 1][c] < grid[r][c] {
+						is_visible = true;
+					}
+				} else { // not visited
+					// then should go until row == rows
+					for j in r+1..rows {
+						if visible_grid[r][j] == NOT_VISIBLE || grid[r][j] >= grid[r][c] {
+							break;
+						}
+						if visible_grid[r][j] == VISIBLE {
+							is_visible = true;
+							break;
+						}
+					}
+				}
+				is_visible
+			};
+
+			// top
+			let is_visible_from_top   = {
+				let mut is_visible = false;
+				if visible_grid[r - 1][c] == NOT_VISIBLE {
+				} else if visible_grid[r - 1][c] == VISIBLE {
+					if grid[r - 1][c] < grid[r][c] {
+						is_visible = true;
+					}
+				} else { // not visited
+					// then should go until row == 0
+					for j in (0..r).rev() {
+						if visible_grid[r][j] == NOT_VISIBLE || grid[r][j] >= grid[r][c] {
+							break;
+						}
+						if visible_grid[r][j] == VISIBLE {
+							is_visible = true;
+							break;
+						}
+					}
+				}
+				is_visible
+			};
+
+			if is_visible_from_left || is_visible_from_right ||
+					is_visible_from_top || is_visible_from_bottom {
+				visible_grid[r][c] = VISIBLE;
 				visible_trees += 1;
-				continue;
+			} else {
+				visible_grid[r][c] = NOT_VISIBLE;
 			}
 		}
 	}
 
+	for x in 0..rows {
+		println!("{:?}", visible_grid[x]);
+	}
     println!("ans: {}", visible_trees);
 }
 
