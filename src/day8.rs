@@ -1,5 +1,4 @@
-use std::env;
-use std::fs;
+use super::util;
 
 const ZERO: u8 = '0' as u8;
 
@@ -25,11 +24,10 @@ fn get_qt_row<I: Iterator<Item = usize>>(grid: &Vec<Vec<u8>>, iter: I, r: usize,
     qt
 }
 
-fn main() {
-    let contents = get_file_contents();
+pub fn solve(input: String) -> u32 {
     let mut grid: Vec<Vec<u8>> = vec![];
 
-    for line in contents.lines() {
+    for line in input.lines() {
         let mut row = vec![];
         for c in line.chars() {
             row.push(c as u8 - ZERO);
@@ -64,12 +62,22 @@ fn main() {
         }
     }
 
-    println!("ans: {}", max);
+    max
 }
 
-fn get_file_contents() -> String {
-    let args: Vec<String> = env::args().collect();
-    let file_path = &args[1];
-    println!("In file {}", file_path);
-    fs::read_to_string(file_path).expect("Should have been able to read the file")
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn part2_sample() {
+		let input = util::read_file("inputs/sample-day8.txt");
+		assert_eq!(8, solve(input));
+	}
+
+	#[test]
+	fn part2_input() {
+		let input = util::read_file("inputs/input-day8.txt");
+		assert_eq!(574080, solve(input));
+	}
 }
