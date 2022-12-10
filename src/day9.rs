@@ -24,38 +24,30 @@ fn get_dir(c: char) -> (i32, i32) {
 /// https://www.youtube.com/watch?v=FU4fCTWauq0
 ///
 /// It's also from there that I got the signum idea.
-fn move_dir(dir: char, hr: i32, hc: i32, tr: i32, tc: i32) -> (i32, i32, i32, i32) {
+fn move_dir(dir: char, seg: &mut Vec<(i32, i32)>) {
     let (row_step, col_step) = get_dir(dir);
 
-    let new_hr = hr + row_step;
-    let new_hc = hc + col_step;
-    let row_diff = new_hr - tr;
-    let col_diff = new_hc - tc;
+    seg[0].0 += row_step;
+    seg[0].1 += col_step;
+    let row_diff = seg[0].0 - seg[1].0;
+    let col_diff = seg[0].1 - seg[1].1;
 
     if row_diff == 0 && col_diff.abs() > 1 {
-        (new_hr, new_hc, tr, tc + col_diff.signum())
+        seg[1].1 += col_diff.signum();
     } else if col_diff == 0 && row_diff.abs() > 1 {
-        (new_hr, new_hc, tr + row_diff.signum(), tc)
+        seg[1].0 += row_diff.signum();
     } else if row_diff.abs() > 1 || col_diff.abs() > 1 {
-        (
-            new_hr,
-            new_hc,
-            tr + row_diff.signum(),
-            tc + col_diff.signum(),
-        )
+        seg[1].0 += row_diff.signum();
+        seg[1].1 += col_diff.signum();
     } else {
         // T does not move: row_diff == 0 && col_diff == 0
-        (new_hr, new_hc, tr, tc)
     }
 }
 
 pub fn solve(input: String) -> u32 {
     let mut ans = 0;
     let mut visited: HashSet<(i32, i32)> = HashSet::new();
-    let mut hr = 0;
-    let mut hc = 0;
-    let mut tr = 0;
-    let mut tc = 0;
+    let mut seg: Vec<(i32, i32)> = vec![(0, 0), (0, 0)];
     visited.insert((0, 0));
     ans += 1;
 
@@ -65,12 +57,8 @@ pub fn solve(input: String) -> u32 {
         let steps: usize = tokens[1].parse().unwrap();
 
         for _ in 0..steps {
-            let (new_hr, new_hc, new_tr, new_tc) = move_dir(dir, hr, hc, tr, tc);
-            hr = new_hr;
-            hc = new_hc;
-            tr = new_tr;
-            tc = new_tc;
-            ans += if visited.insert((tr, tc)) { 1 } else { 0 };
+            move_dir(dir, &mut seg);
+            ans += if visited.insert(seg[1].clone()) { 1 } else { 0 };
         }
     }
 
