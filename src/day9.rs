@@ -151,9 +151,7 @@ mod tests {
     #[test]
     fn part1_input() {
         let input = util::read_file("inputs/input-day9.txt");
-
-        // failed answers: 6846, 6821
-        assert_eq!(574080, solve(input)); // got 6846 which is wrong
+        assert_eq!(6522, solve(input));
     }
 
     // #[test]
