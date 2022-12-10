@@ -12,8 +12,81 @@ fn visit(visited: &mut [[bool; C]; R], tr: usize, tc: usize) -> u32 {
     }
 }
 
-// TODO create function that receives dir and just move 1 step
-// it will be called in a loop and must return the new positions for H and T
+fn move_dir(dir: char, hr: usize, hc: usize, tr: usize, tc: usize) -> (usize, usize, usize, usize) {
+
+	match dir {
+		'R' => {
+			if hr == tr && hc == tc { // H covers T
+				(hr, hc + 1, tr, tc)
+			} else if hr != tr && hc != tc { // they are in diagonal
+				if hc < tc {
+					(hr, hc + 1, tr, tc)
+				} else { // hc > tc
+					(hr, hc + 1, hr, hc)
+				}
+			} else {
+				if hr != tr { // same column, different row => only H moves
+					(hr, hc + 1, tr, tc)
+				} else {
+					(hr, hc + 1, tr, tc + 1)
+				}
+			}
+		}
+		'L' => {
+			if hr == tr && hc == tc { // H covers T
+				(hr, hc - 1, tr, tc)
+			} else if hr != tr && hc != tc { // they are in diagonal
+				if hc > tc {
+					(hr, hc - 1, tr, tc)
+				} else { // hc < tc
+					(hr, hc - 1, hr, hc)
+				}
+			} else {
+				if hr != tr { // same column, different row => only H moves
+					(hr, hc - 1, tr, tc)
+				} else {
+					(hr, hc - 1, tr, tc - 1)
+				}
+			}
+		}
+		'D' => {
+			if hr == tr && hc == tc { // H covers T
+				(hr + 1, hc, tr, tc)
+			} else if hr != tr && hc != tc { // they are in diagonal
+				if hr < tr {
+					(hr + 1, hc, tr, tc) // they'll be in same row
+				} else { // hr > tr
+					(hr + 1, hc, hr, hc)
+				}
+			} else {
+				if hc != tc { // same row, different column => only H moves
+					(hr + 1, hc, tr, tc)
+				} else {
+					(hr + 1, hc, tr + 1, tc)
+				}
+			}
+		}
+		'U' => {
+			if hr == tr && hc == tc { // H covers T
+				(hr - 1, hc, tr, tc)
+			} else if hr != tr && hc != tc { // they are in diagonal
+				if hr > tr {
+					(hr - 1, hc, tr, tc) // they'll be in same row
+				} else { // hr < tr
+					(hr - 1, hc, hr, hc)
+				}
+			} else {
+				if hc != tc { // same row, different column => only H moves
+					(hr - 1, hc, tr, tc)
+				} else {
+					(hr - 1, hc, tr - 1, tc)
+				}
+			}
+		}
+		d @ _ => panic!("Invalid dir: {d}"),
+	}
+
+}
 
 pub fn solve(input: String) -> u32 {
     let mut ans = 0;
@@ -30,359 +103,14 @@ pub fn solve(input: String) -> u32 {
         let dir = tokens[0].chars().next().unwrap();
         let steps: usize = tokens[1].parse().unwrap();
 
-        if hr == tr && hc == tc {
-            // H covers T
-            match dir {
-                'R' => {
-                    hc += 1;
-                    if steps >= 2 {
-                        hc += 1;
-                        tc = hc - 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                    for s in 2..steps {
-                        hc += 1;
-                        tc += 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                }
-                'L' => {
-                    hc -= 1;
-                    if steps >= 2 {
-                        hc -= 1;
-                        tc = hc + 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                    for s in 2..steps {
-                        hc -= 1;
-                        tc -= 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                }
-                'D' => {
-                    hr += 1;
-                    if steps >= 2 {
-                        hr += 1;
-                        tr = hr - 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                    for s in 2..steps {
-                        hr += 1;
-                        tr += 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                }
-                'U' => {
-                    hr -= 1;
-                    if steps >= 2 {
-                        hr -= 1;
-                        tr = hr + 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                    for s in 2..steps {
-                        hr -= 1;
-                        tr -= 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                }
-                d @ _ => panic!("Invalid dir: {d}"),
-            }
-        } else if hr != tr && hc != tc {
-            // check diagonal
-            match dir {
-                'R' => {
-                    if hc < tc {
-                        // only move H. They will be in the same col
-                        hc += 1;
-                    } else {
-                        hc += 1;
-                        tc = hc - 1;
-                        tr = hr;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-
-                    // now they might be in same colum and different row
-                    if steps >= 2 {
-                        if hc == tc {
-                            // only move H
-                            hc += 1;
-                        } else {
-                            hc += 1;
-                            tc += 1;
-                            ans += visit(&mut visited, tr, tc);
-                        }
-                    }
-
-                    // might still be in diagonal
-                    if steps >= 3 {
-                        if hr != tr {
-                            tr = hr;
-                            hc += 1;
-                            tc = hc - 1;
-                            ans += visit(&mut visited, tr, tc);
-                        } else {
-                            hc += 1;
-                            tc += 1;
-                            ans += visit(&mut visited, tr, tc);
-                        }
-                    }
-
-                    for s in 3..steps {
-                        hc += 1;
-                        tc += 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                }
-                'L' => {
-                    if hc > tc {
-                        // only move H. They will be in the same col
-                        hc -= 1;
-                    } else {
-                        hc -= 1;
-                        tc = hc + 1;
-                        tr = hr;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-
-                    // now they might be in same colum and different row
-                    if steps >= 2 {
-                        if hc == tc {
-                            // only move H
-                            hc -= 1;
-                        } else {
-                            hc -= 1;
-                            tc -= 1;
-                            ans += visit(&mut visited, tr, tc);
-                        }
-                    }
-
-                    // might still be in diagonal
-                    if steps >= 3 {
-                        if hr != tr {
-                            tr = hr;
-                            hc -= 1;
-                            tc = hc + 1;
-                            ans += visit(&mut visited, tr, tc);
-                        } else {
-                            hc -= 1;
-                            tc -= 1;
-                            ans += visit(&mut visited, tr, tc);
-                        }
-                    }
-
-                    for s in 3..steps {
-                        hc -= 1;
-                        tc -= 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                }
-                'D' => {
-                    if hr > tr {
-                        // only move H. They will be in the same row
-                        hr += 1;
-                    } else {
-                        hr += 1;
-                        tr = hr - 1;
-                        tc = hc;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-
-                    // now they might be in same row and different col
-                    if steps >= 2 {
-                        if hc == tc {
-                            // only move H
-                            hr += 1;
-                        } else {
-                            hr += 1;
-                            tr += 1;
-                            ans += visit(&mut visited, tr, tc);
-                        }
-                    }
-
-                    // might still be in diagonal
-                    if steps >= 3 {
-                        if hc != tc {
-                            tc = hc;
-                            hr += 1;
-                            tr = hr - 1;
-                            ans += visit(&mut visited, tr, tc);
-                        } else {
-                            hr += 1;
-                            tr += 1;
-                            ans += visit(&mut visited, tr, tc);
-                        }
-                    }
-
-                    for s in 3..steps {
-                        hr += 1;
-                        tr += 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                }
-                'U' => {
-                    if hr < tr {
-                        // only move H. They will be in the same row
-                        hr -= 1;
-                    } else {
-                        hr -= 1;
-                        tr = hr + 1;
-                        tc = hc;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-
-                    // now they might be in same row and different col
-                    if steps >= 2 {
-                        if hc == tc {
-                            // only move H
-                            hr -= 1;
-                        } else {
-                            hr -= 1;
-                            tr -= 1;
-                            ans += visit(&mut visited, tr, tc);
-                        }
-                    }
-
-                    // might still be in diagonal
-                    if steps >= 3 {
-                        if hc != tc {
-                            tc = hc;
-                            hr -= 1;
-                            tr = hr + 1;
-                            ans += visit(&mut visited, tr, tc);
-                        } else {
-                            hr -= 1;
-                            tr -= 1;
-                            ans += visit(&mut visited, tr, tc);
-                        }
-                    }
-
-                    for s in 3..steps {
-                        hr -= 1;
-                        tr -= 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                }
-                d @ _ => panic!("Invalid dir: {d}"),
-            }
-        } else {
-            match dir {
-                'R' => {
-                    if hr != tr {
-                        // just change H col in first step
-                        hc += 1;
-                    } else {
-                        hc += 1;
-                        tc += 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                    if steps >= 2 {
-                        if hr != tr {
-                            // in the second step T must go to the same row
-                            hc += 1;
-                            tr = hr;
-                            tc = hc - 1;
-                            ans += visit(&mut visited, tr, tc);
-                        } else {
-                            hc += 1;
-                            tc += 1;
-                            ans += visit(&mut visited, tr, tc);
-                        }
-                    }
-                    for s in 2..steps {
-                        hc += 1;
-                        tc += 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                }
-                'L' => {
-                    if hr != tr {
-                        // just change H col in first step
-                        hc -= 1;
-                    } else {
-                        hc -= 1;
-                        tc -= 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                    if steps >= 2 {
-                        if hr != tr {
-                            // in the second step T must go to the same row
-                            hc -= 1;
-                            tr = hr;
-                            tc = hc + 1;
-                            ans += visit(&mut visited, tr, tc);
-                        } else {
-                            hc -= 1;
-                            tc -= 1;
-                            ans += visit(&mut visited, tr, tc);
-                        }
-                    }
-                    for s in 2..steps {
-                        hc -= 1;
-                        tc -= 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                }
-                'D' => {
-                    // down row actually increases ...
-                    if hc != tc {
-                        // just change H row in first step
-                        hr += 1;
-                    } else {
-                        hr += 1;
-                        tr += 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                    if steps >= 2 {
-                        if hc != tc {
-                            // in the second step T must go to the same col
-                            tc = hc;
-                            hr += 1;
-                            tr = hr - 1;
-                            ans += visit(&mut visited, tr, tc);
-                        } else {
-                            hr += 1;
-                            tr += 1;
-                            ans += visit(&mut visited, tr, tc);
-                        }
-                    }
-                    for s in 2..steps {
-                        hr += 1;
-                        tr += 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                }
-                'U' => {
-                    // up row actually decreases ...
-                    if hc != tc {
-                        // just change H row in first step
-                        hr -= 1;
-                    } else {
-                        hr -= 1;
-                        tr -= 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                    if steps >= 2 {
-                        if hc != tc {
-                            // in the second step T must go to the same col
-                            tc = hc;
-                            hr -= 1;
-                            tr = hr + 1;
-                            ans += visit(&mut visited, tr, tc);
-                        } else {
-                            hr -= 1;
-                            tr -= 1;
-                            ans += visit(&mut visited, tr, tc);
-                        }
-                    }
-                    for s in 2..steps {
-                        hr -= 1;
-                        tr -= 1;
-                        ans += visit(&mut visited, tr, tc);
-                    }
-                }
-                d @ _ => panic!("Invalid dir: {}", d),
-            }
-        }
+		for _ in 0..steps {
+			let (new_hr, new_hc, new_tr, new_tc) = move_dir(dir, hr, hc, tr, tc);
+			hr = new_hr;
+			hc = new_hc;
+			tr = new_tr;
+			tc = new_tc;
+			ans += visit(&mut visited, tr, tc);
+		}
     }
 
     ans
@@ -401,6 +129,8 @@ mod tests {
     #[test]
     fn part1_input() {
         let input = util::read_file("inputs/input-day9.txt");
+
+		// failed answers: 6846, 6821
         assert_eq!(574080, solve(input)); // got 6846 which is wrong
     }
 
