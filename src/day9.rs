@@ -34,15 +34,9 @@ fn move_dir(dir: char, seg: &mut Vec<(i32, i32)>) {
         let row_diff = seg[i - 1].0 - seg[i].0;
         let col_diff = seg[i - 1].1 - seg[i].1;
 
-        if row_diff == 0 && col_diff.abs() > 1 {
-            seg[i].1 += col_diff.signum();
-        } else if col_diff == 0 && row_diff.abs() > 1 {
-            seg[i].0 += row_diff.signum();
-        } else if row_diff.abs() > 1 || col_diff.abs() > 1 {
+        if row_diff.abs() > 1 || col_diff.abs() > 1 {
             seg[i].0 += row_diff.signum();
             seg[i].1 += col_diff.signum();
-        } else {
-            // T does not move
         }
     }
 }
