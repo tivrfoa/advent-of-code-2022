@@ -43,15 +43,15 @@ pub fn solve_part2(input: String) -> Vec<String> {
             cycles += 1;
         } else {
             cycles += 1;
-            if cycles == x || cycles + 1 == x || cycles - 1 == x {
-                crt_line.push('#');
-            } else {
-                crt_line.push('.');
-            }
             if cycles == 40 {
                 cycles = 0;
                 crt.push(crt_line);
                 crt_line = String::new();
+            }
+            if cycles == x || cycles + 1 == x || cycles - 1 == x {
+                crt_line.push('#');
+            } else {
+                crt_line.push('.');
             }
             cycles += 1;
             x += tokens[1].parse::<i32>().unwrap();
@@ -103,12 +103,12 @@ mod tests {
     #[test]
     fn part2_input() {
         let expected: Vec<String> = vec![
-            "##..##..##..##..##..##..##..##..##..##..".into(),
-            "###...###...###...###...###...###...###.".into(),
-            "####....####....####....####....####....".into(),
-            "#####.....#####.....#####.....#####.....".into(),
-            "######......######......######......####".into(),
-            "#######.......#######.......#######.....".into(),
+            "###...##..###..#..#.####.#..#.####...##.".into(),
+            "#..#.#..#.#..#.#.#..#....#.#..#.......#.".into(),
+            "#..#.#..#.#..#.##...###..##...###.....#.".into(),
+            "###..####.###..#.#..#....#.#..#.......#.".into(),
+            "#....#..#.#....#.#..#....#.#..#....#..#.".into(),
+            "#....#..#.#....#..#.#....#..#.####..##..".into(),
         ];
         let input = util::read_file("inputs/input-day10.txt");
         assert_eq!(expected, solve_part2(input));
