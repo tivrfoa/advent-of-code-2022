@@ -1,14 +1,4 @@
 mod util;
-mod day8;
+mod day9;
 
-pub use day8::solve;
-
-// #[cfg(test)]
-// mod tests {
-// 	use super::*;
-// 
-// 	#[test]
-// 	fn part1() {
-// 		assert!(1 == 1);
-// 	}
-// }
+pub use day9::solve; // just to remove unused warnings
