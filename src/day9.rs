@@ -29,25 +29,28 @@ fn move_dir(dir: char, seg: &mut Vec<(i32, i32)>) {
 
     seg[0].0 += row_step;
     seg[0].1 += col_step;
-    let row_diff = seg[0].0 - seg[1].0;
-    let col_diff = seg[0].1 - seg[1].1;
 
-    if row_diff == 0 && col_diff.abs() > 1 {
-        seg[1].1 += col_diff.signum();
-    } else if col_diff == 0 && row_diff.abs() > 1 {
-        seg[1].0 += row_diff.signum();
-    } else if row_diff.abs() > 1 || col_diff.abs() > 1 {
-        seg[1].0 += row_diff.signum();
-        seg[1].1 += col_diff.signum();
-    } else {
-        // T does not move: row_diff == 0 && col_diff == 0
+    for i in 1..seg.len() {
+        let row_diff = seg[i - 1].0 - seg[i].0;
+        let col_diff = seg[i - 1].1 - seg[i].1;
+
+        if row_diff == 0 && col_diff.abs() > 1 {
+            seg[i].1 += col_diff.signum();
+        } else if col_diff == 0 && row_diff.abs() > 1 {
+            seg[i].0 += row_diff.signum();
+        } else if row_diff.abs() > 1 || col_diff.abs() > 1 {
+            seg[i].0 += row_diff.signum();
+            seg[i].1 += col_diff.signum();
+        } else {
+            // T does not move
+        }
     }
 }
 
-pub fn solve(input: String) -> u32 {
+pub fn solve(input: String, len: usize) -> u32 {
     let mut ans = 0;
     let mut visited: HashSet<(i32, i32)> = HashSet::new();
-    let mut seg: Vec<(i32, i32)> = vec![(0, 0), (0, 0)];
+    let mut seg: Vec<(i32, i32)> = vec![(0, 0); len];
     visited.insert((0, 0));
     ans += 1;
 
@@ -58,7 +61,11 @@ pub fn solve(input: String) -> u32 {
 
         for _ in 0..steps {
             move_dir(dir, &mut seg);
-            ans += if visited.insert(seg[1].clone()) { 1 } else { 0 };
+            ans += if visited.insert(seg[seg.len() - 1].clone()) {
+                1
+            } else {
+                0
+            };
         }
     }
 
@@ -72,18 +79,18 @@ mod tests {
     #[test]
     fn part1_sample() {
         let input = util::read_file("inputs/sample-day9.txt");
-        assert_eq!(13, solve(input));
+        assert_eq!(13, solve(input, 2));
     }
 
     #[test]
     fn part1_input() {
         let input = util::read_file("inputs/input-day9.txt");
-        assert_eq!(6522, solve(input));
+        assert_eq!(6522, solve(input, 2));
     }
 
-    // #[test]
-    // fn part2_sample() {
-    // 	let input = util::read_file("inputs/sample-day9.txt");
-    // 	assert_eq!(8, solve(input));
-    // }
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/input-day9.txt");
+        assert_eq!(2717, solve(input, 10));
+    }
 }
