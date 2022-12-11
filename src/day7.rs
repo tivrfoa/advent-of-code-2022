@@ -4,19 +4,18 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 // Day 7 using Rc<RefCell>
-type RefDir = Rc<RefCell<Dir>>;
+type RefDir<'a> = Rc<RefCell<Dir<'a>>>;
 
 #[derive(Debug)]
-struct Dir {
-    name: String,
+struct Dir<'a> {
+    name: &'a str,
     size: usize,
-    parent: Option<RefDir>,
-    child_dirs: HashMap<String, RefDir>,
+    parent: Option<RefDir<'a>>,
+    child_dirs: HashMap<&'a str, RefDir<'a>>,
 }
 
-impl Dir {
-    // TODO test name as &str
-    fn new(name: String, parent: Option<RefDir>) -> Self {
+impl<'a> Dir<'a> {
+    fn new(name: &'a str, parent: Option<RefDir<'a>>) -> Self {
         Self {
             name,
             size: 0,
@@ -27,7 +26,7 @@ impl Dir {
 }
 
 pub fn solve(input: String) -> usize {
-    let root = Rc::new(RefCell::new(Dir::new("/".into(), None)));
+    let root = Rc::new(RefCell::new(Dir::new("/", None)));
     let mut curr_dir = root.clone();
 
     for line in input.lines().skip(1) {
@@ -44,7 +43,7 @@ pub fn solve(input: String) -> usize {
                     curr_dir
                         .borrow()
                         .child_dirs
-                        .get::<String>(&dir.into())
+                        .get::<str>(dir)
                         .as_ref()
                         .unwrap(),
                 );
@@ -55,10 +54,10 @@ pub fn solve(input: String) -> usize {
         } else if line.starts_with("dir ") {
             let dir = line.split_ascii_whitespace().nth(1).unwrap();
             let parent = Some(curr_dir.clone());
-            curr_dir.borrow_mut().child_dirs.insert(
-                dir.into(),
-                Rc::new(RefCell::new(Dir::new(dir.into(), parent))),
-            );
+            curr_dir
+                .borrow_mut()
+                .child_dirs
+                .insert(dir, Rc::new(RefCell::new(Dir::new(dir, parent))));
         } else {
             let size: usize = line
                 .split_ascii_whitespace()
