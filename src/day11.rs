@@ -116,15 +116,12 @@ pub fn solve(input: String, relief: u64, rounds: usize) -> u64 {
     let len = monkeys.len();
     for _ in 0..rounds {
         for i in 0..len {
-            let qt_itens = monkeys[i].items_worry_level.len();
-            for j in 0..qt_itens {
+            while let Some(item) = monkeys[i].items_worry_level.pop() {
                 monkeys[i].items_inspected += 1;
-                let item = monkeys[i].items_worry_level[j];
                 let next_level = monkeys[i].calc_next_level(item, relief) % modulo;
                 let to_monkey = monkeys[i].throw_item(next_level);
                 monkeys[to_monkey].items_worry_level.push(next_level);
             }
-            monkeys[i].items_worry_level.clear();
         }
     }
 
