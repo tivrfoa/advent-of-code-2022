@@ -9,18 +9,18 @@ enum Op {
 #[derive(Debug)]
 enum OpV {
     Old,
-    V(u32),
+    V(u64),
 }
 
 #[derive(Debug)]
 struct Monkey {
     op: Op,
     opv: OpV,
-    div: u32,
+    div: u64,
     true_id: usize,
     false_id: usize,
-    items_worry_level: Vec<u32>,
-    items_inspected: u32,
+    items_worry_level: Vec<u64>,
+    items_inspected: u64,
 }
 
 impl Monkey {
@@ -48,7 +48,7 @@ impl Monkey {
         };
     }
 
-    fn calc_next_level(&self, item: u32) -> u32 {
+    fn calc_next_level(&self, item: u64, relief: u64) -> u64 {
         let rv = match self.opv {
             OpV::Old => item,
             OpV::V(v) => v,
@@ -57,10 +57,10 @@ impl Monkey {
             Op::A => item + rv,
             Op::M => item * rv,
         };
-        tmp / 3
+        tmp / relief
     }
 
-    fn throw_item(&self, item: u32) -> usize {
+    fn throw_item(&self, item: u64) -> usize {
         if item % self.div == 0 {
             self.true_id
         } else {
@@ -69,21 +69,22 @@ impl Monkey {
     }
 }
 
-pub fn solve(input: String) -> u32 {
+pub fn solve(input: String, relief: u64, rounds: usize) -> u64 {
     let mut monkeys: Vec<Monkey> = vec![];
     let mut monkey_id = 0;
+    let mut modulo = 1;
 
     for line in input.lines() {
         if line.starts_with("Monkey") {
             monkeys.push(Monkey::new());
         } else if line.starts_with("  S") {
             // eg: Starting items: 79, 98
-            let itens: Vec<u32> = line
+            let itens: Vec<u64> = line
                 .split_once(':')
                 .unwrap()
                 .1
                 .split(',')
-                .map(|s| s.trim().parse::<u32>().unwrap())
+                .map(|s| s.trim().parse::<u64>().unwrap())
                 .collect();
             monkeys[monkey_id].items_worry_level = itens;
         } else if line.starts_with("  O") {
@@ -92,7 +93,8 @@ pub fn solve(input: String) -> u32 {
             monkeys[monkey_id].set_operation(op, opv);
         } else if line.starts_with("  T") {
             // eg: Test: divisible by 13
-            let div: u32 = line.split_once("by ").unwrap().1.parse().unwrap();
+            let div: u64 = line.split_once("by ").unwrap().1.parse().unwrap();
+            modulo *= div;
             monkeys[monkey_id].div = div;
         } else if line.starts_with("    If t") {
             // eg: If true: throw to monkey 2
@@ -112,13 +114,13 @@ pub fn solve(input: String) -> u32 {
     // println!("{:#?}", monkeys);
 
     let len = monkeys.len();
-    for _ in 0..20 {
+    for _ in 0..rounds {
         for i in 0..len {
             let qt_itens = monkeys[i].items_worry_level.len();
             for j in 0..qt_itens {
                 monkeys[i].items_inspected += 1;
                 let item = monkeys[i].items_worry_level[j];
-                let next_level = monkeys[i].calc_next_level(item);
+                let next_level = monkeys[i].calc_next_level(item, relief) % modulo;
                 let to_monkey = monkeys[i].throw_item(next_level);
                 monkeys[to_monkey].items_worry_level.push(next_level);
             }
@@ -126,14 +128,10 @@ pub fn solve(input: String) -> u32 {
         }
     }
 
-    let mut items_inspected: Vec<u32> = monkeys.iter().map(|m| m.items_inspected).collect();
+    let mut items_inspected: Vec<u64> = monkeys.iter().map(|m| m.items_inspected).collect();
     items_inspected.sort();
 
     items_inspected[len - 2] * items_inspected[len - 1]
-}
-
-pub fn solve_part2(input: String) -> Vec<String> {
-    todo!()
 }
 
 #[cfg(test)]
@@ -143,12 +141,24 @@ mod tests {
     #[test]
     fn part1_sample() {
         let input = util::read_file("inputs/sample-day11.txt");
-        assert_eq!(10605, solve(input));
+        assert_eq!(10605, solve(input, 3, 20));
     }
 
     #[test]
     fn part1_input() {
         let input = util::read_file("inputs/input-day11.txt");
-        assert_eq!(119715, solve(input));
+        assert_eq!(119715, solve(input, 3, 20));
+    }
+
+    #[test]
+    fn part2_sample() {
+        let input = util::read_file("inputs/sample-day11.txt");
+        assert_eq!(2713310158, solve(input, 1, 10_000));
+    }
+
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/input-day11.txt");
+        assert_eq!(18085004878, solve(input, 1, 10_000));
     }
 }
