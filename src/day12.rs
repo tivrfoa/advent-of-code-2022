@@ -18,6 +18,8 @@ with fewer steps.
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
+const A: u8 = 'a' as u8;
+
 #[derive(Debug, Eq, PartialEq)]
 struct State {
     steps: u32,
@@ -118,6 +120,80 @@ pub fn solve(input: String) -> u32 {
     panic!("Did not get to E: {:?}", E);
 }
 
+// I think we just need to make E the start and return whenever we find an 'a'
+pub fn solve_part2(input: String) -> u32 {
+    let mut grid: Vec<Vec<u8>> = vec![];
+    let mut S: (usize, usize) = (0, 0);
+    let mut E: (usize, usize) = (0, 0);
+
+    {
+        let mut row = 0;
+        let mut found_S = false;
+        let mut found_E = false;
+        for line in input.lines() {
+            if !found_S && let Some(c) = line.find('S') {
+				S = (row, c);
+				found_S = true;
+			}
+            if !found_E && let Some(c) = line.find('E') {
+				E = (row, c);
+				found_E = true;
+			}
+            // grid.push(line.chars().collect());
+            grid.push(line.as_bytes().to_vec());
+            row += 1;
+        }
+    }
+
+    // set S height
+    grid[S.0][S.1] = 'a' as u8; // S probably does not matter for part 2
+
+    // set E height
+    grid[E.0][E.1] = 'z' as u8;
+
+    let rows = grid.len();
+    let cols = grid[0].len();
+
+    let mut dp: Vec<Vec<u32>> = vec![vec![u32::MAX; cols]; rows];
+    let mut min_heap = BinaryHeap::new();
+    min_heap.push(State::new(E, 0));
+
+    while let Some(s) = min_heap.pop() {
+        let (r, c) = s.position;
+        if grid[r][c] == A {
+            return s.steps;
+        }
+
+        let next_steps = s.steps + 1;
+
+        // left
+        if c > 0 && grid[r][c - 1] + 1 >= grid[r][c] && next_steps < dp[r][c - 1] {
+            dp[r][c - 1] = next_steps;
+            min_heap.push(State::new((r, c - 1), next_steps));
+        }
+
+        // right
+        if c < cols - 1 && grid[r][c + 1] + 1 >= grid[r][c] && next_steps < dp[r][c + 1] {
+            dp[r][c + 1] = next_steps;
+            min_heap.push(State::new((r, c + 1), next_steps));
+        }
+
+        // up
+        if r > 0 && grid[r - 1][c] + 1 >= grid[r][c] && next_steps < dp[r - 1][c] {
+            dp[r - 1][c] = next_steps;
+            min_heap.push(State::new((r - 1, c), next_steps));
+        }
+
+        // down
+        if r < rows - 1 && grid[r + 1][c] + 1 >= grid[r][c] && next_steps < dp[r + 1][c] {
+            dp[r + 1][c] = next_steps;
+            min_heap.push(State::new((r + 1, c), next_steps));
+        }
+    }
+
+    panic!("Did not get to E: {:?}", E);
+}
+
 fn dbg(grid: &Vec<Vec<u8>>) {
     for i in 0..grid.len() {
         println!("{:?}", grid[i]);
@@ -141,15 +217,14 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn part2_sample() {
         let input = util::read_file("inputs/day12-sample.txt");
-        assert_eq!(123, solve(input));
+        assert_eq!(29, solve_part2(input));
     }
 
-    //#[test]
-    //fn part2_input() {
-    //    let input = util::read_file("inputs/day12.txt");
-    //    assert_eq!(18085004878, solve(input));
-    //}
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/day12.txt");
+        assert_eq!(399, solve_part2(input));
+    }
 }
