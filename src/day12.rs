@@ -92,28 +92,21 @@ pub fn solve(input: String) -> u32 {
         let (r, c) = s.position;
         let next_steps = s.steps + 1;
 
-        // left
-        if c > 0 && grid[r][c - 1] <= grid[r][c] + 1 && next_steps < dp[r][c - 1] {
-            dp[r][c - 1] = next_steps;
-            min_heap.push(State::new((r, c - 1), next_steps));
-        }
+        let dirs = [
+            (c > 0, r, if c > 0 { c - 1 } else { 0 }),
+            (c < cols - 1, r, c + 1),
+            (r > 0, if r > 0 { r - 1 } else { 0 }, c),
+            (r < rows - 1, r + 1, c),
+        ];
 
-        // right
-        if c < cols - 1 && grid[r][c + 1] <= grid[r][c] + 1 && next_steps < dp[r][c + 1] {
-            dp[r][c + 1] = next_steps;
-            min_heap.push(State::new((r, c + 1), next_steps));
-        }
-
-        // up
-        if r > 0 && grid[r - 1][c] <= grid[r][c] + 1 && next_steps < dp[r - 1][c] {
-            dp[r - 1][c] = next_steps;
-            min_heap.push(State::new((r - 1, c), next_steps));
-        }
-
-        // down
-        if r < rows - 1 && grid[r + 1][c] <= grid[r][c] + 1 && next_steps < dp[r + 1][c] {
-            dp[r + 1][c] = next_steps;
-            min_heap.push(State::new((r + 1, c), next_steps));
+        for (cond, next_row, next_col) in dirs {
+            if cond
+                && grid[next_row][next_col] <= grid[r][c] + 1
+                && next_steps < dp[next_row][next_col]
+            {
+                dp[next_row][next_col] = next_steps;
+                min_heap.push(State::new((next_row, next_col), next_steps));
+            }
         }
     }
 
