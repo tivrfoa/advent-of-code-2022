@@ -1,4 +1,4 @@
-mod day11;
+mod day12;
 mod util;
 
-pub use day11::solve; // just to remove unused warnings
+pub use day12::solve; // just to remove unused warnings
