@@ -8,19 +8,15 @@ RULES
   1. Can go just one square higher
   2. Can go to any square lower or equal
 
-This is a DP problem
-
 Store for each position in the grid how many steps were used
-to get there and don't continue if already visited that place
-with fewer steps.
+to get there and don't continue if already visited that place.
 */
 
-use std::cmp::Ordering;
-use std::collections::BinaryHeap;
+use std::collections::VecDeque;
 
 const A: u8 = 'a' as u8;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug)]
 struct State {
     steps: u32,
     position: (usize, usize),
@@ -29,21 +25,6 @@ struct State {
 impl State {
     fn new(position: (usize, usize), steps: u32) -> Self {
         Self { steps, position }
-    }
-}
-
-// The priority queue depends on `Ord`.
-// Explicitly implement the trait so the queue becomes a min-heap
-// instead of a max-heap.
-impl Ord for State {
-    fn cmp(&self, other: &Self) -> Ordering {
-        other.steps.cmp(&self.steps)
-    }
-}
-
-impl PartialOrd for State {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
     }
 }
 
@@ -80,11 +61,12 @@ pub fn solve(input: String) -> u32 {
     let rows = grid.len();
     let cols = grid[0].len();
 
-    let mut dp: Vec<Vec<u32>> = vec![vec![u32::MAX; cols]; rows];
-    let mut min_heap = BinaryHeap::new();
-    min_heap.push(State::new(S, 0));
+    let mut visited: Vec<Vec<bool>> = vec![vec![false; cols]; rows];
+    visited[S.0][S.1] = true;
 
-    while let Some(s) = min_heap.pop() {
+    let mut queue = VecDeque::from([State::new(S, 0)]);
+
+    while let Some(s) = queue.pop_front() {
         if s.position == E {
             return s.steps;
         }
@@ -100,12 +82,9 @@ pub fn solve(input: String) -> u32 {
         ];
 
         for (cond, next_row, next_col) in dirs {
-            if cond
-                && grid[next_row][next_col] <= grid[r][c] + 1
-                && next_steps < dp[next_row][next_col]
-            {
-                dp[next_row][next_col] = next_steps;
-                min_heap.push(State::new((next_row, next_col), next_steps));
+            if cond && !visited[next_row][next_col] && grid[next_row][next_col] <= grid[r][c] + 1 {
+                visited[next_row][next_col] = true;
+                queue.push_back(State::new((next_row, next_col), next_steps));
             }
         }
     }
@@ -147,11 +126,12 @@ pub fn solve_part2(input: String) -> u32 {
     let rows = grid.len();
     let cols = grid[0].len();
 
-    let mut dp: Vec<Vec<u32>> = vec![vec![u32::MAX; cols]; rows];
-    let mut min_heap = BinaryHeap::new();
-    min_heap.push(State::new(E, 0));
+    let mut visited: Vec<Vec<bool>> = vec![vec![false; cols]; rows];
+    visited[E.0][E.1] = true;
+    let mut queue = VecDeque::new();
+    queue.push_back(State::new(E, 0));
 
-    while let Some(s) = min_heap.pop() {
+    while let Some(s) = queue.pop_front() {
         let (r, c) = s.position;
         if grid[r][c] == A {
             return s.steps;
@@ -160,27 +140,27 @@ pub fn solve_part2(input: String) -> u32 {
         let next_steps = s.steps + 1;
 
         // left
-        if c > 0 && grid[r][c - 1] + 1 >= grid[r][c] && next_steps < dp[r][c - 1] {
-            dp[r][c - 1] = next_steps;
-            min_heap.push(State::new((r, c - 1), next_steps));
+        if c > 0 && grid[r][c - 1] + 1 >= grid[r][c] && !visited[r][c - 1] {
+            visited[r][c - 1] = true;
+            queue.push_back(State::new((r, c - 1), next_steps));
         }
 
         // right
-        if c < cols - 1 && grid[r][c + 1] + 1 >= grid[r][c] && next_steps < dp[r][c + 1] {
-            dp[r][c + 1] = next_steps;
-            min_heap.push(State::new((r, c + 1), next_steps));
+        if c < cols - 1 && grid[r][c + 1] + 1 >= grid[r][c] && !visited[r][c + 1] {
+            visited[r][c + 1] = true;
+            queue.push_back(State::new((r, c + 1), next_steps));
         }
 
         // up
-        if r > 0 && grid[r - 1][c] + 1 >= grid[r][c] && next_steps < dp[r - 1][c] {
-            dp[r - 1][c] = next_steps;
-            min_heap.push(State::new((r - 1, c), next_steps));
+        if r > 0 && grid[r - 1][c] + 1 >= grid[r][c] && !visited[r - 1][c] {
+            visited[r - 1][c] = true;
+            queue.push_back(State::new((r - 1, c), next_steps));
         }
 
         // down
-        if r < rows - 1 && grid[r + 1][c] + 1 >= grid[r][c] && next_steps < dp[r + 1][c] {
-            dp[r + 1][c] = next_steps;
-            min_heap.push(State::new((r + 1, c), next_steps));
+        if r < rows - 1 && grid[r + 1][c] + 1 >= grid[r][c] && !visited[r + 1][c] {
+            visited[r + 1][c] = true;
+            queue.push_back(State::new((r + 1, c), next_steps));
         }
     }
 
