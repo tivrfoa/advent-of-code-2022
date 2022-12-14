@@ -125,6 +125,24 @@ pub fn solve_part2(input: String) -> u32 {
 
     let rows = grid.len();
     let cols = grid[0].len();
+    let get_neighbours = |r: usize, c: usize| -> Vec<(usize, usize)> {
+        let mut nn = vec![];
+
+        if r < rows - 1 {
+            nn.push((r + 1, c));
+        }
+        if r > 0 {
+            nn.push((r - 1, c));
+        }
+        if c > 0 {
+            nn.push((r, c - 1));
+        }
+        if c < cols - 1 {
+            nn.push((r, c + 1));
+        }
+
+        nn
+    };
 
     let mut visited: Vec<Vec<bool>> = vec![vec![false; cols]; rows];
     visited[E.0][E.1] = true;
@@ -139,28 +157,11 @@ pub fn solve_part2(input: String) -> u32 {
 
         let next_steps = s.steps + 1;
 
-        // left
-        if c > 0 && grid[r][c - 1] + 1 >= grid[r][c] && !visited[r][c - 1] {
-            visited[r][c - 1] = true;
-            queue.push_back(State::new((r, c - 1), next_steps));
-        }
-
-        // right
-        if c < cols - 1 && grid[r][c + 1] + 1 >= grid[r][c] && !visited[r][c + 1] {
-            visited[r][c + 1] = true;
-            queue.push_back(State::new((r, c + 1), next_steps));
-        }
-
-        // up
-        if r > 0 && grid[r - 1][c] + 1 >= grid[r][c] && !visited[r - 1][c] {
-            visited[r - 1][c] = true;
-            queue.push_back(State::new((r - 1, c), next_steps));
-        }
-
-        // down
-        if r < rows - 1 && grid[r + 1][c] + 1 >= grid[r][c] && !visited[r + 1][c] {
-            visited[r + 1][c] = true;
-            queue.push_back(State::new((r + 1, c), next_steps));
+        for (to_row, to_col) in get_neighbours(r, c) {
+            if grid[to_row][to_col] + 1 >= grid[r][c] && !visited[to_row][to_col] {
+                visited[to_row][to_col] = true;
+                queue.push_back(State::new((to_row, to_col), next_steps));
+            }
         }
     }
 
