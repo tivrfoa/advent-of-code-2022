@@ -1,109 +1,108 @@
+/*
+It requires distinct types and populate it using recursion.
+
+The solution below is basically the same from Uncle Scientist:
+https://www.youtube.com/watch?v=CMhq3M-HE0I
+
+I took most ideas from him.
+
+*/
 use crate::util;
+
+use std::str::Chars;
 
 const TEN: u8 = 58;
 
 #[derive(Debug)]
+enum Val {
+    Num(u8),
+	List(Vec<Val>),
+}
+
+impl Val {
+	fn is_right_order(&self, other: &Val) -> bool {
+
+
+		true
+	}
+
+	fn parse_chars(mut chars: Chars) -> Self {
+		// ignore first '['
+		chars.next();
+
+		Val::List(Self::parse(&mut chars))
+	}
+
+	fn parse(chars: &mut Chars) -> Vec<Val> {
+
+		let mut result: Vec<Val> = vec![];
+		let mut num = u8::MAX;
+
+		while let Some(c) = chars.next() {
+			match c {
+				'[' => {
+					result.push(Val::List(Self::parse(chars)));
+				}
+				']' => {
+					if num != u8::MAX {
+						result.push(Val::Num(num));
+					}
+					return result;
+				}
+				',' => {
+					if num != u8::MAX {
+						result.push(Val::Num(num));
+						num = u8::MAX;
+					}
+				}
+				_ => { // number
+					if num != u8::MAX {
+						num = TEN;
+					} else {
+						num = c as u8;
+					}
+				}
+			}
+		}
+
+		result
+	}
+}
+
+#[derive(Debug)]
 struct Pair {
-	a_list: Vec<Vec<u8>>,
-	b_list: Vec<Vec<u8>>,
+	a: Val,
+	b: Val,
 }
 
 impl Pair {
-	fn new() -> Self {
+
+	fn new(a: Val, b: Val) -> Self {
 		Self {
-			a_list: vec![],
-			b_list: vec![],
+			a,
+			b,
 		}
 	}
 
 	fn is_right_order(&self) -> bool {
-		let b_len = self.b_list.len();
-
-		for i in 0..self.a_list.len() {
-			if i == b_len {
-				return false;
-			}
-
-			let b_i_len = self.b_list[i].len();
-			for j in 0..self.a_list[i].len() {
-				if j == b_i_len {
-					return false;
-				}
-				if self.a_list[i][j] < self.b_list[i][j] {
-					return true;
-				} else if self.a_list[i][j] > self.b_list[i][j] {
-					return false;
-				} else {
-					// just continue
-				}
-			}
-		}
-
-		true
+		self.a.is_right_order(&self.b)
 	}
-}
-
-fn get_lists(line: &str) -> Vec<Vec<u8>> {
-	let mut ret = vec![];
-	let mut curr: Vec<u8> = vec![];
-	let bytes = line.as_bytes();
-
-	for i in 0..bytes.len() - 1 {
-		if bytes[i] == b'[' {
-			// do nothing
-		} else if bytes[i] == b']' {
-			if !curr.is_empty() {
-				ret.push(curr);
-				curr = vec![];
-			}
-		} else if bytes[i] == b',' {
-			// do nothing
-		} else {
-			// it's a number, but it can be ten, so check next position
-			let num = if bytes[i+1] == b'0' {
-				TEN
-			} else {
-				bytes[i]
-			};
-			if curr.is_empty() && bytes[i-1] == b',' {
-				ret.push(vec![num]);
-			} else {
-				curr.push(num);
-			}
-		}
-	}
-	if !curr.is_empty() {
-		ret.push(curr);
-	}
-
-	ret
 }
 
 pub fn solve(input: String) -> usize {
 	let mut ans = 0;
     let mut pairs: Vec<Pair> = vec![];
+	let mut lines: Vec<&str> = input.lines().filter(|l| !l.is_empty()).collect();
 
-	let mut pair = Pair::new();
-
-	let mut i = 0;
-	for line in input.lines() {
-		if i == 2 {
-			pairs.push(pair);
-			pair = Pair::new();
-			i = 0;
-		} else if i == 0 {
-			pair.a_list = get_lists(line);
-			i += 1;
-		} else {
-			pair.b_list = get_lists(line);
-			i += 1;
-		}
+	for line in lines.chunks(2) {
+		let a = Val::parse_chars(line[0].chars());
+		let b = Val::parse_chars(line[1].chars());
+		pairs.push(Pair::new(a, b));
 	}
-	pairs.push(pair);
 
-	//for pair in pairs {
-	//	println!("{pair:?}");
-	//}
+	for pair in &pairs {
+		println!("{pair:?}");
+	}
 
 	for i in 0..pairs.len() {
 		if pairs[i].is_right_order() {
