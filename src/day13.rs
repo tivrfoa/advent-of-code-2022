@@ -9,6 +9,7 @@ I took most ideas from him.
 */
 use crate::util;
 
+use std::cmp::Ordering;
 use std::str::Chars;
 
 const TEN: u8 = 58;
@@ -21,53 +22,48 @@ enum Val {
 
 impl Val {
     fn is_right_order(&self, other: &Val) -> bool {
-        if self.compare(other) <= 0 {
-            true
-        } else {
-            false
-        }
+        self.compare(other) != Ordering::Greater
     }
 
-    /// @return -1 - less, 0 - equal, 1 - greater
-    fn compare(&self, other: &Val) -> i8 {
+    fn compare(&self, other: &Val) -> Ordering {
         match (self, other) {
             (Val::Num(a), Val::Num(b)) => {
                 if a < b {
-                    return -1;
+                    return Ordering::Less;
                 }
                 if a > b {
-                    return 1;
+                    return Ordering::Greater;
                 }
             }
             (Val::Num(a), Val::List(_)) => {
                 let ret = Val::List(vec![Val::Num(*a)]).compare(other);
-                if ret != 0 {
+                if ret != Ordering::Equal {
                     return ret;
                 }
             }
             (Val::List(_), Val::Num(b)) => {
                 let ret = self.compare(&Val::List(vec![Val::Num(*b)]));
-                if ret != 0 {
+                if ret != Ordering::Equal {
                     return ret;
                 }
             }
             (Val::List(la), Val::List(lb)) => {
                 for i in 0..la.len() {
                     if i >= lb.len() {
-                        return 1;
+                        return Ordering::Greater;
                     }
                     let ret = la[i].compare(&lb[i]);
-                    if ret != 0 {
+                    if ret != Ordering::Equal {
                         return ret;
                     }
                 }
                 if la.len() < lb.len() {
-                    return -1;
+                    return Ordering::Less;
                 }
             }
         }
 
-        0
+        Ordering::Equal
     }
 
     fn parse_chars(mut chars: Chars) -> Self {
