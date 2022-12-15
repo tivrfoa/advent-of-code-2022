@@ -14,13 +14,19 @@ use std::str::Chars;
 
 const TEN: u8 = 58;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum Val {
     Num(u8),
     List(Vec<Val>),
 }
 
 impl Val {
+    fn new_divider_packet(n: u8) -> Self {
+        use Val::*;
+
+        List(vec![List(vec![Num(n)])])
+    }
+
     fn is_right_order(&self, other: &Val) -> bool {
         self.compare(other) != Ordering::Greater
     }
@@ -140,8 +146,8 @@ pub fn solve(input: String) -> usize {
         println!("{pair:?}");
     }
 
-    for i in 0..pairs.len() {
-        if pairs[i].is_right_order() {
+    for (i, pair) in pairs.iter().enumerate() {
+        if pair.is_right_order() {
             ans += i + 1;
             println!("index {} is good", i + 1);
         }
@@ -150,10 +156,37 @@ pub fn solve(input: String) -> usize {
     ans
 }
 
+pub fn solve_part2(input: String) -> usize {
+    let dp2 = Val::new_divider_packet(b'2');
+    let dp6 = Val::new_divider_packet(b'6');
+    let mut packets: Vec<Val> = vec![Val::new_divider_packet(b'2'), Val::new_divider_packet(b'6')];
+
+    for line in input.lines().filter(|l| !l.is_empty()) {
+        packets.push(Val::parse_chars(line.chars()));
+    }
+
+    packets.sort_by(|a, b| a.compare(b));
+
+    // for p in &packets {
+    //     println!("{p:?}");
+    // }
+
+    let (mut idx1, mut idx2) = (0, 0);
+    for (i, packet) in packets.into_iter().enumerate() {
+        if packet == dp2 {
+            idx1 = i + 1;
+        } else if packet == dp6 {
+            idx2 = i + 1;
+        }
+    }
+
+    idx1 * idx2
+}
+
 #[allow(dead_code)]
 fn dbg(grid: &Vec<Vec<u8>>) {
-    for i in 0..grid.len() {
-        println!("{:?}", grid[i]);
+    for item in grid {
+        println!("{:?}", item);
     }
 }
 
@@ -173,15 +206,15 @@ mod tests {
         assert_eq!(5529, solve(input));
     }
 
-    //#[test]
-    //fn part2_sample() {
-    //    let input = util::read_file("inputs/day13-sample.txt");
-    //    assert_eq!(29, solve_part2(input));
-    //}
+    #[test]
+    fn part2_sample() {
+        let input = util::read_file("inputs/day13-sample.txt");
+        assert_eq!(140, solve_part2(input));
+    }
 
-    //#[test]
-    //fn part2_input() {
-    //    let input = util::read_file("inputs/day13.txt");
-    //    assert_eq!(399, solve_part2(input));
-    //}
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/day13.txt");
+        assert_eq!(27690, solve_part2(input));
+    }
 }
