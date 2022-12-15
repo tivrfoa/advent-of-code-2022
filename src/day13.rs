@@ -2,26 +2,63 @@ use crate::util;
 
 use std::collections::VecDeque;
 
-fn compare(l1: &str, l2: &str) -> u32 {
-	println!("comparing:\n{}\n{}", l1, l2);
+const TEN: u8 = 58;
 
-	0
+fn get_lists(line: &str) -> Vec<Vec<u8>> {
+	let mut ret = vec![];
+	let mut curr: Vec<u8> = vec![];
+	let bytes = line.as_bytes();
+
+	for i in 0..bytes.len() - 1 {
+		if bytes[i] == b'[' {
+			// do nothing
+		} else if bytes[i] == b']' {
+			if !curr.is_empty() {
+				ret.push(curr);
+				curr = vec![];
+			}
+		} else if bytes[i] == b',' {
+			// do nothing
+		} else {
+			// it's a number, but it can be ten, so check next position
+			let num = if bytes[i+1] == b'0' {
+				TEN
+			} else {
+				bytes[i]
+			};
+			if curr.is_empty() && bytes[i-1] == b',' {
+				ret.push(vec![num]);
+			} else {
+				curr.push(num);
+			}
+		}
+	}
+	if !curr.is_empty() {
+		ret.push(curr);
+	}
+
+	ret
 }
 
 pub fn solve(input: String) -> u32 {
 	let mut ans: u32 = 0;
-    let mut pair = ["", ""];
-	let mut i = 0;
+    let mut pairs: Vec<Vec<u8>> = vec![];
+
 	for line in input.lines() {
-		if i == 2 {
-			ans += compare(pair[0], pair[1]);
-			i = 0;
-		} else {
-			pair[i] = line;
-			i += 1;
+		if line.is_empty() {
+			continue;
 		}
+		pairs.append(&mut get_lists(line));
 	}
-	ans += compare(pair[0], pair[1]);
+
+	for n in pairs {
+		println!("{n:?}");
+	}
+
+	//let len = pairs.len();
+	//for i in (0..len).step_by(2) {
+	//	ans += compare(pairs[i], pairs[i + 1]);
+	//}
 
 	ans
 }
