@@ -21,8 +21,7 @@ enum Val {
 
 impl Val {
     fn is_right_order(&self, other: &Val) -> bool {
-        let ret = self.compare(other);
-        if ret <= 0 {
+        if self.compare(other) <= 0 {
             true
         } else {
             false
