@@ -1,8 +1,47 @@
 use crate::util;
 
-use std::collections::VecDeque;
-
 const TEN: u8 = 58;
+
+#[derive(Debug)]
+struct Pair {
+	a_list: Vec<Vec<u8>>,
+	b_list: Vec<Vec<u8>>,
+}
+
+impl Pair {
+	fn new() -> Self {
+		Self {
+			a_list: vec![],
+			b_list: vec![],
+		}
+	}
+
+	fn is_right_order(&self) -> bool {
+		let b_len = self.b_list.len();
+
+		for i in 0..self.a_list.len() {
+			if i == b_len {
+				return false;
+			}
+
+			let b_i_len = self.b_list[i].len();
+			for j in 0..self.a_list[i].len() {
+				if j == b_i_len {
+					return false;
+				}
+				if self.a_list[i][j] < self.b_list[i][j] {
+					return true;
+				} else if self.a_list[i][j] > self.b_list[i][j] {
+					return false;
+				} else {
+					// just continue
+				}
+			}
+		}
+
+		true
+	}
+}
 
 fn get_lists(line: &str) -> Vec<Vec<u8>> {
 	let mut ret = vec![];
@@ -40,25 +79,38 @@ fn get_lists(line: &str) -> Vec<Vec<u8>> {
 	ret
 }
 
-pub fn solve(input: String) -> u32 {
-	let mut ans: u32 = 0;
-    let mut pairs: Vec<Vec<u8>> = vec![];
+pub fn solve(input: String) -> usize {
+	let mut ans = 0;
+    let mut pairs: Vec<Pair> = vec![];
 
+	let mut pair = Pair::new();
+
+	let mut i = 0;
 	for line in input.lines() {
-		if line.is_empty() {
-			continue;
+		if i == 2 {
+			pairs.push(pair);
+			pair = Pair::new();
+			i = 0;
+		} else if i == 0 {
+			pair.a_list = get_lists(line);
+			i += 1;
+		} else {
+			pair.b_list = get_lists(line);
+			i += 1;
 		}
-		pairs.append(&mut get_lists(line));
 	}
+	pairs.push(pair);
 
-	for n in pairs {
-		println!("{n:?}");
-	}
-
-	//let len = pairs.len();
-	//for i in (0..len).step_by(2) {
-	//	ans += compare(pairs[i], pairs[i + 1]);
+	//for pair in pairs {
+	//	println!("{pair:?}");
 	//}
+
+	for i in 0..pairs.len() {
+		if pairs[i].is_right_order() {
+			ans += i + 1;
+			println!("index {} is good", i + 1);
+		}
+	}
 
 	ans
 }
