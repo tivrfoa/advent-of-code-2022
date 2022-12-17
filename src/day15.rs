@@ -221,19 +221,24 @@ pub fn solve_part2(input: String, max: i64) -> i64 {
 
     // let's try to use ranges. Copying Login from Uncle Scientist
     // https://www.youtube.com/watch?v=oOgDTx_tAp4
-    let mut rowdata: Vec<Vec<RangeInclusive<i64>>> = vec![vec![0..=max]; max as usize + 1];
-    for s in &sensors {
-        let radius = s.radius();
-        let top = 0.max(s.at.row - radius);
-        let bottom = max.min(s.at.row + radius);
 
-        for row in top..=bottom {
+    for row in 0..=max {
+        let mut rowdata: Vec<RangeInclusive<i64>> = vec![0..=max];
+        for s in &sensors {
+            let radius = s.radius();
+            let top = 0.max(s.at.row - radius);
+            let bottom = max.min(s.at.row + radius);
+
+            if top > row || bottom < row {
+                continue;
+            }
+
             let dist = (s.at.row - row).abs();
             let min_x = 0.max(s.at.col - (radius - dist));
             let max_x = max.min(s.at.col + (radius - dist));
 
             let mut new_range = vec![];
-            for r in &rowdata[row as usize] {
+            for r in &rowdata {
                 let start = *r.start();
                 if start > max_x {
                     new_range.push(r.clone());
@@ -254,14 +259,12 @@ pub fn solve_part2(input: String, max: i64) -> i64 {
                 }
             }
 
-            rowdata[row as usize] = new_range;
+            rowdata = new_range;
         }
-    }
 
-    for (y, r) in rowdata.iter().enumerate() {
-        if !r.is_empty() {
-            let x = r[0].start();
-            return x * 4_000_000 + y as i64;
+        if !rowdata.is_empty() {
+            let x = *rowdata[0].start();
+            return x * 4_000_000 + row;
         }
     }
 
