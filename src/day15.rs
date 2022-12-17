@@ -78,6 +78,14 @@ impl Sensor {
     fn get_max_x(&self) -> i32 {
         self.at.col.max(self.closest_beacon.col)
     }
+
+    fn get_min_y(&self) -> i32 {
+        self.at.row.min(self.closest_beacon.row)
+    }
+
+    fn get_max_y(&self) -> i32 {
+        self.at.row.max(self.closest_beacon.row)
+    }
 }
 
 /// @return sensors and set of beacons
@@ -85,7 +93,7 @@ fn parse_input(input: String) -> (Vec<Sensor>, HashSet<Pos>) {
     let mut sensors = vec![];
     let mut beacons_set = HashSet::new();
     for line in input.lines() {
-        let mut iter = line.split("=");
+        let mut iter = line.split('=');
         iter.next();
         let x: i32 = iter
             .next()
@@ -126,6 +134,13 @@ fn get_min_max_x(sensors: &[Sensor]) -> (i32, i32) {
     (min_x.unwrap(), max_x.unwrap())
 }
 
+fn get_min_max_y(sensors: &[Sensor]) -> (i32, i32) {
+    let min_y = sensors.iter().map(|s| s.get_min_y()).min();
+    let max_y = sensors.iter().map(|s| s.get_max_y()).max();
+
+    (min_y.unwrap(), max_y.unwrap())
+}
+
 fn find_first_beacon_in_row(sensors: &[Sensor], row_to_check: i32) -> i32 {
     for s in sensors {
         if s.closest_beacon.row == row_to_check {
@@ -155,9 +170,9 @@ pub fn solve(input: String, row_to_check: i32) -> usize {
     let (mut sensors, beacons_set) = parse_input(input);
     let (min_col, max_col) = get_min_max_x(&sensors);
 
-    for s in &mut sensors {
-        s.set_beacons_distances(&beacons_set);
-    }
+    //for s in &mut sensors {
+    //    s.set_beacons_distances(&beacons_set);
+    //}
 
     // which column to start ...? It helps that both rows to check
     // have beacon on it ... so I'll start from them
@@ -193,8 +208,22 @@ pub fn solve(input: String, row_to_check: i32) -> usize {
     positions_without_beacon
 }
 
-pub fn solve_part2(input: String) -> usize {
-    todo!()
+pub fn solve_part2(input: String, max: i32) -> i32 {
+    let (sensors, beacons_set) = parse_input(input);
+    let (min_col, max_col) = get_min_max_x(&sensors);
+    let (min_row, max_row) = get_min_max_y(&sensors);
+
+	let y = 2_000_000;
+	// for y in 0..=max.min(max_row) {
+		for x in 0..=max.min(max_col) {
+			if !beacons_set.contains(&Pos::new(x, y)) &&
+					can_contain_beacon(&sensors, Pos::new(x, y)) {
+				return x * 4000000 + y;
+			}
+		}
+	// }
+
+	panic!("It didn't find a beacon :(");
 }
 
 #[allow(dead_code)]
@@ -220,15 +249,15 @@ mod tests {
         assert_eq!(5181556, solve(input, 2_000_000));
     }
 
-    //#[test]
-    //fn part2_sample() {
-    //    let input = util::read_file("inputs/day15-sample.txt");
-    //    assert_eq!(93, solve_part2(input));
-    //}
+    #[test]
+    fn part2_sample() {
+        let input = util::read_file("inputs/day15-sample.txt");
+        assert_eq!(56000011, solve_part2(input, 20));
+    }
 
-    //#[test]
-    //fn part2_input() {
-    //    let input = util::read_file("inputs/day15.txt");
-    //    assert_eq!(28821, solve_part2(input));
-    //}
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/day15.txt");
+        assert_eq!(28821, solve_part2(input, 4000000));
+    }
 }
