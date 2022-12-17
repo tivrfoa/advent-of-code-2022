@@ -26,7 +26,7 @@ Maybe it can stop when it might be a beacon and after it's x position is:
   - smaller than all beacons when looking left.
 
 */
-fn calc_distance(point1: Pos, point2: Pos) -> i32 {
+fn calc_distance(point1: &Pos, point2: &Pos) -> i32 {
 	(point1.col - point2.col).abs() + (point1.row - point2.row).abs()
 }
 
@@ -90,13 +90,64 @@ fn get_min_max_x(sensors: &[Sensor]) -> (i32, i32) {
 	(min_x.unwrap(), max_x.unwrap())
 }
 
+fn find_first_beacon_in_row(sensors: &[Sensor], row_to_check: i32) -> i32 {
+	for s in sensors {
+		if s.closest_beacon.row == row_to_check {
+			return s.closest_beacon.col;
+		}
+	}
+	panic!("It didn't find beacon at row: {row_to_check}");
+}
+
+fn can_contain_beacon(sensors: &[Sensor], pos: Pos) -> bool {
+
+	for s in sensors {
+		let dist1 = calc_distance(&s.at, &s.closest_beacon);
+		let dist2 = calc_distance(&s.at, &pos);
+		if dist2 < dist1 {
+			return false;
+		}
+	}
+
+	true
+}
+
 pub fn solve(input: String, row_to_check: i32) -> usize {
 	let sensors = get_sensors(input);
-	let (min_x, max_x) = get_min_max_x(&sensors);
-	dbg!(&sensors);
-	dbg!(min_x, max_x);
+	let (min_col, max_col) = get_min_max_x(&sensors);
 
-	0
+	// which column to start ...? It helps that both rows to check
+	// have beacon on it ... so I'll start from them
+	let start_col = find_first_beacon_in_row(&sensors, row_to_check);
+
+	let mut positions_without_beacon = 0;
+
+	// count left
+	let mut found_beacon = false;
+	let mut curr_col = start_col - 1;
+	while !found_beacon || curr_col >= min_col {
+		if can_contain_beacon(&sensors, Pos::new(curr_col, row_to_check)) {
+			found_beacon = true;
+		} else {
+			positions_without_beacon += 1;
+		}
+		curr_col -= 1;
+	}
+
+	// count right
+	let mut found_beacon = false;
+	let mut curr_col = start_col + 1;
+	while !found_beacon || curr_col <= max_col {
+		if can_contain_beacon(&sensors, Pos::new(curr_col, row_to_check)) {
+			found_beacon = true;
+		} else {
+			positions_without_beacon += 1;
+		}
+		curr_col += 1;
+	}
+
+
+	positions_without_beacon
 }
 
 pub fn solve_part2(input: String) -> usize {
