@@ -213,26 +213,46 @@ pub fn solve_part2(input: String, max: i32) -> i32 {
     let (min_col, max_col) = get_min_max_x(&sensors);
     let (min_row, max_row) = get_min_max_y(&sensors);
 
-	// let's try rows where there are beacons or sensors
 	for s in &sensors {
 		let y = s.at.row;
+		let start_col = s.at.col;
 		if y < 0 { continue; }
-		for x in 0..=max.min(max_col) {
-			if !beacons_set.contains(&Pos::new(x, y)) &&
-					can_contain_beacon(&sensors, Pos::new(x, y)) {
-				return x * 4000000 + y;
+		let mut curr_col = start_col - 1;
+		while curr_col >= min_col - 10 {
+			if can_contain_beacon(&sensors, Pos::new(curr_col, y)) {
+				return curr_col * 4000000 + y;
 			}
+			curr_col -= 1;
+		}
+
+		// try right
+		let mut curr_col = start_col + 1;
+		while curr_col <= max_col {
+			if can_contain_beacon(&sensors, Pos::new(curr_col, y)) {
+				return curr_col * 4000000 + y;
+			}
+			curr_col += 1;
 		}
 	}
 
 	for s in &beacons_set {
 		let y = s.row;
 		if y < 0 { continue; }
-		for x in 0..=max.min(max_col) {
-			if !beacons_set.contains(&Pos::new(x, y)) &&
-					can_contain_beacon(&sensors, Pos::new(x, y)) {
-				return x * 4000000 + y;
+		let mut curr_col = s.col - 1;
+		while curr_col >= min_col - 10 {
+			if can_contain_beacon(&sensors, Pos::new(curr_col, y)) {
+				return curr_col * 4000000 + y;
 			}
+			curr_col -= 1;
+		}
+
+		// try right
+		let mut curr_col = s.col + 1;
+		while curr_col <= max_col {
+			if can_contain_beacon(&sensors, Pos::new(curr_col, y)) {
+				return curr_col * 4000000 + y;
+			}
+			curr_col += 1;
 		}
 	}
 
