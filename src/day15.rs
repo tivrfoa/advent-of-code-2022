@@ -1,5 +1,6 @@
 use crate::util;
 
+use std::collections::HashMap;
 use std::collections::HashSet;
 
 /*
@@ -32,7 +33,7 @@ fn calc_distance(point1: &Pos, point2: &Pos) -> i32 {
     (point1.col - point2.col).abs() + (point1.row - point2.row).abs()
 }
 
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Pos {
     row: i32,
     col: i32,
@@ -48,23 +49,26 @@ impl Pos {
 struct Sensor {
     at: Pos,
     closest_beacon: Pos,
-    distance_to_furthest_beacon: i32,
+    distance_to_closest_beacon: i32,
+    beacons_distances: HashMap<i32, Pos>,
 }
 
 impl Sensor {
-	fn set_distance_to_furthest_beacon(&mut self, beacons_set: &HashSet<Pos>) -> i32 {
-		for b in beacons_set {
-			let dist = calc_distance(&self.at, b);
-			if dist > self.distance_to_furthest_beacon {
-				self.distance_to_furthest_beacon = dist;
-			}
-		}
-
-		self.distance_to_furthest_beacon
-	}
+    fn set_beacons_distances(&mut self, beacons_set: &HashSet<Pos>) {
+        for b in beacons_set {
+            let dist = calc_distance(&self.at, b);
+            self.beacons_distances.insert(dist, *b);
+        }
+    }
 
     fn new(at: Pos, closest_beacon: Pos) -> Self {
-        Sensor { at, closest_beacon, distance_to_furthest_beacon: i32::MIN }
+        let distance_to_closest_beacon = calc_distance(&at, &closest_beacon);
+        Sensor {
+            at,
+            closest_beacon,
+            distance_to_closest_beacon,
+            beacons_distances: HashMap::new(),
+        }
     }
 
     fn get_min_x(&self) -> i32 {
@@ -79,7 +83,7 @@ impl Sensor {
 /// @return sensors and set of beacons
 fn parse_input(input: String) -> (Vec<Sensor>, HashSet<Pos>) {
     let mut sensors = vec![];
-	let mut beacons_set = HashSet::new();
+    let mut beacons_set = HashSet::new();
     for line in input.lines() {
         let mut iter = line.split("=");
         iter.next();
@@ -109,7 +113,7 @@ fn parse_input(input: String) -> (Vec<Sensor>, HashSet<Pos>) {
             .unwrap();
         let by: i32 = iter.next().unwrap().parse().unwrap();
         sensors.push(Sensor::new(Pos::new(x, y), Pos::new(bx, by)));
-		beacons_set.insert(Pos::new(bx, by));
+        beacons_set.insert(Pos::new(bx, by));
     }
 
     (sensors, beacons_set)
@@ -134,9 +138,14 @@ fn find_first_beacon_in_row(sensors: &[Sensor], row_to_check: i32) -> i32 {
 fn can_contain_beacon(sensors: &[Sensor], pos: Pos) -> bool {
     for s in sensors {
         let dist = calc_distance(&s.at, &pos);
-        if dist < s.distance_to_furthest_beacon {
+        if dist <= s.distance_to_closest_beacon {
             return false;
         }
+        // the other thing to consider is if dist is equal to that sensor
+        // distance to an existing beacon, as there are no ties.
+        // if s.beacons_distances.get(&dist).is_some() {
+        // 	return false;
+        // }
     }
 
     true
@@ -146,10 +155,9 @@ pub fn solve(input: String, row_to_check: i32) -> usize {
     let (mut sensors, beacons_set) = parse_input(input);
     let (min_col, max_col) = get_min_max_x(&sensors);
 
-	// calc distance to furthest beacon for all sensors
-	for s in &mut sensors {
-		s.set_distance_to_furthest_beacon(&beacons_set);
-	}
+    for s in &mut sensors {
+        s.set_beacons_distances(&beacons_set);
+    }
 
     // which column to start ...? It helps that both rows to check
     // have beacon on it ... so I'll start from them
@@ -203,14 +211,14 @@ mod tests {
     #[test]
     fn part1_sample() {
         let input = util::read_file("inputs/day15-sample.txt");
-        assert_eq!(24, solve(input, 10));
+        assert_eq!(26, solve(input, 10));
     }
 
-    //#[test]
-    //fn part1_input() {
-    //    let input = util::read_file("inputs/day15.txt");
-    //    assert_eq!(683, solve(input, 2_000_000));
-    //}
+    #[test]
+    fn part1_input() {
+        let input = util::read_file("inputs/day15.txt");
+        assert_eq!(5181556, solve(input, 2_000_000));
+    }
 
     //#[test]
     //fn part2_sample() {
