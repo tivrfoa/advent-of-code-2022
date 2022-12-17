@@ -58,6 +58,14 @@ impl Sensor {
 			closest_beacon,
 		}
 	}
+
+	fn get_min_x(&self) -> i32 {
+		self.at.col.min(self.closest_beacon.col)
+	}
+
+	fn get_max_x(&self) -> i32 {
+		self.at.col.max(self.closest_beacon.col)
+	}
 }
 
 fn get_sensors(input: String) -> Vec<Sensor> {
@@ -75,10 +83,19 @@ fn get_sensors(input: String) -> Vec<Sensor> {
 	sensors
 }
 
+fn get_min_max_x(sensors: &[Sensor]) -> (i32, i32) {
+	let min_x = sensors.iter().map(|s| s.get_min_x()).min();
+	let max_x = sensors.iter().map(|s| s.get_max_x()).max();
+
+	(min_x.unwrap(), max_x.unwrap())
+}
+
 pub fn solve(input: String, row_to_check: i32) -> usize {
 	let sensors = get_sensors(input);
+	let (min_x, max_x) = get_min_max_x(&sensors);
+	dbg!(&sensors);
+	dbg!(min_x, max_x);
 
-	dbg!(sensors);
 	0
 }
 
