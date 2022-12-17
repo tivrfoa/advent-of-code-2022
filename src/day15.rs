@@ -2,6 +2,8 @@ use crate::util;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::ops::Range;
+use std::ops::RangeInclusive;
 
 /*
 
@@ -29,18 +31,18 @@ Maybe it can stop when it might be a beacon and after it's x position is:
   - smaller than all beacons when looking left.
 
 */
-fn calc_distance(point1: &Pos, point2: &Pos) -> i32 {
+fn calc_distance(point1: &Pos, point2: &Pos) -> i64 {
     (point1.col - point2.col).abs() + (point1.row - point2.row).abs()
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Pos {
-    row: i32,
-    col: i32,
+    row: i64,
+    col: i64,
 }
 
 impl Pos {
-    fn new(col: i32, row: i32) -> Self {
+    fn new(col: i64, row: i64) -> Self {
         Pos { col, row }
     }
 }
@@ -49,8 +51,8 @@ impl Pos {
 struct Sensor {
     at: Pos,
     closest_beacon: Pos,
-    distance_to_closest_beacon: i32,
-    beacons_distances: HashMap<i32, Pos>,
+    distance_to_closest_beacon: i64,
+    beacons_distances: HashMap<i64, Pos>,
 }
 
 impl Sensor {
@@ -71,19 +73,23 @@ impl Sensor {
         }
     }
 
-    fn get_min_x(&self) -> i32 {
+    fn radius(&self) -> i64 {
+        self.distance_to_closest_beacon
+    }
+
+    fn get_min_x(&self) -> i64 {
         self.at.col.min(self.closest_beacon.col)
     }
 
-    fn get_max_x(&self) -> i32 {
+    fn get_max_x(&self) -> i64 {
         self.at.col.max(self.closest_beacon.col)
     }
 
-    fn get_min_y(&self) -> i32 {
+    fn get_min_y(&self) -> i64 {
         self.at.row.min(self.closest_beacon.row)
     }
 
-    fn get_max_y(&self) -> i32 {
+    fn get_max_y(&self) -> i64 {
         self.at.row.max(self.closest_beacon.row)
     }
 }
@@ -95,7 +101,7 @@ fn parse_input(input: String) -> (Vec<Sensor>, HashSet<Pos>) {
     for line in input.lines() {
         let mut iter = line.split('=');
         iter.next();
-        let x: i32 = iter
+        let x: i64 = iter
             .next()
             .unwrap()
             .split_once(',')
@@ -103,7 +109,7 @@ fn parse_input(input: String) -> (Vec<Sensor>, HashSet<Pos>) {
             .0
             .parse()
             .unwrap();
-        let y: i32 = iter
+        let y: i64 = iter
             .next()
             .unwrap()
             .split_once(':')
@@ -111,7 +117,7 @@ fn parse_input(input: String) -> (Vec<Sensor>, HashSet<Pos>) {
             .0
             .parse()
             .unwrap();
-        let bx: i32 = iter
+        let bx: i64 = iter
             .next()
             .unwrap()
             .split_once(',')
@@ -119,7 +125,7 @@ fn parse_input(input: String) -> (Vec<Sensor>, HashSet<Pos>) {
             .0
             .parse()
             .unwrap();
-        let by: i32 = iter.next().unwrap().parse().unwrap();
+        let by: i64 = iter.next().unwrap().parse().unwrap();
         sensors.push(Sensor::new(Pos::new(x, y), Pos::new(bx, by)));
         beacons_set.insert(Pos::new(bx, by));
     }
@@ -127,21 +133,21 @@ fn parse_input(input: String) -> (Vec<Sensor>, HashSet<Pos>) {
     (sensors, beacons_set)
 }
 
-fn get_min_max_x(sensors: &[Sensor]) -> (i32, i32) {
+fn get_min_max_x(sensors: &[Sensor]) -> (i64, i64) {
     let min_x = sensors.iter().map(|s| s.get_min_x()).min();
     let max_x = sensors.iter().map(|s| s.get_max_x()).max();
 
     (min_x.unwrap(), max_x.unwrap())
 }
 
-fn get_min_max_y(sensors: &[Sensor]) -> (i32, i32) {
+fn get_min_max_y(sensors: &[Sensor]) -> (i64, i64) {
     let min_y = sensors.iter().map(|s| s.get_min_y()).min();
     let max_y = sensors.iter().map(|s| s.get_max_y()).max();
 
     (min_y.unwrap(), max_y.unwrap())
 }
 
-fn find_first_beacon_in_row(sensors: &[Sensor], row_to_check: i32) -> i32 {
+fn find_first_beacon_in_row(sensors: &[Sensor], row_to_check: i64) -> i64 {
     for s in sensors {
         if s.closest_beacon.row == row_to_check {
             return s.closest_beacon.col;
@@ -166,7 +172,7 @@ fn can_contain_beacon(sensors: &[Sensor], pos: Pos) -> bool {
     true
 }
 
-pub fn solve(input: String, row_to_check: i32) -> usize {
+pub fn solve(input: String, row_to_check: i64) -> usize {
     let (mut sensors, beacons_set) = parse_input(input);
     let (min_col, max_col) = get_min_max_x(&sensors);
 
@@ -208,55 +214,58 @@ pub fn solve(input: String, row_to_check: i32) -> usize {
     positions_without_beacon
 }
 
-pub fn solve_part2(input: String, max: i32) -> i32 {
+pub fn solve_part2(input: String, max: i64) -> i64 {
     let (sensors, beacons_set) = parse_input(input);
     let (min_col, max_col) = get_min_max_x(&sensors);
     let (min_row, max_row) = get_min_max_y(&sensors);
 
-	for s in &sensors {
-		let y = s.at.row;
-		let start_col = s.at.col;
-		if y < 0 { continue; }
-		let mut curr_col = start_col - 1;
-		while curr_col >= min_col - 10 {
-			if can_contain_beacon(&sensors, Pos::new(curr_col, y)) {
-				return curr_col * 4000000 + y;
-			}
-			curr_col -= 1;
-		}
+    // let's try to use ranges. Copying Login from Uncle Scientist
+    // https://www.youtube.com/watch?v=oOgDTx_tAp4
+    let mut rowdata: Vec<Vec<RangeInclusive<i64>>> = vec![vec![0..=max]; max as usize + 1];
+    for s in &sensors {
+        let radius = s.radius();
+        let top = 0.max(s.at.row - radius);
+        let bottom = max.min(s.at.row + radius);
 
-		// try right
-		let mut curr_col = start_col + 1;
-		while curr_col <= max_col {
-			if can_contain_beacon(&sensors, Pos::new(curr_col, y)) {
-				return curr_col * 4000000 + y;
-			}
-			curr_col += 1;
-		}
-	}
+        for row in top..=bottom {
+            let dist = (s.at.row - row).abs();
+            let min_x = 0.max(s.at.col - (radius - dist));
+            let max_x = max.min(s.at.col + (radius - dist));
 
-	for s in &beacons_set {
-		let y = s.row;
-		if y < 0 { continue; }
-		let mut curr_col = s.col - 1;
-		while curr_col >= min_col - 10 {
-			if can_contain_beacon(&sensors, Pos::new(curr_col, y)) {
-				return curr_col * 4000000 + y;
-			}
-			curr_col -= 1;
-		}
+            let mut new_range = vec![];
+            for r in &rowdata[row as usize] {
+                let start = *r.start();
+                if start > max_x {
+                    new_range.push(r.clone());
+                    continue;
+                }
 
-		// try right
-		let mut curr_col = s.col + 1;
-		while curr_col <= max_col {
-			if can_contain_beacon(&sensors, Pos::new(curr_col, y)) {
-				return curr_col * 4000000 + y;
-			}
-			curr_col += 1;
-		}
-	}
+                let end = *r.end();
+                if end < min_x {
+                    new_range.push(r.clone());
+                    continue;
+                }
 
-	panic!("It didn't find a beacon :(");
+                if start < min_x {
+                    new_range.push(start..=min_x - 1);
+                }
+                if end > max_x {
+                    new_range.push(max_x + 1..=end);
+                }
+            }
+
+            rowdata[row as usize] = new_range;
+        }
+    }
+
+    for (y, r) in rowdata.iter().enumerate() {
+        if !r.is_empty() {
+            let x = r[0].start();
+            return x * 4_000_000 + y as i64;
+        }
+    }
+
+    panic!("It didn't find a beacon :(");
 }
 
 #[allow(dead_code)]
@@ -291,6 +300,6 @@ mod tests {
     #[test]
     fn part2_input() {
         let input = util::read_file("inputs/day15.txt");
-        assert_eq!(28821, solve_part2(input, 4000000));
+        assert_eq!(12817603219131, solve_part2(input, 4000000));
     }
 }
