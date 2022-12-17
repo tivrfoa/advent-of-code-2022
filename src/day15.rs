@@ -213,15 +213,28 @@ pub fn solve_part2(input: String, max: i32) -> i32 {
     let (min_col, max_col) = get_min_max_x(&sensors);
     let (min_row, max_row) = get_min_max_y(&sensors);
 
-	let y = 2_000_000;
-	// for y in 0..=max.min(max_row) {
+	// let's try rows where there are beacons or sensors
+	for s in &sensors {
+		let y = s.at.row;
+		if y < 0 { continue; }
 		for x in 0..=max.min(max_col) {
 			if !beacons_set.contains(&Pos::new(x, y)) &&
 					can_contain_beacon(&sensors, Pos::new(x, y)) {
 				return x * 4000000 + y;
 			}
 		}
-	// }
+	}
+
+	for s in &beacons_set {
+		let y = s.row;
+		if y < 0 { continue; }
+		for x in 0..=max.min(max_col) {
+			if !beacons_set.contains(&Pos::new(x, y)) &&
+					can_contain_beacon(&sensors, Pos::new(x, y)) {
+				return x * 4000000 + y;
+			}
+		}
+	}
 
 	panic!("It didn't find a beacon :(");
 }
