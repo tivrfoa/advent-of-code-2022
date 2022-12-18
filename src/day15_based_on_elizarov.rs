@@ -193,18 +193,19 @@ struct SB {
     sy: i64,
     bx: i64,
     by: i64,
+    d: i64,
 }
 
 impl SB {
     fn get_sb_vec(sensors: &[Sensor]) -> Vec<Self> {
         let mut vec = Vec::with_capacity(sensors.len());
         for s in sensors {
-            vec.push(SB {
-                sx: s.at.col,
-                sy: s.at.row,
-                bx: s.closest_beacon.col,
-                by: s.closest_beacon.row,
-            });
+            let sx = s.at.col;
+            let sy = s.at.row;
+            let bx = s.closest_beacon.col;
+            let by = s.closest_beacon.row;
+            let d = (sx - bx).abs() + (sy - by).abs();
+            vec.push(SB { sx, sy, bx, by, d });
         }
         vec
     }
@@ -230,8 +231,8 @@ pub fn solve_part2(input: String, max: i64) -> i64 {
 
     for ty in 0..max_c {
         es.clear();
-        for SB { sx, sy, bx, by } in &sbs {
-            let d = (sx - bx).abs() + (sy - by).abs();
+        for SB { sx, sy, bx, by, d } in &sbs {
+            let d = *d;
             if (ty - sy).abs() <= d {
                 let w = d - (ty - sy).abs();
                 es.push(Ev { x: sx - w, d: 1 });
