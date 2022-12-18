@@ -106,9 +106,9 @@ fn bt(
             valves,
             used_valves,
             minutes + 1,
+            previous_idx,
             curr_idx,
-            curr_idx,
-            Action::Stay,
+            Action::Move, // used to avoid go to previous valve
             curr_flow,
         );
         if pressure > max {
@@ -141,8 +141,6 @@ fn bt(
 pub fn solve(input: String) -> usize {
     let mut valves = parse_input(input);
     let mut used_valves = vec![false; valves.len()];
-
-    dbg!(&valves);
 
     // I'll use backtrack
     bt(&mut valves, &mut used_valves, 1, 0, 0, Action::Start, 0)
