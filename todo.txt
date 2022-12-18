@@ -1,0 +1,26 @@
+
+
+## Day 15
+
+### Debug Elizarov Solution
+
+### Try to implement the solution below:
+
+https://www.youtube.com/watch?v=QP7QALSYnHk&lc=UgywSzS0EhOQFrOg4Xx4AaABAg
+
+
+@MasterHigure
+2 days ago (edited)
+This was the first problem this year where naive brute-force doesn't work.
+That's always exciting. I did the bare minimum optimization,
+and it worked wonders:
+
+for y in 0..=4M:
+    x=0
+    while x<=4M:
+        for s in sensors:
+            if (x,y) is in range of s:
+                move x past range of s
+                continue while-loop
+            return (x,y)
+
