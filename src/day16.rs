@@ -8,6 +8,7 @@ struct Valve {
     idx: usize,
     flow_rate: usize,
     conn_indexes: Vec<usize>,
+	used: bool,
 }
 
 fn parse_input(input: String) -> Vec<Valve> {
@@ -47,6 +48,7 @@ fn parse_input(input: String) -> Vec<Valve> {
             idx: *valves_index_map.get(valve_label).unwrap(),
             flow_rate: flow_rate.parse().unwrap(),
             conn_indexes,
+			used: false,
         });
     }
 
@@ -61,12 +63,10 @@ enum Action {
     Open,
     Move,
     Start,
-    Stay,
 }
 
 fn bt(
     valves: &mut Vec<Valve>,
-    used_valves: &mut Vec<bool>,
     minutes: usize,
     previous_idx: usize,
     curr_idx: usize,
@@ -79,12 +79,11 @@ fn bt(
     let mut max = 0;
 
     // option 1 - open valve
-    if !used_valves[curr_idx] && valves[curr_idx].flow_rate > 0 {
-        used_valves[curr_idx] = true;
+    if !valves[curr_idx].used && valves[curr_idx].flow_rate > 0 {
+        valves[curr_idx].used = true;
 
         let pressure = bt(
             valves,
-            used_valves,
             minutes + 1,
             previous_idx,
             curr_idx,
@@ -96,33 +95,24 @@ fn bt(
         }
 
         // undo
-        used_valves[curr_idx] = false;
+        valves[curr_idx].used = false;
     }
 
     // option 2 - move to some connection
     let len = valves[curr_idx].conn_indexes.len();
     if len == 0 {
-        let pressure = bt(
-            valves,
-            used_valves,
-            minutes + 1,
-            previous_idx,
-            curr_idx,
-            Action::Move, // used to avoid go to previous valve
-            curr_flow,
-        );
-        if pressure > max {
-            max = pressure;
-        }
+		// it can't go anywhere, so just return
+		return curr_flow * (30 - minutes);
     } else {
         for i in 0..len {
             let idx = valves[curr_idx].conn_indexes[i];
+
+			// It doesn't make sense to go back to previous position
             if idx == previous_idx && last_action == Action::Move {
                 continue;
             }
             let pressure = bt(
                 valves,
-                used_valves,
                 minutes + 1,
                 curr_idx,
                 idx,
@@ -140,10 +130,9 @@ fn bt(
 
 pub fn solve(input: String) -> usize {
     let mut valves = parse_input(input);
-    let mut used_valves = vec![false; valves.len()];
 
     // I'll use backtrack
-    bt(&mut valves, &mut used_valves, 1, 0, 0, Action::Start, 0)
+    bt(&mut valves, 1, 0, 0, Action::Start, 0)
 }
 
 pub fn solve_part2(input: String, max: i64) -> i64 {
