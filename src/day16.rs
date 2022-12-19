@@ -8,7 +8,7 @@ struct Valve {
     idx: usize,
     flow_rate: usize,
     conn_indexes: Vec<usize>,
-	used: bool,
+    used: bool,
 }
 
 fn parse_input(input: String) -> Vec<Valve> {
@@ -48,7 +48,7 @@ fn parse_input(input: String) -> Vec<Valve> {
             idx: *valves_index_map.get(valve_label).unwrap(),
             flow_rate: flow_rate.parse().unwrap(),
             conn_indexes,
-			used: false,
+            used: false,
         });
     }
 
@@ -58,19 +58,11 @@ fn parse_input(input: String) -> Vec<Valve> {
     valves
 }
 
-#[derive(PartialEq)]
-enum Action {
-    Open,
-    Move,
-    Start,
-}
-
 fn bt(
     valves: &mut Vec<Valve>,
     minutes: usize,
     previous_idx: usize,
     curr_idx: usize,
-    last_action: Action,
     curr_flow: usize,
 ) -> usize {
     if minutes == 30 {
@@ -85,14 +77,11 @@ fn bt(
         let pressure = bt(
             valves,
             minutes + 1,
-            previous_idx,
             curr_idx,
-            Action::Open,
+            curr_idx,
             curr_flow + valves[curr_idx].flow_rate,
         );
-        if pressure > max {
-            max = pressure;
-        }
+        max = pressure;
 
         // undo
         valves[curr_idx].used = false;
@@ -101,24 +90,21 @@ fn bt(
     // option 2 - move to some connection
     let len = valves[curr_idx].conn_indexes.len();
     if len == 0 {
-		// it can't go anywhere, so just return
-		return curr_flow * (30 - minutes);
+        // it can't go anywhere, so just return
+        // 29, because curr_flow is added before return
+        let pressure = curr_flow * (29 - minutes);
+        if pressure > max {
+            max = pressure;
+        }
     } else {
         for i in 0..len {
             let idx = valves[curr_idx].conn_indexes[i];
 
-			// It doesn't make sense to go back to previous position
-            if idx == previous_idx && last_action == Action::Move {
+            // It doesn't make sense to go back to previous position
+            if idx == previous_idx {
                 continue;
             }
-            let pressure = bt(
-                valves,
-                minutes + 1,
-                curr_idx,
-                idx,
-                Action::Move,
-                curr_flow,
-            );
+            let pressure = bt(valves, minutes + 1, curr_idx, idx, curr_flow);
             if pressure > max {
                 max = pressure;
             }
@@ -131,8 +117,10 @@ fn bt(
 pub fn solve(input: String) -> usize {
     let mut valves = parse_input(input);
 
+    let start_idx = valves.iter().position(|v| v.label == "AA").unwrap();
+
     // I'll use backtrack
-    bt(&mut valves, 1, 0, 0, Action::Start, 0)
+    bt(&mut valves, 1, start_idx, start_idx, 0)
 }
 
 pub fn solve_part2(input: String, max: i64) -> i64 {
@@ -159,7 +147,7 @@ mod tests {
     #[test]
     fn part1_input() {
         let input = util::read_file("inputs/day16.txt");
-        assert_eq!(5181556, solve(input));
+        assert_eq!(1845, solve(input));
     }
 
     //#[test]

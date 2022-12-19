@@ -2,8 +2,8 @@ mod day16;
 mod util;
 
 fn main() {
-	test_sample();
-	test_input();
+    test_sample();
+    test_input();
 }
 
 fn test_sample() {
