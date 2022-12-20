@@ -147,11 +147,13 @@ fn bt(
             Action::Move(from, to) => {
                 if !is_bit_set(mask, to) && valves[to].flow_rate > 0 {
                     next_actions[i].push(Action::Open(to));
-                }
-
-                for conn in &valves[to].conn_indexes {
-                    if *conn != from {
-                        next_actions[i].push(Action::Move(to, *conn));
+                } else if valves[to].conn_indexes.len() == 1 {
+                    next_actions[i].push(Action::DontMove);
+                } else {
+                    for conn in &valves[to].conn_indexes {
+                        if *conn != from {
+                            next_actions[i].push(Action::Move(to, *conn));
+                        }
                     }
                 }
             }
@@ -268,7 +270,7 @@ mod tests {
     #[test]
     fn part1_sample() {
         let input = util::read_file("inputs/day16-sample.txt");
-        assert_eq!(1651, solve(input));
+        assert_eq!(1707, solve(input));
     }
 
     //#[test]
