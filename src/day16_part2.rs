@@ -88,7 +88,7 @@ fn bt(
     mut mask: usize,
     actions: &[Action; 2],
     minutes: usize,
-    mut curr_flow: usize,
+    curr_flow: usize,
     mut used_valves: usize,
     valves_with_flow_greater_than_zero: usize,
 ) -> usize {
@@ -97,10 +97,10 @@ fn bt(
     }
 
     // check if all valves are already open
-    if used_valves == valves_with_flow_greater_than_zero {
+    /*if used_valves == valves_with_flow_greater_than_zero {
         // println!("Used all {used_valves} valves!");
         return curr_flow * (26 - minutes);
-    }
+    }*/
 
     let key = get_key(minutes, mask, &actions);
     if let Some(flow) = memo.get(&key) {
@@ -113,19 +113,10 @@ fn bt(
 		return usize::MIN;
 	}
 
-    // corner case: player is trying to open a valve that was
-    // opened by another player
-    for action in actions {
-        if let Action::Open(i) = action {
-            if valves[*i].is_used(mask) {
-                return usize::MIN;
-            }
-        }
-    }
-
     // If it reached here, then the actions can be performed
 
     let mut next_actions: [Vec<Action>; 2] = [vec![], vec![]];
+    let mut additional_flow = 0;
 
     for i in 0..2 {
         match actions[i] {
@@ -136,8 +127,13 @@ fn bt(
                 next_actions[i].push(Action::DontMove);
             }
             Action::Open(idx) => {
+                if valves[idx].is_used(mask) {
+                    // corner case: player is trying to open a valve that was
+                    // opened by another player
+                    return usize::MIN;
+                }
                 mask = toggle_bit(mask, idx);
-                curr_flow += valves[idx].flow_rate;
+                additional_flow += valves[idx].flow_rate;
                 used_valves += 1;
 
                 for conn in &valves[idx].conn_indexes {
@@ -145,15 +141,20 @@ fn bt(
                 }
             }
             Action::Move(from, to) => {
-                if !is_bit_set(mask, to) && valves[to].flow_rate > 0 {
+                let can_open_valve = !is_bit_set(mask, to) && valves[to].flow_rate > 0;
+                if can_open_valve {
                     next_actions[i].push(Action::Open(to));
-                } else if valves[to].conn_indexes.len() == 1 {
+                }
+
+                if !can_open_valve && valves[to].conn_indexes.len() == 1 {
+                    // If last action is Move, it can't open valve and there's only
+                    // one connection then DontMove
                     next_actions[i].push(Action::DontMove);
-                } else {
-                    for conn in &valves[to].conn_indexes {
-                        if *conn != from {
-                            next_actions[i].push(Action::Move(to, *conn));
-                        }
+                }
+
+                for conn in &valves[to].conn_indexes {
+                    if *conn != from {
+                        next_actions[i].push(Action::Move(to, *conn));
                     }
                 }
             }
@@ -170,7 +171,7 @@ fn bt(
                 mask,
                 &[a1.clone(), a2.clone()],
                 minutes + 1,
-                curr_flow,
+                curr_flow + additional_flow,
                 used_valves,
                 valves_with_flow_greater_than_zero,
             );
@@ -198,7 +199,7 @@ impl Action {
         use Action::*;
         match self {
             DontMove => "DM".to_string(),
-            Move(from, to) => {
+            Move(_, to) => {
                 let mut s = "MV".to_string();
                 s.push_str(&to.to_string());
                 s
