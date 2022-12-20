@@ -90,15 +90,16 @@ fn bt(
 	actions: &[Action; 2],
     minutes: usize,
     mut curr_flow: usize,
+	mut used_valves: usize,
+	valves_with_flow_greater_than_zero: usize,
 ) -> usize {
     if minutes == 26 {
         return curr_flow;
     }
 
 	// check if all valves are already open
-	if (0..valves.len())
-		.map(|i| is_bit_set(mask, i))
-		.find(|b| *b == false).is_none() {
+	if used_valves == valves_with_flow_greater_than_zero {
+		// println!("Used all {used_valves} valves!");
 		return curr_flow * (26 - minutes);
 	}
 
@@ -138,6 +139,7 @@ fn bt(
 			Action::Open(idx) => {
 				mask = toggle_bit(mask, idx);
 				curr_flow += valves[idx].flow_rate;
+				used_valves += 1;
 
 				for conn in &valves[idx].conn_indexes {
 					next_actions[i].push(Action::Move(idx, *conn));
@@ -167,6 +169,8 @@ fn bt(
 				&[a1.clone(), a2.clone()],
 				minutes + 1,
 				curr_flow,
+				used_valves,
+				valves_with_flow_greater_than_zero,
 				);
 			if pressure > max {
 				max = pressure;
@@ -207,6 +211,33 @@ impl Action {
 	}
 }
 
+pub fn solve(input: String) -> usize {
+    let valves = parse_input(input);
+
+    let start_idx = valves.iter().position(|v| v.label == "AA").unwrap();
+
+	// Memoize maximum pressure it get from a particular:
+	// time-used_mask-action_a-action_b
+	let mut memo: HashMap<String, usize> = HashMap::new();
+	let mask: usize = 0;
+	let valves_with_flow_greater_than_zero = valves.iter()
+			.filter(|v| v.flow_rate > 0).count();
+
+    // I'll use backtrack
+    let ans = bt(&valves,
+		&mut memo,
+		mask,
+		&[Action::Move(start_idx, start_idx), Action::Move(start_idx, start_idx)],
+		0,
+		0,
+		0,
+		valves_with_flow_greater_than_zero);
+
+	println!("memo len = {}", memo.len());
+
+	ans
+}
+
 fn toggle_bit(n: usize, bit: usize) -> usize {
     n ^ 1 << bit
 }
@@ -218,29 +249,6 @@ fn check_bit(n: usize, bit: usize) -> usize {
 
 fn is_bit_set(n: usize, bit: usize) -> bool {
     (n >> bit) & 1 == 1
-}
-
-pub fn solve(input: String) -> usize {
-    let valves = parse_input(input);
-
-    let start_idx = valves.iter().position(|v| v.label == "AA").unwrap();
-
-	// Memoize maximum pressure it get from a particular:
-	// time-used_mask-action_a-action_b
-	let mut memo: HashMap<String, usize> = HashMap::new();
-	let mask: usize = 0;
-
-    // I'll use backtrack
-    let ans = bt(&valves,
-		&mut memo,
-		mask,
-		&[Action::Move(start_idx, start_idx), Action::Move(start_idx, start_idx)],
-		0,
-		0);
-	println!("{:?}", memo);
-	println!("memo len = {}", memo.len());
-
-	ans
 }
 
 #[allow(dead_code)]
