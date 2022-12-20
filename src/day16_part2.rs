@@ -12,9 +12,9 @@ struct Valve {
 }
 
 impl Valve {
-	fn is_used(&self, mask: usize) -> bool {
-		check_bit(mask, self.idx) == 1
-	}
+    fn is_used(&self, mask: usize) -> bool {
+        check_bit(mask, self.idx) == 1
+    }
 }
 
 fn parse_input(input: String) -> Vec<Valve> {
@@ -63,8 +63,7 @@ fn parse_input(input: String) -> Vec<Valve> {
     valves
 }
 
-fn get_key(minutes: usize, mask: usize, actions: &[Action; 2])
- -> String {
+fn get_key(minutes: usize, mask: usize, actions: &[Action; 2]) -> String {
     let mut key_parts: Vec<String> = Vec::with_capacity(4);
     key_parts.push(minutes.to_string());
     key_parts.push(mask.to_string());
@@ -85,130 +84,130 @@ fn get_key(minutes: usize, mask: usize, actions: &[Action; 2])
 /// till the end
 fn bt(
     valves: &[Valve],
-	memo: &mut HashMap<String, usize>,
-	mut mask: usize,
-	actions: &[Action; 2],
+    memo: &mut HashMap<String, usize>,
+    mut mask: usize,
+    actions: &[Action; 2],
     minutes: usize,
     mut curr_flow: usize,
-	mut used_valves: usize,
-	valves_with_flow_greater_than_zero: usize,
+    mut used_valves: usize,
+    valves_with_flow_greater_than_zero: usize,
 ) -> usize {
     if minutes == 26 {
         return curr_flow;
     }
 
-	// check if all valves are already open
-	if used_valves == valves_with_flow_greater_than_zero {
-		// println!("Used all {used_valves} valves!");
-		return curr_flow * (26 - minutes);
-	}
+    // check if all valves are already open
+    if used_valves == valves_with_flow_greater_than_zero {
+        // println!("Used all {used_valves} valves!");
+        return curr_flow * (26 - minutes);
+    }
 
-	let key = get_key(minutes, mask, &actions);
-	if let Some(flow) = memo.get(&key) {
-		// println!("Found in memo. minutes = {minutes}");
-		return *flow;
-	}
+    let key = get_key(minutes, mask, &actions);
+    if let Some(flow) = memo.get(&key) {
+        // println!("Found in memo. minutes = {minutes}");
+        return *flow;
+    }
 
-	// corner case: both are trying to open the same valve
-	if actions[0] == actions[1] && let Action::Open(_) = actions[0] {
+    // corner case: both are trying to open the same valve
+    if actions[0] == actions[1] && let Action::Open(_) = actions[0] {
 		return usize::MIN;
 	}
 
-	// corner case: player is trying to open a valve that was
-	// opened by another player
-	for action in actions {
-		if let Action::Open(i) = action {
-			if valves[*i].is_used(mask) {
-				return usize::MIN;
-			}
-		}
-	}
+    // corner case: player is trying to open a valve that was
+    // opened by another player
+    for action in actions {
+        if let Action::Open(i) = action {
+            if valves[*i].is_used(mask) {
+                return usize::MIN;
+            }
+        }
+    }
 
-	// If it reached here, then the actions can be performed
+    // If it reached here, then the actions can be performed
 
-	let mut next_actions: [Vec<Action>; 2] = [vec![], vec![]];
+    let mut next_actions: [Vec<Action>; 2] = [vec![], vec![]];
 
-	for i in 0..2 {
-		match actions[i] {
-			Action::DontMove => {
-				// it doesn't need to get possible actions.
-				// if it's in this state, it will stay like this
-				// foreverrrrrrr
-				next_actions[i].push(Action::DontMove);
-			}
-			Action::Open(idx) => {
-				mask = toggle_bit(mask, idx);
-				curr_flow += valves[idx].flow_rate;
-				used_valves += 1;
+    for i in 0..2 {
+        match actions[i] {
+            Action::DontMove => {
+                // it doesn't need to get possible actions.
+                // if it's in this state, it will stay like this
+                // foreverrrrrrr
+                next_actions[i].push(Action::DontMove);
+            }
+            Action::Open(idx) => {
+                mask = toggle_bit(mask, idx);
+                curr_flow += valves[idx].flow_rate;
+                used_valves += 1;
 
-				for conn in &valves[idx].conn_indexes {
-					next_actions[i].push(Action::Move(idx, *conn));
-				}
-			}
-			Action::Move(from, to) => {
-				if !is_bit_set(mask, to) && valves[to].flow_rate > 0 {
-					next_actions[i].push(Action::Open(to));
-				}
+                for conn in &valves[idx].conn_indexes {
+                    next_actions[i].push(Action::Move(idx, *conn));
+                }
+            }
+            Action::Move(from, to) => {
+                if !is_bit_set(mask, to) && valves[to].flow_rate > 0 {
+                    next_actions[i].push(Action::Open(to));
+                }
 
-				for conn in &valves[to].conn_indexes {
-					if *conn != from {
-						next_actions[i].push(Action::Move(to, *conn));
-					}
-				}
-			}
-		}
-	}
+                for conn in &valves[to].conn_indexes {
+                    if *conn != from {
+                        next_actions[i].push(Action::Move(to, *conn));
+                    }
+                }
+            }
+        }
+    }
 
     let mut max = 0;
 
-	for a1 in &next_actions[0] {
-		for a2 in &next_actions[1] {
-			let pressure = bt(valves,
-				memo,
-				mask,
-				&[a1.clone(), a2.clone()],
-				minutes + 1,
-				curr_flow,
-				used_valves,
-				valves_with_flow_greater_than_zero,
-				);
-			if pressure > max {
-				max = pressure;
-			}
-		}
-	}
+    for a1 in &next_actions[0] {
+        for a2 in &next_actions[1] {
+            let pressure = bt(
+                valves,
+                memo,
+                mask,
+                &[a1.clone(), a2.clone()],
+                minutes + 1,
+                curr_flow,
+                used_valves,
+                valves_with_flow_greater_than_zero,
+            );
+            if pressure > max {
+                max = pressure;
+            }
+        }
+    }
 
-	let pressure_released = curr_flow + max;
-	memo.insert(key, pressure_released);
+    let pressure_released = curr_flow + max;
+    memo.insert(key, pressure_released);
 
-
-	pressure_released
+    pressure_released
 }
 
 #[derive(Copy, Clone, PartialEq)]
 enum Action {
-	DontMove,
-	Move(usize, usize), // from -> to
-	Open(usize), // current idx
+    DontMove,
+    Move(usize, usize), // from -> to
+    Open(usize),        // current idx
 }
 
 impl Action {
-	fn to_string(&self) -> String {
-		use Action::*;
-		match self {
-			DontMove => "DM".to_string(),
-			Move(from, to) => {
-				let mut s = "MV".to_string();
-				s.push_str(&to.to_string());
-				s
-			}
-			Open(i) => {
-				let mut s = "OP".to_string();
-				s.push_str(&i.to_string());
-				s
-			}
-		}
-	}
+    fn to_string(&self) -> String {
+        use Action::*;
+        match self {
+            DontMove => "DM".to_string(),
+            Move(from, to) => {
+                let mut s = "MV".to_string();
+                s.push_str(&to.to_string());
+                s
+            }
+            Open(i) => {
+                let mut s = "OP".to_string();
+                s.push_str(&i.to_string());
+                s
+            }
+        }
+    }
 }
 
 pub fn solve(input: String) -> usize {
@@ -216,26 +215,30 @@ pub fn solve(input: String) -> usize {
 
     let start_idx = valves.iter().position(|v| v.label == "AA").unwrap();
 
-	// Memoize maximum pressure it get from a particular:
-	// time-used_mask-action_a-action_b
-	let mut memo: HashMap<String, usize> = HashMap::new();
-	let mask: usize = 0;
-	let valves_with_flow_greater_than_zero = valves.iter()
-			.filter(|v| v.flow_rate > 0).count();
+    // Memoize maximum pressure it get from a particular:
+    // time-used_mask-action_a-action_b
+    let mut memo: HashMap<String, usize> = HashMap::new();
+    let mask: usize = 0;
+    let valves_with_flow_greater_than_zero = valves.iter().filter(|v| v.flow_rate > 0).count();
 
     // I'll use backtrack
-    let ans = bt(&valves,
-		&mut memo,
-		mask,
-		&[Action::Move(start_idx, start_idx), Action::Move(start_idx, start_idx)],
-		0,
-		0,
-		0,
-		valves_with_flow_greater_than_zero);
+    let ans = bt(
+        &valves,
+        &mut memo,
+        mask,
+        &[
+            Action::Move(start_idx, start_idx),
+            Action::Move(start_idx, start_idx),
+        ],
+        0,
+        0,
+        0,
+        valves_with_flow_greater_than_zero,
+    );
 
-	println!("memo len = {}", memo.len());
+    println!("memo len = {}", memo.len());
 
-	ans
+    ans
 }
 
 fn toggle_bit(n: usize, bit: usize) -> usize {

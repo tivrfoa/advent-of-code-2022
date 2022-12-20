@@ -88,18 +88,18 @@ fn bt(
     }
 
     // option 2 - move to some connection
-	for i in 0..valves[curr_idx].conn_indexes.len() {
-		let idx = valves[curr_idx].conn_indexes[i];
+    for i in 0..valves[curr_idx].conn_indexes.len() {
+        let idx = valves[curr_idx].conn_indexes[i];
 
-		// It doesn't make sense to go back to previous position
-		if idx == previous_idx {
-			continue;
-		}
-		let pressure = bt(valves, minutes + 1, curr_idx, idx, curr_flow);
-		if pressure > max {
-			max = pressure;
-		}
-	}
+        // It doesn't make sense to go back to previous position
+        if idx == previous_idx {
+            continue;
+        }
+        let pressure = bt(valves, minutes + 1, curr_idx, idx, curr_flow);
+        if pressure > max {
+            max = pressure;
+        }
+    }
 
     curr_flow + max
 }
