@@ -214,8 +214,52 @@ impl Action {
     }
 }
 
+fn visit(valves: &[Valve], costs: &mut Vec<usize>, curr_idx: usize, curr_cost: usize) {
+    let mut new_adj = vec![];
+    for adj in &valves[curr_idx].conn_indexes {
+        if costs[*adj] == usize::MAX {
+            new_adj.push(*adj);
+        }
+        if curr_cost < costs[*adj] {
+            costs[*adj] = curr_cost;
+        }
+    }
+
+    for n in new_adj {
+        visit(valves, costs, n, curr_cost + 1);
+    }
+}
+
+/// make a graph keeping valves with flow rate > 0 and connecting
+/// all valves with the cost (minutes) to get to them.
+fn compress(valves: &[Valve]) -> Vec<Vec<(usize, usize)>> {
+    let mut graph = vec![];
+    for (i, v) in valves.iter().enumerate() {
+        let mut costs = vec![usize::MAX; valves.len()];
+        costs[i] = 0;
+        visit(&valves, &mut costs, i, 1);
+
+        // dbg!(costs);
+
+        let mut edges: Vec<(usize, usize)> = vec![];
+        for (idx, c) in costs.iter().enumerate() {
+            if i == idx || valves[idx].flow_rate == 0 {
+                continue;
+            }
+            edges.push((idx, *c));
+        }
+
+        graph.push(edges);
+    }
+
+    graph
+}
+
 pub fn solve(input: String) -> usize {
     let valves = parse_input(input);
+    let graph = compress(&valves);
+
+    dbg!(graph);
 
     let start_idx = valves.iter().position(|v| v.label == "AA").unwrap();
 

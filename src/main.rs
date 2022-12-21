@@ -3,7 +3,7 @@ mod util;
 
 fn main() {
     test_sample();
-    test_input();
+    // test_input();
 }
 
 fn test_sample() {
