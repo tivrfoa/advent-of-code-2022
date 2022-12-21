@@ -80,27 +80,47 @@ fn get_key(minutes: usize, mask: usize, actions: &[Action; 2]) -> String {
     key_parts.join("-")
 }
 
+const MAX_MINUTES: usize = 26;
+
 /// return max pressure released from this state
 /// till the end
 fn bt(
     valves: &[Valve],
+    graph: &[(usize, usize)],
     memo: &mut HashMap<String, usize>,
     mut mask: usize,
     actions: &[Action; 2],
-    minutes: usize,
     curr_flow: usize,
     mut used_valves: usize,
     valves_with_flow_greater_than_zero: usize,
 ) -> usize {
-    if minutes == 26 {
-        return curr_flow;
+
+    // check if time finished for all players
+    {
+        let mut fin = true;
+        for a in actions {
+            match a {
+                DontMove(m) => if m <= MAX_MINUTES { // TODO check it it is only '<'
+                    fin = false;
+                    break;
+                }
+                Open(_, m) => if m <= MAX_MINUTES {
+                    fin = false;
+                    break;
+                }
+            }
+        }
+
+        if fin {
+            return curr_flow;
+        }
     }
 
     // check if all valves are already open
     // TODO what's wrong here. If I uncomment I get wrong result for sample
     if used_valves == valves_with_flow_greater_than_zero {
         // println!("Used all {used_valves} valves!");
-        return curr_flow * (26 - minutes + 1);
+        return curr_flow * (MAX_MINUTES - minutes + 1);
     }
 
     let key = get_key(minutes, mask, &actions);
@@ -110,53 +130,46 @@ fn bt(
     }
 
     // corner case: both are trying to open the same valve
-    if actions[0] == actions[1] && let Action::Open(_) = actions[0] {
-		return usize::MIN;
-	}
+    if actions[0] == actions[1] && let Action::Open(_, min) = actions[0] {
+        if min > 0 {
+            return usize::MIN;
+        }
+    }
 
     // If it reached here, then the actions can be performed
 
-    let mut next_actions: [Vec<Action>; 2] = [vec![], vec![]];
+    let mut next_actions: [Vec<Player>; 2] = [vec![], vec![]];
     let mut additional_flow = 0;
 
     for i in 0..2 {
-        match actions[i] {
+        match actions[i].current_action {
             Action::DontMove => {
                 // it doesn't need to get possible actions.
                 // if it's in this state, it will stay like this
                 // foreverrrrrrr
-                next_actions[i].push(Action::DontMove);
+                next_actions[i].push(Action::DontMove(minutes + 1);
             }
-            Action::Open(idx) => {
-                if valves[idx].is_used(mask) {
-                    // corner case: player is trying to open a valve that was
-                    // opened by another player
-                    return usize::MIN;
-                }
-                mask = toggle_bit(mask, idx);
-                additional_flow += valves[idx].flow_rate;
-                used_valves += 1;
-
-                for conn in &valves[idx].conn_indexes {
-                    next_actions[i].push(Action::Move(idx, *conn));
-                }
-            }
-            Action::Move(from, to) => {
-                let can_open_valve = !is_bit_set(mask, to) && valves[to].flow_rate > 0;
-                if can_open_valve {
-                    next_actions[i].push(Action::Open(to));
-                }
-
-                if !can_open_valve && valves[to].conn_indexes.len() == 1 {
-                    // If last action is Move, it can't open valve and there's only
-                    // one connection then DontMove
-                    next_actions[i].push(Action::DontMove);
-                }
-
-                for conn in &valves[to].conn_indexes {
-                    if *conn != from {
-                        next_actions[i].push(Action::Move(to, *conn));
+            Action::Open(idx, minutes) => {
+                if minutes > 0 {
+                    if valves[idx].is_used(mask) {
+                        // corner case: player is trying to open a valve that was
+                        // opened by another player
+                        return usize::MIN;
                     }
+                    mask = toggle_bit(mask, idx);
+                    additional_flow += valves[idx].flow_rate;
+                    used_valves += 1;
+                }
+
+                let mut found_path = false;
+                for (conn_idx, cost) in &graph[idx] {
+                    if minutes + cost < MAX_MINUTES && !is_bit_set(mask, conn_idx) {
+                        next_actions[i].push(Action::Open(*conn, minutes + cost));
+                        found_path = true;
+                    }
+                }
+                if !found_path {
+                    next_actions[i].push(Action::DontMove(minutes + 1));
                 }
             }
         }
@@ -191,8 +204,7 @@ fn bt(
 #[derive(Copy, Clone, PartialEq)]
 enum Action {
     DontMove,
-    Move(usize, usize), // from -> to
-    Open(usize),        // current idx
+    Open(usize), // current idx
 }
 
 impl Action {
@@ -200,17 +212,27 @@ impl Action {
         use Action::*;
         match self {
             DontMove => "DM".to_string(),
-            Move(_, to) => {
-                let mut s = "MV".to_string();
-                s.push_str(&to.to_string());
-                s
-            }
             Open(i) => {
                 let mut s = "OP".to_string();
                 s.push_str(&i.to_string());
                 s
             }
         }
+    }
+}
+
+struct Player {
+    minutes_elapsed: usize,
+    flow: usize,
+    current_action: Action,
+}
+
+impl Player {
+    fn to_string(&self) -> String {
+        let mut s = "".to_string();
+        s.push(self.minutes_elapsed);
+        s.push(self.current_action.to_string());
+        s
     }
 }
 
@@ -259,7 +281,7 @@ pub fn solve(input: String) -> usize {
     let valves = parse_input(input);
     let graph = compress(&valves);
 
-    dbg!(graph);
+    // dbg!(graph); // graph is fine!
 
     let start_idx = valves.iter().position(|v| v.label == "AA").unwrap();
 
@@ -272,11 +294,12 @@ pub fn solve(input: String) -> usize {
     // I'll use backtrack
     let ans = bt(
         &valves,
+        &graph,
         &mut memo,
         mask,
         &[
-            Action::Move(start_idx, start_idx),
-            Action::Move(start_idx, start_idx),
+            Action::Open(start_idx, 1),
+            Action::Open(start_idx, 1),
         ],
         0,
         0,
