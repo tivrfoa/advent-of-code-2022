@@ -97,10 +97,11 @@ fn bt(
     }
 
     // check if all valves are already open
-    /*if used_valves == valves_with_flow_greater_than_zero {
+    // TODO what's wrong here. If I uncomment I get wrong result for sample
+    if used_valves == valves_with_flow_greater_than_zero {
         // println!("Used all {used_valves} valves!");
-        return curr_flow * (26 - minutes);
-    }*/
+        return curr_flow * (26 - minutes + 1);
+    }
 
     let key = get_key(minutes, mask, &actions);
     if let Some(flow) = memo.get(&key) {
