@@ -64,18 +64,15 @@ fn parse_input(input: String) -> Vec<Valve> {
     valves
 }
 
-fn get_key(mask: usize, players_move: &[PlayerMove; 2]) -> String {
-    let mut a1 = players_move[0].to_string();
-    let mut a2 = players_move[1].to_string();
-
-    if a1 > a2 {
-        std::mem::swap(&mut a1, &mut a2);
-    }
-
+fn get_key(mask: usize, players: &[Option<Player>; 2]) -> String {
     let mut key_parts: Vec<String> = Vec::with_capacity(3);
     key_parts.push(mask.to_string());
-    key_parts.push(a1);
-    key_parts.push(a2);
+
+    for player in players {
+        if let Some(player) = player {
+            key_parts.push(player.to_string());
+        }
+    }
 
     key_parts.join("-")
 }
@@ -92,87 +89,67 @@ fn bt(
     graph: &[Vec<(usize, usize)>],
     memo: &mut HashMap<String, usize>,
     mut mask: usize,
-    players_move: &[PlayerMove; 2],
+    players: &[Option<Player>; 2],
     mut used_valves: usize,
     valves_with_flow_greater_than_zero: usize,
 ) -> usize {
     // check if time finished for all players
-    if players_move
+    if players
         .iter()
+        .filter(|o| o.is_some())
+        .map(|o| {
+            let p = o.unwrap();
+            p
+        })
         .filter(|p| p.minutes >= MAX_MINUTES)
         .count()
-        == players_move.len()
+        == players.len()
     {
-        return players_move
-            .iter()
-            .map(|a| a.flow)
-            .sum();
+        return 0;
     }
 
     // check if all valves are already open
     if used_valves == valves_with_flow_greater_than_zero {
-        return players_move
-            .iter()
-            .map(|a| if a.minutes > MAX_MINUTES { 0 } else { a.flow * (MAX_MINUTES - a.minutes + 1)})
-            .sum();
+        return 0;
     }
 
-    let key = get_key(mask, players_move);
+    let key = get_key(mask, players);
     if let Some(flow) = memo.get(&key) {
         // println!("Found in memo. minutes = {minutes}");
         return *flow;
     }
 
-    // corner case: both are trying to open the same valve
-    if players_move[0] == players_move[1] && let Action::Open(_) = players_move[0].action {
-        if players_move[0].minutes > 0 {
-            return usize::MIN;
-        }
-    }
-
     // If it reached here, then the actions can be performed
 
-    let mut next_actions: [Vec<PlayerMove>; 2] = [vec![], vec![]];
+    let mut next_actions: [Vec<Option<Player>>; 2] = [vec![None], vec![None]];
+    let mut flow_released = 0;
 
-    for i in 0..2 {
-        match players_move[i].action {
-            Action::DontMove => {
-                // it doesn't need to get possible actions.
-                // if it's in this state, it will stay like this
-                // foreverrrrrrr
-                next_actions[i].push(players_move[i].dont_move(0, 0));
+    for (i, player) in players.iter().enumerate() {
+        if let Some(player) = player {
+            let idx = player.valve_to_open;
+            let mut open_minute = 0;
+            if player.minutes > 0 {
+                if valves[idx].is_used(mask) {
+                    // corner case: player is trying to open a valve that was
+                    // opened by another player
+                    return usize::MIN;
+                }
+                mask = toggle_bit(mask, idx);
+                flow_released += valves[idx].flow_rate
+                    * (MAX_MINUTES - (player.minutes)); // TODO -1? +1?
+                used_valves += 1;
+                open_minute = 1;
             }
-            Action::Open(idx) => {
-                let mut additional_flow = 0;
-                let mut open_minute = 0; 
-                if players_move[i].minutes > 0 {
-                    if valves[idx].is_used(mask) {
-                        // corner case: player is trying to open a valve that was
-                        // opened by another player
-                        return usize::MIN;
-                    }
-                    mask = toggle_bit(mask, idx);
-                    additional_flow += valves[idx].flow_rate;
-                    used_valves += 1;
-                    open_minute = 1;
-                }
 
-                // let mut found_path = false;
-                for (conn_idx, mut cost) in &graph[idx] {
-                    cost += open_minute;
-                    if players_move[i].minutes + cost < MAX_MINUTES - 1 && !is_bit_set(mask, *conn_idx)
-                    {
-                        next_actions[i].push(players_move[i].open(
-                            *conn_idx,
-                            cost,
-                            additional_flow,
-                        ));
-                        // found_path = true;
-                    }
+            for (conn_idx, mut cost) in &graph[idx] {
+                cost += open_minute;
+                if player.minutes + cost < MAX_MINUTES - 1 && !is_bit_set(mask, *conn_idx)
+                {
+                    next_actions[i].push(Some(player.open(
+                        *conn_idx,
+                        cost,
+                    )));
                 }
-                // if players_move[i].minutes > 0 && !found_path {
-                next_actions[i].push(players_move[i].dont_move(open_minute, additional_flow));
-                // }
             }
         }
     }
@@ -196,63 +173,30 @@ fn bt(
         }
     }
 
-    let curr_flow: usize = players_move.iter().map(|p| p.flow).sum();
-    let pressure_released = curr_flow + max;
-    memo.insert(key, pressure_released);
+    flow_released += max;;
+    memo.insert(key, flow_released);
 
-    pressure_released
+    flow_released
 }
 
 #[derive(Copy, Clone, PartialEq)]
-struct PlayerMove {
+struct Player {
     minutes: usize,
-    flow: usize,
-    action: Action,
+    valve_to_open: usize,
 }
 
-impl PlayerMove {
+impl Player {
     fn to_string(&self) -> String {
-        let mut s = self.action.to_string();
+        let mut s = self.minutes.to_string();
         s.push('-');
-        s.push_str(&self.minutes.to_string());
+        s.push_str(&self.valve_to_open.to_string());
         s
     }
 
-    fn dont_move(&self, open_minute: usize, additional_flow: usize) -> Self {
-        let minutes = self.minutes + open_minute + 1;
-
-        Self {
-            minutes,
-            flow: if minutes > MAX_MINUTES { 0 } else { self.flow + additional_flow},
-            action: Action::DontMove,
-        }
-    }
-
-    fn open(&self, index: usize, cost: usize, additional_flow: usize) -> Self {
+    fn open(&self, index: usize, cost: usize) -> Self {
         Self {
             minutes: self.minutes + cost,
-            flow: self.flow + additional_flow,
-            action: Action::Open(index),
-        }
-    }
-}
-
-#[derive(Copy, Clone, PartialEq)]
-enum Action {
-    DontMove,
-    Open(usize),
-}
-
-impl Action {
-    fn to_string(&self) -> String {
-        use Action::*;
-        match self {
-            DontMove => "DM".to_string(),
-            Open(idx) => {
-                let mut s = "OP".to_string();
-                s.push_str(&idx.to_string());
-                s
-            }
+            valve_to_open: index,
         }
     }
 }
@@ -314,9 +258,8 @@ pub fn solve(input: String) -> usize {
     let mask: usize = 0;
     let valves_with_flow_greater_than_zero = valves.iter().filter(|v| v.flow_rate > 0).count();
 
-    let player_move = PlayerMove {
-        flow: 0,
-        action: Action::Open(start_idx),
+    let player = Player {
+        valve_to_open: start_idx,
         minutes: 0,
     };
 
@@ -326,7 +269,7 @@ pub fn solve(input: String) -> usize {
         &graph,
         &mut memo,
         mask,
-        &[player_move.clone(), player_move],
+        &[Some(player.clone()), Some(player)],
         0,
         valves_with_flow_greater_than_zero,
     );
