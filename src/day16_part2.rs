@@ -90,8 +90,6 @@ fn bt(
     memo: &mut HashMap<String, usize>,
     mut mask: usize,
     players: &[Option<Player>; 2],
-    mut used_valves: usize,
-    valves_with_flow_greater_than_zero: usize,
 ) -> usize {
     // check if time finished for all players
     if players
@@ -100,11 +98,6 @@ fn bt(
         .count()
         == players.len()
     {
-        return 0;
-    }
-
-    // check if all valves are already open
-    if used_valves == valves_with_flow_greater_than_zero {
         return 0;
     }
 
@@ -132,7 +125,6 @@ fn bt(
                 mask = toggle_bit(mask, idx);
                 flow_released += valves[idx].flow_rate
                     * (MAX_MINUTES - (player.minutes + 1)); // TODO -1? +1?
-                used_valves += 1;
                 open_minute = 1;
             }
 
@@ -159,8 +151,6 @@ fn bt(
                 memo,
                 mask,
                 &[a1.clone(), a2.clone()],
-                used_valves,
-                valves_with_flow_greater_than_zero,
             );
             if pressure > max {
                 max = pressure;
@@ -251,7 +241,6 @@ pub fn solve(input: String) -> usize {
     // time-used_mask-action_a-action_b
     let mut memo: HashMap<String, usize> = HashMap::new();
     let mask: usize = 0;
-    let valves_with_flow_greater_than_zero = valves.iter().filter(|v| v.flow_rate > 0).count();
 
     let player = Player {
         valve_to_open: start_idx,
@@ -265,8 +254,6 @@ pub fn solve(input: String) -> usize {
         &mut memo,
         mask,
         &[Some(player.clone()), Some(player)],
-        0,
-        valves_with_flow_greater_than_zero,
     );
 
     println!("memo len = {}", memo.len());
