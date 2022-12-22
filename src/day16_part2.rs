@@ -96,12 +96,7 @@ fn bt(
     // check if time finished for all players
     if players
         .iter()
-        .filter(|o| o.is_some())
-        .map(|o| {
-            let p = o.unwrap();
-            p
-        })
-        .filter(|p| p.minutes >= MAX_MINUTES)
+        .filter(|o| o.is_none())
         .count()
         == players.len()
     {
@@ -136,7 +131,7 @@ fn bt(
                 }
                 mask = toggle_bit(mask, idx);
                 flow_released += valves[idx].flow_rate
-                    * (MAX_MINUTES - (player.minutes)); // TODO -1? +1?
+                    * (MAX_MINUTES - (player.minutes + 1)); // TODO -1? +1?
                 used_valves += 1;
                 open_minute = 1;
             }
