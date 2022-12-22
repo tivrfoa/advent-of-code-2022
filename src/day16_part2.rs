@@ -93,12 +93,7 @@ fn bt(
     players: &[Option<Player>; 2],
 ) -> usize {
     // check if time finished for all players
-    if players
-        .iter()
-        .filter(|o| o.is_none())
-        .count()
-        == players.len()
-    {
+    if players.iter().filter(|o| o.is_none()).count() == players.len() {
         return 0;
     }
 
@@ -124,19 +119,14 @@ fn bt(
                     return usize::MIN;
                 }
                 mask = toggle_bit(mask, idx);
-                flow_released += valves[idx].flow_rate
-                    * (MAX_MINUTES - (player.minutes + 1)); // TODO -1? +1?
+                flow_released += valves[idx].flow_rate * (MAX_MINUTES - (player.minutes + 1)); // TODO -1? +1?
                 open_minute = 1;
             }
 
             for (conn_idx, mut cost) in &graph[idx] {
                 cost += open_minute;
-                if player.minutes + cost < MAX_MINUTES - 1 && !is_bit_set(mask, *conn_idx)
-                {
-                    next_actions[i].push(Some(player.open(
-                        *conn_idx,
-                        cost,
-                    )));
+                if player.minutes + cost < MAX_MINUTES - 1 && !is_bit_set(mask, *conn_idx) {
+                    next_actions[i].push(Some(player.open(*conn_idx, cost)));
                 }
             }
         }
@@ -146,20 +136,14 @@ fn bt(
 
     for a1 in &next_actions[0] {
         for a2 in &next_actions[1] {
-            let pressure = bt(
-                valves,
-                graph,
-                memo,
-                mask,
-                &[a1.clone(), a2.clone()],
-            );
+            let pressure = bt(valves, graph, memo, mask, &[a1.clone(), a2.clone()]);
             if pressure > max {
                 max = pressure;
             }
         }
     }
 
-    flow_released += max;;
+    flow_released += max;
     memo.insert(key, flow_released);
 
     flow_released
