@@ -7,6 +7,7 @@ fn main() {
 }
 
 fn test_sample() {
+    // let input = util::read_file("inputs/day16-very-simple.txt");
     let input = util::read_file("inputs/day16-sample.txt");
     println!("{}", day16_part2::solve(input));
 }

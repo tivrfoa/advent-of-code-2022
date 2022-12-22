@@ -1,0 +1,5 @@
+Valve AA has flow rate=0; tunnels lead to valves DD, II
+Valve DD has flow rate=20; tunnels lead to valves AA, EE
+Valve EE has flow rate=3; tunnels lead to valves DD
+Valve II has flow rate=0; tunnels lead to valves AA, JJ
+Valve JJ has flow rate=21; tunnel leads to valve II
