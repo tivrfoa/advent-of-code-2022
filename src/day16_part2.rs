@@ -69,8 +69,9 @@ fn get_key(mask: usize, players: &[Option<Player>; 2]) -> String {
     key_parts.push(mask.to_string());
 
     for player in players {
-        if let Some(player) = player {
-            key_parts.push(player.to_string());
+        match player {
+            Some(player) => key_parts.push(player.to_string()),
+            None => key_parts.push("None".into()),
         }
     }
 
@@ -102,10 +103,10 @@ fn bt(
     }
 
     let key = get_key(mask, players);
-    if let Some(flow) = memo.get(&key) {
-        // println!("Found in memo. minutes = {minutes}");
-        return *flow;
-    }
+    //if let Some(flow) = memo.get(&key) {
+    //    // println!("Found in memo. minutes = {minutes}");
+    //    return *flow;
+    //}
 
     // If it reached here, then the actions can be performed
 
