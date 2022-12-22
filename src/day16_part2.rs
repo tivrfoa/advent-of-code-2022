@@ -64,20 +64,6 @@ fn parse_input(input: String) -> Vec<Valve> {
     valves
 }
 
-fn get_key(mask: usize, players: &[Option<Player>; 2]) -> String {
-    let mut key_parts: Vec<String> = Vec::with_capacity(3);
-    key_parts.push(mask.to_string());
-
-    for player in players {
-        match player {
-            Some(player) => key_parts.push(player.to_string()),
-            None => key_parts.push("None".into()),
-        }
-    }
-
-    key_parts.join("-")
-}
-
 // const MAX_MINUTES: usize = 6; // best 143?
 // const MAX_MINUTES: usize = 7; // best 184?
 // const MAX_MINUTES: usize = 8; // best 260?
@@ -88,7 +74,6 @@ const MAX_MINUTES: usize = 26;
 fn bt(
     valves: &[Valve],
     graph: &[Vec<(usize, usize)>],
-    memo: &mut HashMap<String, usize>,
     mut mask: usize,
     players: &[Option<Player>; 2],
 ) -> usize {
@@ -96,12 +81,6 @@ fn bt(
     if players.iter().filter(|o| o.is_none()).count() == players.len() {
         return 0;
     }
-
-    let key = get_key(mask, players);
-    //if let Some(flow) = memo.get(&key) {
-    //    // println!("Found in memo. minutes = {minutes}");
-    //    return *flow;
-    //}
 
     // If it reached here, then the actions can be performed
 
@@ -119,8 +98,8 @@ fn bt(
                     return usize::MIN;
                 }
                 mask = toggle_bit(mask, idx);
-                flow_released += valves[idx].flow_rate * (MAX_MINUTES - (player.minutes + 1)); // TODO -1? +1?
                 open_minute = 1;
+                flow_released += valves[idx].flow_rate * (MAX_MINUTES - (player.minutes + open_minute));
             }
 
             for (conn_idx, mut cost) in &graph[idx] {
@@ -136,7 +115,7 @@ fn bt(
 
     for a1 in &next_actions[0] {
         for a2 in &next_actions[1] {
-            let pressure = bt(valves, graph, memo, mask, &[a1.clone(), a2.clone()]);
+            let pressure = bt(valves, graph, mask, &[a1.clone(), a2.clone()]);
             if pressure > max {
                 max = pressure;
             }
@@ -144,7 +123,6 @@ fn bt(
     }
 
     flow_released += max;
-    memo.insert(key, flow_released);
 
     flow_released
 }
@@ -221,10 +199,6 @@ pub fn solve(input: String) -> usize {
     // dbg!(graph); // graph is fine!
 
     let start_idx = valves.iter().position(|v| v.label == "AA").unwrap();
-
-    // Memoize maximum pressure it get from a particular:
-    // time-used_mask-action_a-action_b
-    let mut memo: HashMap<String, usize> = HashMap::new();
     let mask: usize = 0;
 
     let player = Player {
@@ -236,12 +210,9 @@ pub fn solve(input: String) -> usize {
     let ans = bt(
         &valves,
         &graph,
-        &mut memo,
         mask,
         &[Some(player.clone()), Some(player)],
     );
-
-    println!("memo len = {}", memo.len());
 
     ans
 }
