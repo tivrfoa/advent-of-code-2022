@@ -2,11 +2,9 @@ mod day16_part2;
 mod util;
 
 fn main() {
-    println!("{}", usize::MAX);
-    println!("{:b}", usize::MAX);
     test_sample();
     test_input();
-    test_input_umnikos();
+    // test_input_umnikos();
 }
 
 fn test_sample() {

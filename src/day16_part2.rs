@@ -3,6 +3,7 @@ use crate::util;
 use std::char::MAX;
 use std::collections::{HashMap, VecDeque};
 use std::process;
+use std::thread;
 
 #[derive(Debug)]
 struct Valve {
@@ -157,43 +158,43 @@ fn dfs(valves: &[Valve], costs: &mut Vec<usize>, curr_idx: usize, curr_cost: usi
     }
 }
 
+fn bfs(valves: &[Valve], i: usize) -> Vec<(usize, usize)> {
+    let mut costs = vec![usize::MAX; valves.len()];
+    costs[i] = 0;
+
+    let mut queue = VecDeque::new();
+    valves[i]
+        .conn_indexes
+        .iter()
+        .for_each(|i| queue.push_back((*i, 1)));
+    while !queue.is_empty() {
+        let (adj, cost) = queue.pop_front().unwrap();
+        if cost < costs[adj] {
+            costs[adj] = cost;
+            valves[adj]
+                .conn_indexes
+                .iter()
+                .for_each(|i| queue.push_back((*i, cost + 1)));
+        }
+    }
+    
+    let mut edges: Vec<(usize, usize)> = vec![];
+    for (idx, c) in costs.iter().enumerate() {
+        if i == idx || valves[idx].flow_rate == 0 {
+            continue;
+        }
+        edges.push((idx, *c));
+    }
+
+    edges
+}
+
 /// make a graph keeping valves with flow rate > 0 and connecting
 /// all valves with the cost (minutes) to get to them.
 fn compress(valves: &[Valve]) -> Vec<Vec<(usize, usize)>> {
     let mut graph = Vec::with_capacity(valves.len());
     for i in 0..valves.len() {
-        let mut costs = vec![usize::MAX; valves.len()];
-        costs[i] = 0;
-
-        // The cost to open is applied when the action is performed
-        // dfs(&valves, &mut costs, i, 1);
-
-        // do bfs!
-        let mut queue = VecDeque::new();
-        valves[i]
-            .conn_indexes
-            .iter()
-            .for_each(|i| queue.push_back((*i, 1)));
-        while !queue.is_empty() {
-            let (adj, cost) = queue.pop_front().unwrap();
-            if cost < costs[adj] {
-                costs[adj] = cost;
-                valves[adj]
-                    .conn_indexes
-                    .iter()
-                    .for_each(|i| queue.push_back((*i, cost + 1)));
-            }
-        }
-
-        // dbg!(costs);
-
-        let mut edges: Vec<(usize, usize)> = vec![];
-        for (idx, c) in costs.iter().enumerate() {
-            if i == idx || valves[idx].flow_rate == 0 {
-                continue;
-            }
-            edges.push((idx, *c));
-        }
+        let edges = bfs(valves, i);
 
         graph.push(edges);
     }
