@@ -2,6 +2,8 @@ mod day16_part2;
 mod util;
 
 fn main() {
+    println!("{}", usize::MAX);
+    println!("{:b}", usize::MAX);
     test_sample();
     test_input();
     test_input_umnikos();
@@ -14,7 +16,7 @@ fn test_sample() {
 }
 
 fn test_input() {
-    let input = util::read_file("inputs/day16.txt");
+    let input = util::read_file("inputs/day16.txt"); // should be 2286
     
     println!("{}", day16_part2::solve(input));
 }

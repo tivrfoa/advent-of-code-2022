@@ -1,7 +1,7 @@
 use crate::util;
 
 use std::char::MAX;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::process;
 
 #[derive(Debug)]
@@ -74,7 +74,7 @@ const MAX_MINUTES: usize = 26;
 fn bt(
     valves: &[Valve],
     graph: &[Vec<(usize, usize)>],
-    mut mask: usize,
+    mut used_valves: HashSet<usize>,
     players: &[Option<Player>; 2],
 ) -> usize {
     // check if time finished for all players
@@ -92,19 +92,19 @@ fn bt(
             let idx = player.valve_to_open;
             let mut open_minute = 0;
             if player.minutes > 0 {
-                if valves[idx].is_used(mask) {
+                if used_valves.contains(&idx) {
                     // corner case: player is trying to open a valve that was
                     // opened by another player
                     return usize::MIN;
                 }
-                mask = toggle_bit(mask, idx);
+                used_valves.insert(idx);
                 open_minute = 1;
                 flow_released += valves[idx].flow_rate * (MAX_MINUTES - (player.minutes + open_minute));
             }
 
             for (conn_idx, mut cost) in &graph[idx] {
                 cost += open_minute;
-                if player.minutes + cost < MAX_MINUTES - 1 && !is_bit_set(mask, *conn_idx) {
+                if player.minutes + cost < MAX_MINUTES - 1 && !used_valves.contains(conn_idx) {
                     next_actions[i].push(Some(player.open(*conn_idx, cost)));
                 }
             }
@@ -115,7 +115,7 @@ fn bt(
 
     for a1 in &next_actions[0] {
         for a2 in &next_actions[1] {
-            let pressure = bt(valves, graph, mask, &[a1.clone(), a2.clone()]);
+            let pressure = bt(valves, graph, used_valves.clone(), &[a1.clone(), a2.clone()]);
             if pressure > max {
                 max = pressure;
             }
@@ -134,13 +134,6 @@ struct Player {
 }
 
 impl Player {
-    fn to_string(&self) -> String {
-        let mut s = self.minutes.to_string();
-        s.push('-');
-        s.push_str(&self.valve_to_open.to_string());
-        s
-    }
-
     fn open(&self, index: usize, cost: usize) -> Self {
         Self {
             minutes: self.minutes + cost,
@@ -199,7 +192,8 @@ pub fn solve(input: String) -> usize {
     // dbg!(graph); // graph is fine!
 
     let start_idx = valves.iter().position(|v| v.label == "AA").unwrap();
-    let mask: usize = 0;
+    let mut used_valves: HashSet<usize> = HashSet::new();
+    used_valves.insert(start_idx);
 
     let player = Player {
         valve_to_open: start_idx,
@@ -210,7 +204,7 @@ pub fn solve(input: String) -> usize {
     let ans = bt(
         &valves,
         &graph,
-        mask,
+        used_valves,
         &[Some(player.clone()), Some(player)],
     );
 
