@@ -1,6 +1,8 @@
 use crate::util;
 
-use std::collections::{HashMap, HashSet};
+use std::char::MAX;
+use std::collections::HashMap;
+use std::process;
 
 #[derive(Debug)]
 struct Valve {
@@ -8,6 +10,12 @@ struct Valve {
     idx: usize,
     flow_rate: usize,
     conn_indexes: Vec<usize>,
+}
+
+impl Valve {
+    fn is_used(&self, mask: usize) -> bool {
+        check_bit(mask, self.idx) == 1
+    }
 }
 
 fn parse_input(input: String) -> Vec<Valve> {
@@ -66,13 +74,15 @@ const MAX_MINUTES: usize = 26;
 fn bt(
     valves: &[Valve],
     graph: &[Vec<(usize, usize)>],
-    mut used_valves: HashSet<usize>,
+    mut mask: usize,
     players: &[Option<Player>; 2],
 ) -> usize {
     // check if time finished for all players
     if players.iter().filter(|o| o.is_none()).count() == players.len() {
         return 0;
     }
+
+    // If it reached here, then the actions can be performed
 
     let mut next_actions: [Vec<Option<Player>>; 2] = [vec![None], vec![None]];
     let mut flow_released = 0;
@@ -82,20 +92,19 @@ fn bt(
             let idx = player.valve_to_open;
             let mut open_minute = 0;
             if player.minutes > 0 {
-                if used_valves.contains(&idx) {
+                if valves[idx].is_used(mask) {
                     // corner case: player is trying to open a valve that was
                     // opened by another player
                     return usize::MIN;
                 }
-                used_valves.insert(idx);
+                mask = toggle_bit(mask, idx);
                 open_minute = 1;
-                flow_released +=
-                    valves[idx].flow_rate * (MAX_MINUTES - (player.minutes + open_minute));
+                flow_released += valves[idx].flow_rate * (MAX_MINUTES - (player.minutes + open_minute));
             }
 
             for (conn_idx, mut cost) in &graph[idx] {
                 cost += open_minute;
-                if player.minutes + cost < MAX_MINUTES - 1 && !used_valves.contains(conn_idx) {
+                if player.minutes + cost < MAX_MINUTES - 1 && !is_bit_set(mask, *conn_idx) {
                     next_actions[i].push(Some(player.open(*conn_idx, cost)));
                 }
             }
@@ -106,12 +115,7 @@ fn bt(
 
     for a1 in &next_actions[0] {
         for a2 in &next_actions[1] {
-            let pressure = bt(
-                valves,
-                graph,
-                used_valves.clone(),
-                &[a1.clone(), a2.clone()],
-            );
+            let pressure = bt(valves, graph, mask, &[a1.clone(), a2.clone()]);
             if pressure > max {
                 max = pressure;
             }
@@ -141,9 +145,6 @@ impl Player {
 fn visit(valves: &[Valve], costs: &mut Vec<usize>, curr_idx: usize, curr_cost: usize) {
     let mut new_adj = vec![];
     for adj in &valves[curr_idx].conn_indexes {
-        // if costs[*adj] == usize::MAX {
-        //     new_adj.push(*adj);
-        // }
         if curr_cost < costs[*adj] {
             costs[*adj] = curr_cost;
             new_adj.push(*adj);
@@ -186,11 +187,10 @@ pub fn solve(input: String) -> usize {
     let valves = parse_input(input);
     let graph = compress(&valves);
 
-    dbg!(&graph); // graph is fine!
+    // dbg!(graph); // graph is fine!
 
     let start_idx = valves.iter().position(|v| v.label == "AA").unwrap();
-    let mut used_valves: HashSet<usize> = HashSet::new();
-    used_valves.insert(start_idx);
+    let mask: usize = 0;
 
     let player = Player {
         valve_to_open: start_idx,
@@ -201,7 +201,7 @@ pub fn solve(input: String) -> usize {
     let ans = bt(
         &valves,
         &graph,
-        used_valves,
+        mask,
         &[Some(player.clone()), Some(player)],
     );
 
@@ -238,9 +238,9 @@ mod tests {
         assert_eq!(1707, solve(input));
     }
 
-    //#[test]
-    //fn part1_input() {
-    //    let input = util::read_file("inputs/day16.txt");
-    //    assert_eq!(1845, solve(input));
-    //}
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/day16.txt");
+        assert_eq!(2286, solve(input));
+    }
 }
