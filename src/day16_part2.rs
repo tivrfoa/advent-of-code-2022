@@ -1,8 +1,6 @@
 use crate::util;
 
-use std::char::MAX;
 use std::collections::{HashMap, HashSet};
-use std::process;
 
 #[derive(Debug)]
 struct Valve {
@@ -10,12 +8,6 @@ struct Valve {
     idx: usize,
     flow_rate: usize,
     conn_indexes: Vec<usize>,
-}
-
-impl Valve {
-    fn is_used(&self, mask: usize) -> bool {
-        check_bit(mask, self.idx) == 1
-    }
 }
 
 fn parse_input(input: String) -> Vec<Valve> {
@@ -82,8 +74,6 @@ fn bt(
         return 0;
     }
 
-    // If it reached here, then the actions can be performed
-
     let mut next_actions: [Vec<Option<Player>>; 2] = [vec![None], vec![None]];
     let mut flow_released = 0;
 
@@ -99,7 +89,8 @@ fn bt(
                 }
                 used_valves.insert(idx);
                 open_minute = 1;
-                flow_released += valves[idx].flow_rate * (MAX_MINUTES - (player.minutes + open_minute));
+                flow_released +=
+                    valves[idx].flow_rate * (MAX_MINUTES - (player.minutes + open_minute));
             }
 
             for (conn_idx, mut cost) in &graph[idx] {
@@ -115,7 +106,12 @@ fn bt(
 
     for a1 in &next_actions[0] {
         for a2 in &next_actions[1] {
-            let pressure = bt(valves, graph, used_valves.clone(), &[a1.clone(), a2.clone()]);
+            let pressure = bt(
+                valves,
+                graph,
+                used_valves.clone(),
+                &[a1.clone(), a2.clone()],
+            );
             if pressure > max {
                 max = pressure;
             }
@@ -145,11 +141,12 @@ impl Player {
 fn visit(valves: &[Valve], costs: &mut Vec<usize>, curr_idx: usize, curr_cost: usize) {
     let mut new_adj = vec![];
     for adj in &valves[curr_idx].conn_indexes {
-        if costs[*adj] == usize::MAX {
-            new_adj.push(*adj);
-        }
+        // if costs[*adj] == usize::MAX {
+        //     new_adj.push(*adj);
+        // }
         if curr_cost < costs[*adj] {
             costs[*adj] = curr_cost;
+            new_adj.push(*adj);
         }
     }
 
@@ -189,7 +186,7 @@ pub fn solve(input: String) -> usize {
     let valves = parse_input(input);
     let graph = compress(&valves);
 
-    // dbg!(graph); // graph is fine!
+    dbg!(&graph); // graph is fine!
 
     let start_idx = valves.iter().position(|v| v.label == "AA").unwrap();
     let mut used_valves: HashSet<usize> = HashSet::new();
@@ -236,7 +233,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn part1_sample() {
+    fn part2_sample() {
         let input = util::read_file("inputs/day16-sample.txt");
         assert_eq!(1707, solve(input));
     }

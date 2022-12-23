@@ -17,7 +17,7 @@ fn test_sample() {
 
 fn test_input() {
     let input = util::read_file("inputs/day16.txt"); // should be 2286
-    
+
     println!("{}", day16_part2::solve(input));
 }
 
