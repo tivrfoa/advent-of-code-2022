@@ -1,7 +1,7 @@
 use crate::util;
 
 use std::char::MAX;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::process;
 
 #[derive(Debug)]
@@ -99,7 +99,8 @@ fn bt(
                 }
                 mask = toggle_bit(mask, idx);
                 open_minute = 1;
-                flow_released += valves[idx].flow_rate * (MAX_MINUTES - (player.minutes + open_minute));
+                flow_released +=
+                    valves[idx].flow_rate * (MAX_MINUTES - (player.minutes + open_minute));
             }
 
             for (conn_idx, mut cost) in &graph[idx] {
@@ -142,7 +143,7 @@ impl Player {
     }
 }
 
-fn visit(valves: &[Valve], costs: &mut Vec<usize>, curr_idx: usize, curr_cost: usize) {
+fn dfs(valves: &[Valve], costs: &mut Vec<usize>, curr_idx: usize, curr_cost: usize) {
     let mut new_adj = vec![];
     for adj in &valves[curr_idx].conn_indexes {
         if curr_cost < costs[*adj] {
@@ -152,7 +153,7 @@ fn visit(valves: &[Valve], costs: &mut Vec<usize>, curr_idx: usize, curr_cost: u
     }
 
     for n in new_adj {
-        visit(valves, costs, n, curr_cost + 1);
+        dfs(valves, costs, n, curr_cost + 1);
     }
 }
 
@@ -165,7 +166,24 @@ fn compress(valves: &[Valve]) -> Vec<Vec<(usize, usize)>> {
         costs[i] = 0;
 
         // The cost to open is applied when the action is performed
-        visit(&valves, &mut costs, i, 1);
+        // dfs(&valves, &mut costs, i, 1);
+
+        // do bfs!
+        let mut queue = VecDeque::new();
+        valves[i]
+            .conn_indexes
+            .iter()
+            .for_each(|i| queue.push_back((*i, 1)));
+        while !queue.is_empty() {
+            let (adj, cost) = queue.pop_front().unwrap();
+            if cost < costs[adj] {
+                costs[adj] = cost;
+                valves[adj]
+                    .conn_indexes
+                    .iter()
+                    .for_each(|i| queue.push_back((*i, cost + 1)));
+            }
+        }
 
         // dbg!(costs);
 
@@ -198,12 +216,7 @@ pub fn solve(input: String) -> usize {
     };
 
     // I'll use backtrack
-    let ans = bt(
-        &valves,
-        &graph,
-        mask,
-        &[Some(player.clone()), Some(player)],
-    );
+    let ans = bt(&valves, &graph, mask, &[Some(player.clone()), Some(player)]);
 
     ans
 }
