@@ -76,6 +76,7 @@ const MAX_MINUTES: usize = 26;
 fn bt(
     valves: &[Valve],
     graph: &[Vec<(usize, usize)>],
+    memo: &mut HashMap<String, usize>,
     mut mask: usize,
     players: &[Option<Player>; 2],
 ) -> usize {
@@ -84,7 +85,11 @@ fn bt(
         return 0;
     }
 
-    // If it reached here, then the actions can be performed
+    let key = get_key(mask, players);
+    // println!("key = {}", key);
+    if let Some(flow) = memo.get(&key) {
+        return *flow;
+    }
 
     let mut next_actions: [Vec<Option<Player>>; 2] = [vec![None], vec![None]];
     let mut flow_released = 0;
@@ -118,7 +123,7 @@ fn bt(
 
     for a1 in &next_actions[0] {
         for a2 in &next_actions[1] {
-            let pressure = bt(valves, graph, mask, &[a1.clone(), a2.clone()]);
+            let pressure = bt(valves, graph, memo, mask, &[a1.clone(), a2.clone()]);
             if pressure > max {
                 max = pressure;
             }
@@ -126,8 +131,24 @@ fn bt(
     }
 
     flow_released += max;
+    memo.insert(key, flow_released);
 
     flow_released
+}
+
+fn get_key(mask: usize, players: &[Option<Player>]) -> String {
+    let mut s: Vec<String> = players
+        .iter()
+        .map(|o| match o {
+            Some(p) => p.to_string(),
+            None => "None".to_string(),
+        }).collect();
+
+    s.sort();
+
+    let mut ret = mask.to_string();
+    ret.push_str(&s.join("-"));
+    ret
 }
 
 #[derive(Copy, Clone, PartialEq)]
@@ -137,6 +158,13 @@ struct Player {
 }
 
 impl Player {
+    fn to_string(&self) -> String {
+        let mut s = self.valve_to_open.to_string();
+        s.push('-');
+        s.push_str(&self.minutes.to_string());
+        s
+    }
+
     fn open(&self, index: usize, cost: usize) -> Self {
         Self {
             minutes: self.minutes + cost,
@@ -227,8 +255,13 @@ fn compress_parallel(valves: &[Valve]) -> Vec<Vec<(usize, usize)>> {
 
 pub fn solve(input: String) -> usize {
     let valves = parse_input(input);
-    // let graph = compress(&valves);
-    let graph = compress_parallel(&valves);
+    let graph = compress(&valves);
+
+    if 1 == 1 {
+        println!("{:?}", graph[0]);
+        return 1;
+    }
+    //let graph = compress_parallel(&valves);
 
     // dbg!(graph); // graph is fine!
 
@@ -240,8 +273,10 @@ pub fn solve(input: String) -> usize {
         minutes: 0,
     };
 
+    let mut memo: HashMap<String, usize> = HashMap::new();
+
     // I'll use backtrack
-    let ans = bt(&valves, &graph, mask, &[Some(player.clone()), Some(player)]);
+    let ans = bt(&valves, &graph, &mut memo, mask, &[Some(player.clone()), Some(player)]);
 
     ans
 }
