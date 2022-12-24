@@ -1,5 +1,6 @@
 use crate::util;
 
+use core::num;
 use std::char::MAX;
 use std::collections::{HashMap, VecDeque};
 use std::process;
@@ -177,7 +178,7 @@ fn bfs(valves: &[Valve], i: usize) -> Vec<(usize, usize)> {
                 .for_each(|i| queue.push_back((*i, cost + 1)));
         }
     }
-    
+
     let mut edges: Vec<(usize, usize)> = vec![];
     for (idx, c) in costs.iter().enumerate() {
         if i == idx || valves[idx].flow_rate == 0 {
@@ -195,16 +196,39 @@ fn compress(valves: &[Valve]) -> Vec<Vec<(usize, usize)>> {
     let mut graph = Vec::with_capacity(valves.len());
     for i in 0..valves.len() {
         let edges = bfs(valves, i);
-
         graph.push(edges);
     }
 
     graph
 }
 
+fn compress_parallel(valves: &[Valve]) -> Vec<Vec<(usize, usize)>> {
+    let mut graph = Vec::with_capacity(valves.len());
+
+    thread::scope(|scope| {
+        let mut future_edges = Vec::with_capacity(valves.len());
+        for i in 0..valves.len() {
+            future_edges.push(scope.spawn(move || (i, bfs(valves, i))));
+        }
+        let mut edges = vec![];
+        for fe in future_edges {
+            // let (idx, links) = fe.join().unwrap();
+            edges.push(fe.join().unwrap());
+        }
+        edges.sort_by(|a, b| a.0.cmp(&b.0));
+
+        for edge in edges {
+            graph.push(edge.1);
+        }
+    });
+
+    graph
+}
+
 pub fn solve(input: String) -> usize {
     let valves = parse_input(input);
-    let graph = compress(&valves);
+    // let graph = compress(&valves);
+    let graph = compress_parallel(&valves);
 
     // dbg!(graph); // graph is fine!
 
