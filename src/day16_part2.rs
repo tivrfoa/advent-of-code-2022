@@ -87,6 +87,7 @@ fn bt(
 
     let key = get_key(mask, players);
     // println!("key = {}", key);
+    // This is not inscreasing performance.
     if let Some(flow) = memo.get(&key) {
         return *flow;
     }
@@ -230,38 +231,9 @@ fn compress(valves: &[Valve]) -> Vec<Vec<(usize, usize)>> {
     graph
 }
 
-fn compress_parallel(valves: &[Valve]) -> Vec<Vec<(usize, usize)>> {
-    let mut graph = Vec::with_capacity(valves.len());
-
-    thread::scope(|scope| {
-        let mut future_edges = Vec::with_capacity(valves.len());
-        for i in 0..valves.len() {
-            future_edges.push(scope.spawn(move || (i, bfs(valves, i))));
-        }
-        let mut edges = vec![];
-        for fe in future_edges {
-            // let (idx, links) = fe.join().unwrap();
-            edges.push(fe.join().unwrap());
-        }
-        edges.sort_by(|a, b| a.0.cmp(&b.0));
-
-        for edge in edges {
-            graph.push(edge.1);
-        }
-    });
-
-    graph
-}
-
 pub fn solve(input: String) -> usize {
     let valves = parse_input(input);
     let graph = compress(&valves);
-
-    if 1 == 1 {
-        println!("{:?}", graph[0]);
-        return 1;
-    }
-    //let graph = compress_parallel(&valves);
 
     // dbg!(graph); // graph is fine!
 
