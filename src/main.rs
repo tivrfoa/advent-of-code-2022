@@ -3,8 +3,8 @@ mod util;
 
 fn main() {
     test_sample();
-    //test_input();
-    //test_part2();
+    test_input();
+    test_part2();
 }
 
 fn test_sample() {

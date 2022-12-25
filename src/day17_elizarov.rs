@@ -44,52 +44,56 @@ fn put(f: &mut Vec<Vec<bool>>, si: usize, i0: usize, j0: usize) {
     shape(si, |di, dj| {
         let i = i0 + di;
         let j = j0 + dj;
-        while i > f.len() {
+        while i + 1 > f.len() {
             f.push(vec![false; 7]);
         }
         f[i][j] = true;
     });
 }
 
-pub fn solve(input: String, rocks: usize) -> usize {
-    let jets: Vec<char> = input.trim().chars().collect();
-    let mut f: Vec<Vec<bool>> = vec![];
-
-    let test = |si: usize, i0: usize, j0: usize, len: usize| -> bool {
-        if i0 < 0 { return false; }
-        let mut ok = true;
-        shape(si, |di, dj| {
-            let i = i0 + di;
-            let j = j0 + dj;
-            if j > 6 {
+fn test(f: &[Vec<bool>], si: usize, i0: usize, j0: usize) -> bool {
+    if i0 < 0 {
+        return false;
+    }
+    let mut ok = true;
+    shape(si, |di, dj| {
+        let i = i0 + di;
+        let j = j0 + dj;
+        if j > 6 {
+            ok = false;
+        } else {
+            if i < f.len() && f[i][j] {
                 ok = false;
-            } else {
-                if i < len && f[i][j] {
-                    ok = false;
-                }
             }
-        });
-        ok
-    };
+        }
+    });
+    ok
+}
 
-    let mut pj = 0;
-    let mut sn = 5;
-    let mut si = sn - 1;
-
-    let mask = || -> usize {
-        let mut m = 0;
-        let mut k = 1;
-        for i in 0..7 {
-            for j in 0..6 {
+fn mask(f: &[Vec<bool>]) -> usize {
+    let mut m = 0;
+    let mut k = 1;
+    for i in 0..7 {
+        for j in 0..6 {
+            if f.len() > 0 {
                 let last_index = f.len() - 1;
                 if i > last_index || f[last_index - i][j] {
                     m = m | k;
                 }
-                k <<= 1;
             }
+            k <<= 1;
         }
-        m
-    };
+    }
+    m
+}
+
+pub fn solve(input: String, rocks: usize) -> usize {
+    let jets: Vec<char> = input.trim().chars().collect();
+    let mut f: Vec<Vec<bool>> = vec![];
+
+    let mut pj = 0;
+    let mut sn = 5;
+    let mut si = sn - 1;
 
     let mut us: Vec<Upd> = vec![];
     let mut ui: HashMap<Upd, usize> = HashMap::new();
@@ -114,7 +118,7 @@ pub fn solve(input: String, rocks: usize) -> usize {
         }
         for k in prev..i_rest {
             ds0 += us[k].ds;
-        };
+        }
         let mut ds_cycle = 0;
         for k in prev..rn {
             ds_cycle += us[k].ds;
@@ -128,29 +132,29 @@ pub fn solve(input: String, rocks: usize) -> usize {
         let s0 = f.len();
         let mut i = s0 + 3;
         let mut j = 2;
-        assert!(test(si, i, j, f.len()));
+        assert!(test(&f, si, i, j));
         loop {
             let d = jets[pj];
             pj = (pj + 1) % jets.len();
             match d {
                 '<' => {
-                    if j > 0 && test(si, i, j - 1, f.len()) {
+                    if j > 0 && test(&f, si, i, j - 1) {
                         j -= 1;
                     }
-                },
+                }
                 '>' => {
-                    if test(si, i, j + 1, f.len()) {
+                    if test(&f, si, i, j + 1) {
                         j += 1;
                     }
-                },
+                }
                 _ => panic!("{d}"),
             };
-            if !test(si, i - 1, j, f.len()) {
+            if i == 0 || !test(&f, si, i - 1, j) {
                 break;
             }
             i -= 1;
         }
-        let m1 = mask();
+        let m1 = mask(&f);
         put(&mut f, si, i, j);
         if rec(Upd {
             m1,
@@ -177,7 +181,6 @@ struct Upd {
     j: usize,
 }
 
-
 #[allow(dead_code)]
 fn dbg(grid: &Vec<Vec<char>>) {
     for item in grid {
@@ -201,15 +204,15 @@ mod tests {
         assert_eq!(3106, solve(input, 2022));
     }
 
-    //#[test]
-    //fn part2_sample() {
-    //    let input = util::read_file("inputs/day17-sample.txt");
-    //    assert_eq!(56000011, solve(input, 1000000000000));
-    //}
+    #[test]
+    fn part2_sample() {
+        let input = util::read_file("inputs/day17-sample.txt");
+        assert_eq!(1514285714288, solve(input, 1000000000000));
+    }
 
-    //#[test]
-    //fn part2_input() {
-    //    let input = util::read_file("inputs/day17.txt");
-    //    assert_eq!(12817603219131, solve(input, 1000000000000));
-    //}
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/day17.txt");
+        assert_eq!(1537175792495, solve(input, 1000000000000));
+    }
 }

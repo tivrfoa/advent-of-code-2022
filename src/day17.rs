@@ -44,7 +44,8 @@ pub fn solve(input: String) -> usize {
     grid[LINES] = vec!['#'; COLS];
     let mut curr_move = 0;
 
-    for _ in 0..20 { // 2022
+    for _ in 0..20 {
+        // 2022
         // Each rock appears so that its left edge is two units away from the
         // left wall and its bottom edge is three units above the highest rock
         // in the room (or the floor, if there isn't one).
