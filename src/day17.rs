@@ -286,6 +286,7 @@ pub fn solve_part2(input: String) -> usize {
     let mut leftover_drops = 0;
     let mut height_at_cycle = 0;
     let mut integral_height = 0;
+    let mut last_rows = "".to_string();
 
     const TOTAL_ROCKS: usize = 1000000000000;
 
@@ -511,13 +512,16 @@ pub fn solve_part2(input: String) -> usize {
             curr_move = (curr_move + 1) % moves.len();
         }
 
+        if rock == 4 {
+            last_rows = get_last_rows(&grid, tallest_rock_row, LINES - tallest_rock_row);
+        }
+
         // detect cycle
-        const MAX_ROWS: usize = 16;
-        if tallest_rock_row + MAX_ROWS < LINES && integral_height == 0 {
-            let last_rows = get_last_rows(&grid, tallest_rock_row, MAX_ROWS);
-            println!("{last_rows}");
+        const MAX_ROWS: usize = 4;
+        if rock > 4 && integral_height == 0 {
             if let Some((r, h)) = memo.get(&(shape, curr_move, last_rows.clone())) {
                 println!("Found cycle!");
+                println!("Last row = {last_rows}");
                 println!("Drops until start of loop = {}", r);
                 println!("Height of tower when loop started = {}", h);
                 let delta_height = ((LINES - tallest_rock_row) + 1) - h;
@@ -539,7 +543,7 @@ pub fn solve_part2(input: String) -> usize {
                 );
             } else {
                 memo.insert(
-                    (shape, curr_move, last_rows),
+                    (shape, curr_move, last_rows.clone()),
                     (rock, ((LINES - tallest_rock_row) + 1)),
                 );
             }
