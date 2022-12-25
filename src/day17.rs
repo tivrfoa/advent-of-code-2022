@@ -44,9 +44,7 @@ pub fn solve(input: String) -> usize {
     grid[LINES] = vec!['#'; COLS];
     let mut curr_move = 0;
 
-    // for _ in 0usize..1000000000000 {
-    // for _ in 0..2022 {
-    for _ in 0..20 {
+    for _ in 0..20 { // 2022
         // Each rock appears so that its left edge is two units away from the
         // left wall and its bottom edge is three units above the highest rock
         // in the room (or the floor, if there isn't one).
@@ -512,13 +510,10 @@ pub fn solve_part2(input: String) -> usize {
             curr_move = (curr_move + 1) % moves.len();
         }
 
-        if rock == 4 {
-            last_rows = get_last_rows(&grid, tallest_rock_row, LINES - tallest_rock_row);
-        }
-
         // detect cycle
         const MAX_ROWS: usize = 4;
         if rock > 4 && integral_height == 0 {
+            let last_rows = get_last_rows(&grid, tallest_rock_row, MAX_ROWS);
             if let Some((r, h)) = memo.get(&(shape, curr_move, last_rows.clone())) {
                 println!("Found cycle!");
                 println!("Last row = {last_rows}");
@@ -543,7 +538,7 @@ pub fn solve_part2(input: String) -> usize {
                 );
             } else {
                 memo.insert(
-                    (shape, curr_move, last_rows.clone()),
+                    (shape, curr_move, last_rows),
                     (rock, ((LINES - tallest_rock_row) + 1)),
                 );
             }
