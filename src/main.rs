@@ -2,8 +2,9 @@ mod day17;
 mod util;
 
 fn main() {
-    test_sample();
+    // test_sample();
     // test_input();
+    test_part2();
 }
 
 fn test_sample() {
@@ -15,4 +16,10 @@ fn test_input() {
     let input = util::read_file("inputs/day17.txt");
 
     println!("{}", day17::solve(input));
+}
+
+fn test_part2() {
+    let input = util::read_file("inputs/day17.txt");
+
+    println!("{}", day17::solve_part2(input));
 }
