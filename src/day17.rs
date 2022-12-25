@@ -1,5 +1,7 @@
 use crate::util;
 
+use std::collections::HashMap;
+
 const SHAPES: [char; 5] = ['-', '+', 'L', 'I', 'S'];
 
 fn can_move_left(grid: &[Vec<char>], row: usize, left_edge: usize) -> bool {
@@ -26,7 +28,6 @@ fn can_fall(grid: &[Vec<char>], row: usize, left_edge: usize, width: usize) -> b
     }
     true
 }
-
 
 //const LINES: usize = 1_514_285_714_289;
 const COLS: usize = 7;
@@ -260,54 +261,60 @@ pub fn solve(input: String) -> usize {
     LINES - tallest_rock_row
 }
 
-pub fn solve_part2(input: String) -> usize {
-    let mut tower_height = 0;
+fn get_last_rows(grid: &[Vec<char>], start_row: usize, max_rows: usize) -> String {
+    let mut s = String::new();
+    for r in start_row..start_row + max_rows {
+        s.push_str(&grid[r].iter().collect::<String>());
+    }
+    s
+}
 
-    const LINES: usize = 2_010;
+pub fn solve_part2(input: String) -> usize {
+    const LINES: usize = 10_000;
     let input = input.trim();
     let moves: Vec<char> = input.chars().collect();
-    println!("{:?}", moves);
     let mut curr_shape = 0;
     let mut tallest_rock_row: usize = LINES;
     // The tall, vertical chamber is exactly seven units wide.
     let mut grid: Vec<Vec<char>> = vec![vec!['.'; COLS]; LINES + 1];
     grid[LINES] = vec!['#'; COLS];
     let mut curr_move = 0;
-    let mut max_moves = 0;
 
-    // for _ in 0usize..1000000000000 {
-    // for _ in 0..1000 { // 1521 - max moves for a rock: 29
-    for _ in 0..10_000 { // 15_377 - max moves for a rock: 29
-    // for _ in 0..2000 { // 3072 - max moves for a rock: 29
-    // for _ in 0..2022 { // 3106 - max moves for a rock: 29
-    // for _ in 0..4044 { // 6210 - max moves for a rock: 29
-    // for _ in 0..20_022 { // 30_762 - max moves for a rock: 29
-    // for _ in 0..200_022 { // 307_461 - max moves for a rock: 29
-    // for _ in 0..20 {
-        if tallest_rock_row < 10 {
-            // retain last 1000 computed rows
-            for r in tallest_rock_row..tallest_rock_row + 1_000 {
-                for c in 0..COLS {
-                    grid[r + 1_000][c] = grid[r][c];
-                    grid[r][c] = '.';
-                }
+    // variables for cycling
+    // key: (shape, jet, last rows), value = (rock, height)
+    let mut memo: HashMap<(char, usize, String), (usize, usize)> = HashMap::new();
+    let mut leftover_drops = 0;
+    let mut height_at_cycle = 0;
+    let mut integral_height = 0;
+
+    const TOTAL_ROCKS: usize = 1000000000000;
+
+    for rock in 1..=TOTAL_ROCKS {
+        // Handle cycle
+        if integral_height > 0 {
+            if leftover_drops == 0 {
+                println!("Finished remaining drops ...");
+                let leftover_height = ((LINES - tallest_rock_row) + 1) - height_at_cycle;
+                return integral_height + leftover_height;
+            } else {
+                leftover_drops -= 1;
             }
-            tower_height += 1_000;
-            tallest_rock_row += 1_000;
         }
+
         // Each rock appears so that its left edge is two units away from the
         // left wall and its bottom edge is three units above the highest rock
         // in the room (or the floor, if there isn't one).
         let mut row = tallest_rock_row - 4;
         let mut left_edge = 2;
-
         let mut rock_moves = 0;
+
+        let shape = SHAPES[curr_shape];
 
         loop {
             // loop until rock comes to rest
             rock_moves += 1;
 
-            match SHAPES[curr_shape] {
+            match shape {
                 '-' => {
                     // move
                     if moves[curr_move] == '<' {
@@ -504,7 +511,39 @@ pub fn solve_part2(input: String) -> usize {
             curr_move = (curr_move + 1) % moves.len();
         }
 
-        max_moves = max_moves.max(rock_moves);
+        // detect cycle
+        const MAX_ROWS: usize = 16;
+        if tallest_rock_row + MAX_ROWS < LINES && integral_height == 0 {
+            let last_rows = get_last_rows(&grid, tallest_rock_row, MAX_ROWS);
+            println!("{last_rows}");
+            if let Some((r, h)) = memo.get(&(shape, curr_move, last_rows.clone())) {
+                println!("Found cycle!");
+                println!("Drops until start of loop = {}", r);
+                println!("Height of tower when loop started = {}", h);
+                let delta_height = ((LINES - tallest_rock_row) + 1) - h;
+                let delta_drops = rock - r;
+                println!(
+                    "There is an increase of {delta_height} rows for every {delta_drops} drops"
+                );
+                let remaining_drops = TOTAL_ROCKS - r;
+                println!("There are still {remaining_drops} left to go.");
+                let needed_drops = remaining_drops / delta_drops;
+                leftover_drops = remaining_drops % delta_drops;
+
+                height_at_cycle = (LINES - tallest_rock_row);
+                integral_height = h + delta_height * needed_drops;
+
+                println!(
+                    "The height will reach {integral_height} but there
+                    are still {leftover_drops} drops left"
+                );
+            } else {
+                memo.insert(
+                    (shape, curr_move, last_rows),
+                    (rock, ((LINES - tallest_rock_row) + 1)),
+                );
+            }
+        }
 
         //draw(&grid, tallest_rock_row);
         curr_move = (curr_move + 1) % moves.len();
@@ -512,8 +551,7 @@ pub fn solve_part2(input: String) -> usize {
     }
 
     // draw(&grid, tallest_rock_row);
-    println!("max moves: {}", max_moves);
-    tower_height + (LINES - tallest_rock_row)
+    LINES - tallest_rock_row
 }
 
 #[allow(dead_code)]
