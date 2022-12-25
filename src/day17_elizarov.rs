@@ -1,3 +1,5 @@
+// https://github.com/elizarov/AdventOfCode2022/blob/main/src/Day17.kt
+
 use crate::util;
 
 use std::collections::HashMap;
