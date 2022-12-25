@@ -273,20 +273,27 @@ pub fn solve_part2(input: String) -> usize {
     let mut grid: Vec<Vec<char>> = vec![vec!['.'; COLS]; LINES + 1];
     grid[LINES] = vec!['#'; COLS];
     let mut curr_move = 0;
+    let mut max_moves = 0;
 
-    for _ in 0usize..1000000000000 {
-    // for _ in 0..2022 {
+    // for _ in 0usize..1000000000000 {
+    // for _ in 0..1000 { // 1521 - max moves for a rock: 29
+    for _ in 0..10_000 { // 15_377 - max moves for a rock: 29
+    // for _ in 0..2000 { // 3072 - max moves for a rock: 29
+    // for _ in 0..2022 { // 3106 - max moves for a rock: 29
+    // for _ in 0..4044 { // 6210 - max moves for a rock: 29
+    // for _ in 0..20_022 { // 30_762 - max moves for a rock: 29
+    // for _ in 0..200_022 { // 307_461 - max moves for a rock: 29
     // for _ in 0..20 {
         if tallest_rock_row < 10 {
             // retain last 1000 computed rows
-            for r in tallest_rock_row..tallest_rock_row + 1000 {
+            for r in tallest_rock_row..tallest_rock_row + 1_000 {
                 for c in 0..COLS {
-                    grid[r + 1000][c] = grid[r][c];
+                    grid[r + 1_000][c] = grid[r][c];
                     grid[r][c] = '.';
                 }
             }
-            tower_height += 1000;
-            tallest_rock_row += 1000;
+            tower_height += 1_000;
+            tallest_rock_row += 1_000;
         }
         // Each rock appears so that its left edge is two units away from the
         // left wall and its bottom edge is three units above the highest rock
@@ -294,8 +301,11 @@ pub fn solve_part2(input: String) -> usize {
         let mut row = tallest_rock_row - 4;
         let mut left_edge = 2;
 
+        let mut rock_moves = 0;
+
         loop {
             // loop until rock comes to rest
+            rock_moves += 1;
 
             match SHAPES[curr_shape] {
                 '-' => {
@@ -494,18 +504,22 @@ pub fn solve_part2(input: String) -> usize {
             curr_move = (curr_move + 1) % moves.len();
         }
 
+        max_moves = max_moves.max(rock_moves);
+
         //draw(&grid, tallest_rock_row);
         curr_move = (curr_move + 1) % moves.len();
         curr_shape = (curr_shape + 1) % SHAPES.len();
     }
 
+    // draw(&grid, tallest_rock_row);
+    println!("max moves: {}", max_moves);
     tower_height + (LINES - tallest_rock_row)
 }
 
 #[allow(dead_code)]
 fn draw(grid: &[Vec<char>], start_row: usize) {
     println!("Tallest rock row: {}", start_row);
-    for r in start_row..=grid.len() {
+    for r in start_row..grid.len() {
         for c in 0..COLS {
             print!("{}", grid[r][c]);
         }
