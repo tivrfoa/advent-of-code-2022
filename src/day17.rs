@@ -318,7 +318,7 @@ pub fn solve_part2(input: String) -> usize {
         if integral_height > 0 {
             if leftover_drops == 0 {
                 println!("Finished remaining drops ...");
-                let leftover_height = ((LINES - tallest_rock_row) + 1) - height_at_cycle;
+                let leftover_height = LINES - (tallest_rock_row + height_at_cycle);
                 return integral_height + leftover_height;
             } else {
                 leftover_drops -= 1;
