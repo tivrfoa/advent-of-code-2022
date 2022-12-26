@@ -1,5 +1,9 @@
-mod day17_elizarov;
+// mod day17_elizarov;
+mod day17;
 mod util;
+
+use day17::solve;
+use day17::solve_part2;
 
 fn main() {
     test_sample();
@@ -9,17 +13,20 @@ fn main() {
 
 fn test_sample() {
     let input = util::read_file("inputs/day17-sample.txt");
-    println!("{}", day17_elizarov::solve(input, 2022));
+    println!("{}", solve(input));
+    // println!("{}", solve(input, 2022));
 }
 
 fn test_input() {
     let input = util::read_file("inputs/day17.txt");
 
-    println!("{}", day17_elizarov::solve(input, 2022));
+    println!("{}", solve(input));
+    // println!("{}", solve(input, 2022));
 }
 
 fn test_part2() {
     let input = util::read_file("inputs/day17.txt");
 
-    println!("{}", day17_elizarov::solve(input, 1000000000000));
+    println!("{}", solve_part2(input));
+    // println!("{}", solve(input, 1000000000000));
 }
