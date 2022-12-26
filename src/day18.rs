@@ -1,6 +1,6 @@
 use crate::util;
 
-use std::collections::HashMap;
+use std::collections::HashSet;
 
 use std::cmp::Ordering;
 
@@ -25,66 +25,49 @@ use std::cmp::Ordering;
 
 */
 
-#[derive(Debug)]
-struct Cube {
-    x: usize,
-    y: usize,
-    z: usize,
-    covered_sides: usize,
-}
-
-impl Cube {
-    fn new(x: usize, y: usize, z: usize) -> Self {
-        Self {
-            x,
-            y,
-            z,
-            covered_sides: 0,
-        }
-    }
-}
+//#[derive(Debug)]
+//struct Cube {
+//    x: usize,
+//    y: usize,
+//    z: usize,
+//}
+//
+//impl Cube {
+//    fn new(x: usize, y: usize, z: usize) -> Self {
+//        Self {
+//            x,
+//            y,
+//            z,
+//        }
+//    }
+//}
 
 pub fn solve(input: String) -> usize {
-    let mut cubes: Vec<Cube> = parse(input);
-    let len = cubes.len();
+    let mut cubes: HashSet<(i32, i32, i32)> = parse(input);
 
-    // sort by x, y
-    cubes.sort_unstable_by_key(|k| (k.x, k.y));
+    // copied solution from UncleScientist
+    // I had no idea how to do that
 
-    'li: for i in 0..len - 1 {
-        for j in i + 1..len {
-            if cubes[i].x != cubes[j].x || cubes[i].y != cubes[j].y {
-                continue 'li;
+    let mut sides = cubes.len() * 6;
+    let delta_xyz = [
+        (-1, 0, 0),
+        (1, 0, 0),
+        (0, -1, 0),
+        (0, 1, 0),
+        (0, 0, -1),
+        (0, 0, 1),
+    ];
+
+    for c in &cubes {
+        for d in delta_xyz {
+            let pos = (c.0 + d.0, c.1 + d.1, c.2 + d.2);
+            if cubes.contains(&pos) {
+                sides -= 1;
             }
-            cubes[i].covered_sides += 1;
         }
     }
 
-    // sort by x, z
-    cubes.sort_unstable_by_key(|k| (k.x, k.z));
-
-    'li: for i in 0..len - 1 {
-        for j in i + 1..len {
-            if cubes[i].x != cubes[j].x || cubes[i].z != cubes[j].z {
-                continue 'li;
-            }
-            cubes[i].covered_sides += 1;
-        }
-    }
-
-    // sort by y, z
-    cubes.sort_unstable_by_key(|k| (k.y, k.z));
-
-    'li: for i in 0..len - 1 {
-        for j in i + 1..len {
-            if cubes[i].y != cubes[j].y || cubes[i].z != cubes[j].z {
-                continue 'li;
-            }
-            cubes[i].covered_sides += 1;
-        }
-    }
-
-    cubes.iter().map(|c| 6 - c.covered_sides).sum()
+    sides
 }
 
 pub fn solve_part2(input: String) -> usize {
@@ -105,14 +88,14 @@ mod tests {
     #[test]
     fn part1_sample() {
         let input = util::read_file("inputs/day18-sample.txt");
-        assert_eq!(3068, solve(input));
+        assert_eq!(64, solve(input));
     }
 
-    //#[test]
-    //fn part1_input() {
-    //    let input = util::read_file("inputs/day18.txt");
-    //    assert_eq!(3106, solve(input));
-    //}
+    #[test]
+    fn part1_input() {
+        let input = util::read_file("inputs/day18.txt");
+        assert_eq!(3374, solve(input));
+    }
 
     //#[test]
     //fn part2_sample() {
@@ -133,15 +116,14 @@ mod tests {
     //}
 }
 
-fn parse(input: String) -> Vec<Cube> {
-    let mut cubes = vec![];
+fn parse(input: String) -> HashSet<(i32, i32, i32)> {
+    let mut cubes = HashSet::new();
     for line in input.lines() {
-        let tokens: Vec<usize> = line.split(",").map(|s| s.parse().unwrap()).collect();
+        let tokens: Vec<i32> = line.split(",").map(|s| s.parse().unwrap()).collect();
         let x = tokens[0];
         let y = tokens[1];
         let z = tokens[2];
-        let cube = Cube::new(x, y, z);
-        cubes.push(cube);
+        cubes.insert((x, y, z));
     }
     cubes
 }
