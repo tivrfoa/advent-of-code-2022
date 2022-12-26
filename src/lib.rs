@@ -1,4 +1,4 @@
-mod day17_elizarov;
+mod day17;
 mod util;
 
-pub use day17_elizarov::solve; // just to remove unused warnings
+pub use day17::solve; // just to remove unused warnings

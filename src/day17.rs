@@ -624,12 +624,12 @@ mod tests {
         //   2. Detect when the patter repeats and then just multiply for the
         //      remaining stones
         let input = util::read_file("inputs/day17-sample.txt");
-        assert_eq!(56000011, solve_part2(input));
+        assert_eq!(1514285714288, solve_part2(input));
     }
 
     #[test]
     fn part2_input() {
         let input = util::read_file("inputs/day17.txt");
-        assert_eq!(12817603219131, solve_part2(input));
+        assert_eq!(1537175792495, solve_part2(input));
     }
 }
