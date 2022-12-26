@@ -2,6 +2,7 @@ use crate::util;
 
 use std::collections::HashMap;
 
+use std::cmp::Ordering;
 
 /*
 
@@ -24,12 +25,66 @@ use std::collections::HashMap;
 
 */
 
+#[derive(Debug)]
+struct Cube {
+    x: usize,
+    y: usize,
+    z: usize,
+    covered_sides: usize,
+}
+
+impl Cube {
+    fn new(x: usize, y: usize, z: usize) -> Self {
+        Self {
+            x,
+            y,
+            z,
+            covered_sides: 0,
+        }
+    }
+}
+
 pub fn solve(input: String) -> usize {
+    let mut cubes: Vec<Cube> = parse(input);
+    let len = cubes.len();
 
+    // sort by x, y
+    cubes.sort_unstable_by_key(|k| (k.x, k.y));
 
+    'li: for i in 0..len - 1 {
+        for j in i + 1..len {
+            if cubes[i].x != cubes[j].x || cubes[i].y != cubes[j].y {
+                continue 'li;
+            }
+            cubes[i].covered_sides += 1;
+        }
+    }
 
+    // sort by x, z
+    cubes.sort_unstable_by_key(|k| (k.x, k.z));
 
-    todo!()
+    'li: for i in 0..len - 1 {
+        for j in i + 1..len {
+            if cubes[i].x != cubes[j].x || cubes[i].z != cubes[j].z {
+                continue 'li;
+            }
+            cubes[i].covered_sides += 1;
+        }
+    }
+
+    // sort by y, z
+    cubes.sort_unstable_by_key(|k| (k.y, k.z));
+
+    'li: for i in 0..len - 1 {
+        for j in i + 1..len {
+            if cubes[i].y != cubes[j].y || cubes[i].z != cubes[j].z {
+                continue 'li;
+            }
+            cubes[i].covered_sides += 1;
+        }
+    }
+
+    cubes.iter().map(|c| 6 - c.covered_sides).sum()
 }
 
 pub fn solve_part2(input: String) -> usize {
@@ -76,4 +131,17 @@ mod tests {
     //    let input = util::read_file("inputs/day18.txt");
     //    assert_eq!(1537175792495, solve_part2(input));
     //}
+}
+
+fn parse(input: String) -> Vec<Cube> {
+    let mut cubes = vec![];
+    for line in input.lines() {
+        let tokens: Vec<usize> = line.split(",").map(|s| s.parse().unwrap()).collect();
+        let x = tokens[0];
+        let y = tokens[1];
+        let z = tokens[2];
+        let cube = Cube::new(x, y, z);
+        cubes.push(cube);
+    }
+    cubes
 }
