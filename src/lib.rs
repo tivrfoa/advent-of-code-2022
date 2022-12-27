@@ -1,4 +1,6 @@
-mod day18;
+#[allow(dead_code, unused_imports)]
+
+mod template;
 mod util;
 
-pub use day18::solve; // just to remove unused warnings
+pub use template::solve; // just to remove unused warnings
