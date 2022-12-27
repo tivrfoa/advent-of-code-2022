@@ -4,11 +4,11 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::cmp::Ordering;
 use std::fmt::{Debug, Display};
 
-pub fn solve(input: String) -> String {
+pub fn part1(input: String) -> String {
     "".into()
 }
 
-pub fn solve_part2(input: String) -> String {
+pub fn part2(input: String) -> String {
     todo!()
 }
 
@@ -26,25 +26,25 @@ mod tests {
     #[test]
     fn part1_sample() {
         let input = util::read_file("inputs/dayX-sample.txt");
-        assert_eq!("", solve(input));
+        assert_eq!("", part1(input));
     }
 
     //#[test]
     //fn part1_input() {
     //    let input = util::read_file("inputs/dayX.txt");
-    //    assert_eq!("", solve(input));
+    //    assert_eq!("", part1(input));
     //}
 
     //#[test]
     //fn part2_sample() {
     //    let input = util::read_file("inputs/dayX-sample.txt");
-    //    assert_eq!("", solve_part2(input));
+    //    assert_eq!("", part2(input));
     //}
 
     //#[test]
     //fn part2_input() {
     //    let input = util::read_file("inputs/dayX.txt");
-    //    assert_eq!("", solve_part2(input));
+    //    assert_eq!("", part2(input));
     //}
 }
 
