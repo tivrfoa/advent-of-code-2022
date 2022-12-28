@@ -11,6 +11,34 @@ struct State {
     minutes: u16,        // minutes used to get to this state
 }
 
+fn cp(state: &State, bp: &Blueprint) -> Option<State> {
+    let mut s = State::get_start_state();
+
+    for (i, r) in state.robots.iter().enumerate() {
+        s.robots[i] = *r;
+    }
+
+    for (i, r) in state.resources.iter().enumerate() {
+        s.resources[i] = *r;
+    }
+
+    s.minutes = state.minutes;
+
+    if s.resources[0] >= bp.clay {
+        s.minutes += 1;
+        s.robots[1] += 1;
+        s.resources[0] -= bp.clay;
+
+        for (i, r) in state.robots.iter().enumerate() {
+            s.resources[i] += r;
+        }
+
+        Some(s)
+    } else {
+        None
+    }
+}
+
 impl State {
     fn get_start_state() -> Self {
         Self {
@@ -20,61 +48,57 @@ impl State {
         }
     }
 
-    fn produce_geode(&self, bp: &Blueprint) -> Option<Self> {
-        if self.resources[0] >= bp.geode.0 && self.resources[2] >= bp.geode.1 {
-            let mut clone = self.clone();
-            clone.minutes += 1;
-            clone.robots[3] += 1;
-            clone.resources[0] -= bp.geode.0;
-            clone.resources[2] -= bp.geode.1;
+    //fn cp(&self) -> Self {
+    //    let mut s = Self::get_start_state();
 
-            for (i, r) in self.robots.iter().enumerate() {
-                clone.resources[i] += r;
-            }
+    //    for (i, r) in self.robots.iter().enumerate() {
+    //        s.robots[i] = *r;
+    //    }
 
-            Some(clone)
-        } else {
-            None
-        }
-    }
+    //    for (i, r) in self.resources.iter().enumerate() {
+    //        s.resources[i] = *r;
+    //    }
 
-    fn produce_obsidan(&self, bp: &Blueprint) -> Option<Self> {
-        if self.resources[0] >= bp.obsidian.0 && self.resources[1] >= bp.obsidian.1 {
-            let mut clone = self.clone();
-            clone.minutes += 1;
-            clone.robots[2] += 1;
-            clone.resources[0] -= bp.obsidian.0;
-            clone.resources[1] -= bp.obsidian.1;
+    //    s.minutes = self.minutes;
 
-            for (i, r) in self.robots.iter().enumerate() {
-                clone.resources[i] += r;
-            }
+    //    s
+    //}
 
-            Some(clone)
-        } else {
-            None
-        }
-    }
+    //fn produce_geode(&self, bp: &Blueprint) -> Option<Self> {
+    //    if self.resources[0] >= bp.geode.0 && self.resources[2] >= bp.geode.1 {
+    //        let mut clone = self.clone();
+    //        clone.minutes += 1;
+    //        clone.robots[3] += 1;
+    //        clone.resources[0] -= bp.geode.0;
+    //        clone.resources[2] -= bp.geode.1;
 
-    fn fff1(&self, bp: &Blueprint) -> Option<Self> {
-        println!("producing clay");
-        if self.resources[0] >= bp.clay {
-            let mut clone = self.clone();
-      //      clone.minutes += 1;
-      //      clone.robots[1] += 1;
-      //      clone.resources[0] -= bp.clay;
+    //        for (i, r) in self.robots.iter().enumerate() {
+    //            clone.resources[i] += r;
+    //        }
 
-      //     // for (i, r) in self.robots.iter().enumerate() {
-      //     //     println!("i = {}", i);
-      //     //     clone.resources[i] += r;
-      //     // }
+    //        Some(clone)
+    //    } else {
+    //        None
+    //    }
+    //}
 
-      //      println!("new clay ... minutes = {}", self.minutes);
-            Some(clone)
-        } else {
-            None
-        }
-    }
+    //fn produce_obsidan(&self, bp: &Blueprint) -> Option<Self> {
+    //    if self.resources[0] >= bp.obsidian.0 && self.resources[1] >= bp.obsidian.1 {
+    //        let mut clone = self.clone();
+    //        clone.minutes += 1;
+    //        clone.robots[2] += 1;
+    //        clone.resources[0] -= bp.obsidian.0;
+    //        clone.resources[1] -= bp.obsidian.1;
+
+    //        for (i, r) in self.robots.iter().enumerate() {
+    //            clone.resources[i] += r;
+    //        }
+
+    //        Some(clone)
+    //    } else {
+    //        None
+    //    }
+    //}
 
     fn produce_resources_only(mut self) -> Self {
         self.minutes += 1;
@@ -84,47 +108,6 @@ impl State {
         }
 
         self
-    }
-
-    fn greedy(&self, blueprint: &Blueprint) -> Self {
-        let mut clone = self.clone();
-        clone.minutes += 1;
-
-        // first check if it can be something with resources
-
-        // try geode first
-        if clone.resources[0] >= blueprint.geode.0 && clone.resources[2] >= blueprint.geode.1 {
-            clone.robots[3] += 1;
-            clone.resources[0] -= blueprint.geode.0;
-            clone.resources[2] -= blueprint.geode.1;
-        }
-
-        // try obsidian
-        if clone.resources[0] >= blueprint.obsidian.0 && clone.resources[1] >= blueprint.obsidian.1
-        {
-            clone.robots[2] += 1;
-            clone.resources[0] -= blueprint.geode.0;
-            clone.resources[1] -= blueprint.geode.1;
-        }
-
-        // try clay
-        if clone.resources[0] >= blueprint.clay {
-            clone.robots[1] += 1;
-            clone.resources[0] -= blueprint.clay;
-        }
-
-        // greedy probably wont' work. Maybe it's better not create a ore robot
-        // now
-        if clone.resources[0] >= blueprint.ore {
-            clone.robots[0] += 1;
-            clone.resources[0] -= blueprint.ore;
-        }
-
-        for (i, r) in self.robots.iter().enumerate() {
-            clone.resources[i] += r;
-        }
-
-        clone
     }
 }
 
@@ -169,7 +152,7 @@ pub fn part1(input: String) -> String {
         states.push_back(state);
 
         while let Some(state) = states.pop_front() {
-            dbg!(&state);
+            // dbg!(&state);
 
             if state.minutes == 24 {
                 let state = state.produce_resources_only();
@@ -179,28 +162,22 @@ pub fn part1(input: String) -> String {
                 break;
             }
 
-            if let Some(s) = state.produce_geode(bp) {
-                states.push_back(s);
-            }
+            // if let Some(s) = state.produce_geode(bp) {
+            //     states.push_back(s);
+            // }
 
-            if let Some(s) = state.produce_obsidan(bp) {
-                states.push_back(s);
-            }
+            // if let Some(s) = state.produce_obsidan(bp) {
+            //     states.push_back(s);
+            // }
 
-            println!("producing clay?");
-            if let Some(s) = state.fff1(bp) {
+            if let Some(s) = cp(&state, bp) {
+                // println!("{}", states.len());
                 states.push_back(s);
+                // states.push_front(s);
             }
-            println!("after clay");
 
             states.push_back(state.produce_resources_only());
         }
-
-        //for m in 1..=24 {
-        //    dbg!(&state);
-        //    state = state.greedy(bp);
-        //}
-        //dbg!(&state);
     }
 
     "".into()
