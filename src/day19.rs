@@ -1,14 +1,14 @@
 use crate::util;
 
-use std::collections::{HashMap, HashSet, VecDeque};
 use std::cmp::Ordering;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 
 #[derive(Copy, Clone, Debug)]
 struct State {
-    robots: [u16; 4], // number of robots of each type
+    robots: [u16; 4],    // number of robots of each type
     resources: [u16; 4], // number of resources of each type
-    minutes: u16, // minutes used to get to this state
+    minutes: u16,        // minutes used to get to this state
 }
 
 impl State {
@@ -20,6 +20,72 @@ impl State {
         }
     }
 
+    fn produce_geode(&self, bp: &Blueprint) -> Option<Self> {
+        if self.resources[0] >= bp.geode.0 && self.resources[2] >= bp.geode.1 {
+            let mut clone = self.clone();
+            clone.minutes += 1;
+            clone.robots[3] += 1;
+            clone.resources[0] -= bp.geode.0;
+            clone.resources[2] -= bp.geode.1;
+
+            for (i, r) in self.robots.iter().enumerate() {
+                clone.resources[i] += r;
+            }
+
+            Some(clone)
+        } else {
+            None
+        }
+    }
+
+    fn produce_obsidan(&self, bp: &Blueprint) -> Option<Self> {
+        if self.resources[0] >= bp.obsidian.0 && self.resources[1] >= bp.obsidian.1 {
+            let mut clone = self.clone();
+            clone.minutes += 1;
+            clone.robots[2] += 1;
+            clone.resources[0] -= bp.obsidian.0;
+            clone.resources[1] -= bp.obsidian.1;
+
+            for (i, r) in self.robots.iter().enumerate() {
+                clone.resources[i] += r;
+            }
+
+            Some(clone)
+        } else {
+            None
+        }
+    }
+
+    fn fff1(&self, bp: &Blueprint) -> Option<Self> {
+        println!("producing clay");
+        if self.resources[0] >= bp.clay {
+            let mut clone = self.clone();
+      //      clone.minutes += 1;
+      //      clone.robots[1] += 1;
+      //      clone.resources[0] -= bp.clay;
+
+      //     // for (i, r) in self.robots.iter().enumerate() {
+      //     //     println!("i = {}", i);
+      //     //     clone.resources[i] += r;
+      //     // }
+
+      //      println!("new clay ... minutes = {}", self.minutes);
+            Some(clone)
+        } else {
+            None
+        }
+    }
+
+    fn produce_resources_only(mut self) -> Self {
+        self.minutes += 1;
+
+        for (i, r) in self.robots.iter().enumerate() {
+            self.resources[i] += r;
+        }
+
+        self
+    }
+
     fn greedy(&self, blueprint: &Blueprint) -> Self {
         let mut clone = self.clone();
         clone.minutes += 1;
@@ -27,16 +93,15 @@ impl State {
         // first check if it can be something with resources
 
         // try geode first
-        if clone.resources[0] >= blueprint.geode.0 &&
-                clone.resources[2] >= blueprint.geode.1 {
+        if clone.resources[0] >= blueprint.geode.0 && clone.resources[2] >= blueprint.geode.1 {
             clone.robots[3] += 1;
             clone.resources[0] -= blueprint.geode.0;
             clone.resources[2] -= blueprint.geode.1;
         }
 
         // try obsidian
-        if clone.resources[0] >= blueprint.obsidian.0 &&
-                clone.resources[1] >= blueprint.obsidian.1 {
+        if clone.resources[0] >= blueprint.obsidian.0 && clone.resources[1] >= blueprint.obsidian.1
+        {
             clone.robots[2] += 1;
             clone.resources[0] -= blueprint.geode.0;
             clone.resources[1] -= blueprint.geode.1;
@@ -68,9 +133,8 @@ struct Blueprint {
     ore: u16,
     clay: u16,
     obsidian: (u16, u16), // ore and clay
-    geode: (u16, u16), // ore and obsidian
+    geode: (u16, u16),    // ore and obsidian
 }
-
 
 /// You have exactly one ore-collecting robot in your pack that
 /// you can use to kickstart the whole operation.
@@ -90,28 +154,54 @@ struct Blueprint {
 /// The decision is which robot to build with the available resources ...
 /// At minute 23, the only thing that makes sense to build is a geode robot.
 ///
-/// As the types of resources needed to build a robot are different, a greedy
-/// approach to build a robot as soon as possible might work.
-///
 ///
 /// Determine the quality level of each blueprint by multiplying that
 /// blueprint's ID number with the largest number of geodes that can be
 /// opened in 24 minutes using that blueprint.
 pub fn part1(input: String) -> String {
-
-
-    // let's see how the greedy approach goes
-
     let blueprints: Vec<Blueprint> = parse(input);
+    let mut geodes: Vec<u16> = Vec::with_capacity(blueprints.len());
 
-    let mut state = State::get_start_state();
+    for bp in &blueprints {
+        let mut state = State::get_start_state();
 
-    for m in 1..=24 {
-        dbg!(&state);
-        state = state.greedy(&blueprints[0]);
+        let mut states: VecDeque<State> = VecDeque::new();
+        states.push_back(state);
+
+        while let Some(state) = states.pop_front() {
+            dbg!(&state);
+
+            if state.minutes == 24 {
+                let state = state.produce_resources_only();
+                // todo best max
+                geodes.push(state.resources[3]);
+
+                break;
+            }
+
+            if let Some(s) = state.produce_geode(bp) {
+                states.push_back(s);
+            }
+
+            if let Some(s) = state.produce_obsidan(bp) {
+                states.push_back(s);
+            }
+
+            println!("producing clay?");
+            if let Some(s) = state.fff1(bp) {
+                states.push_back(s);
+            }
+            println!("after clay");
+
+            states.push_back(state.produce_resources_only());
+        }
+
+        //for m in 1..=24 {
+        //    dbg!(&state);
+        //    state = state.greedy(bp);
+        //}
+        //dbg!(&state);
     }
-    dbg!(&state);
-
 
     "".into()
 }
