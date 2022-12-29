@@ -12,6 +12,10 @@ pub fn part2(input: String) -> String {
     todo!()
 }
 
+fn parse(input: String) -> String {
+    todo!()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -46,8 +50,4 @@ fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
     for item in grid {
         println!("{item:?}");
     }
-}
-
-fn parse(input: String) -> String {
-    todo!()
 }
