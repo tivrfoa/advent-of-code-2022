@@ -12,13 +12,6 @@ pub fn part2(input: String) -> String {
     todo!()
 }
 
-#[allow(dead_code)]
-fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
-    for item in grid {
-        println!("{item:?}");
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -46,6 +39,13 @@ mod tests {
     //    let input = util::read_file("inputs/dayX.txt");
     //    assert_eq!("", part2(input));
     //}
+}
+
+#[allow(dead_code)]
+fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
+    for item in grid {
+        println!("{item:?}");
+    }
 }
 
 fn parse(input: String) -> String {
