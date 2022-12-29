@@ -7,15 +7,15 @@ use std::iter::zip;
 
 #[derive(Debug)]
 struct Blueprint {
-    recipes: [Vec<(i32, usize)>; 4],
-    max_spend: [i32; 3], // ore, clay, obsidian
+    recipes: [Vec<(u16, usize)>; 4],
+    max_spend: [u16; 3], // ore, clay, obsidian
 }
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 struct State {
-    robots: [i32; 4],    // number of robots of each type
-    resources: [i32; 4], // number of resources of each type
-    minutes: i32,        // minutes used to get to this state
+    robots: [u16; 4],    // number of robots of each type
+    resources: [u16; 4], // number of resources of each type
+    minutes: u16,        // minutes used to get to this state
 }
 
 impl State {
@@ -28,10 +28,8 @@ impl State {
     }
 }
 
-fn dfs(bp: &Blueprint, cache: &mut HashMap<State, i32>, state: State) -> i32 {
-    //println!("Running minute: {}", state.minutes);
+fn dfs(bp: &Blueprint, cache: &mut HashMap<State, u16>, state: State) -> u16 {
     if state.minutes == 0 {
-        dbg!(state);
         return state.resources[3];
     }
 
@@ -53,23 +51,21 @@ fn dfs(bp: &Blueprint, cache: &mut HashMap<State, i32>, state: State) -> i32 {
                 continue 'lr;
             }
 
-            // let div = ceil_div2(*ramt, state.resources[*rtype], state.robots[*rtype]);
-            // wait = wait.max(div);
-            // if *ramt >= state.resources[*rtype] {
-            wait = wait.max((*ramt - state.resources[*rtype]).div_ceil(state.robots[*rtype]));
-            // }
+            if *ramt >= state.resources[*rtype] {
+                wait = wait.max((*ramt - state.resources[*rtype]).div_ceil(state.robots[*rtype]));
+            }
         }
 
-        let remtime = state.minutes - wait - 1;
-        if remtime <= 0 {
+        if wait + 1 >= state.minutes {
             continue;
         }
+        let remtime = state.minutes - wait - 1;
         let mut new_state = state.clone();
         new_state.minutes = remtime;
 
         new_state.resources = zip(state.resources, state.robots)
             .map(|(x, y)| x + y * (wait + 1))
-            .collect::<Vec<i32>>()
+            .collect::<Vec<u16>>()
             .try_into()
             .unwrap();
 
@@ -90,31 +86,15 @@ fn dfs(bp: &Blueprint, cache: &mut HashMap<State, i32>, state: State) -> i32 {
     max
 }
 
-fn ceil_div2(a: i32, b: i32, c: i32) -> i32 {
-    let a = a as i32;
-    let b = b as i32;
-    let a = -(a - b);
-    let c = c as i32;
-    let d = -(a / c);
-
-    if d < 0 {
-        0
-    } else {
-        d as i32
-    }
-}
-
 pub fn part1(input: String) -> String {
     let blueprints = parse(input);
 
-    let mut total: i32 = 0;
+    let mut total: u16 = 0;
     for (i, bp) in blueprints.iter().enumerate() {
         dbg!(bp);
-        let mut cache: HashMap<State, i32> = HashMap::new();
+        let mut cache: HashMap<State, u16> = HashMap::new();
         let v = dfs(bp, &mut cache, State::get_start_state());
-        println!("{v}");
-        // TODO bug in blueprints: 14 and 23: they should return 1
-        total += (i as i32 + 1) * v;
+        total += (i as u16 + 1) * v;
     }
 
     total.to_string()
@@ -166,12 +146,12 @@ fn parse(input: String) -> Vec<Blueprint> {
     for line in input.lines() {
         let (_, rem) = line.split_once(": ").unwrap();
         let tokens: Vec<&str> = rem.split_ascii_whitespace().collect();
-        let ore = tokens[4].parse::<i32>().unwrap();
-        let clay = tokens[10].parse::<i32>().unwrap();
-        let obsidian_ore = tokens[16].parse::<i32>().unwrap();
-        let obsidian_clay = tokens[19].parse::<i32>().unwrap();
-        let geode_ore = tokens[25].parse::<i32>().unwrap();
-        let geode_obsidian = tokens[28].parse::<i32>().unwrap();
+        let ore = tokens[4].parse::<u16>().unwrap();
+        let clay = tokens[10].parse::<u16>().unwrap();
+        let obsidian_ore = tokens[16].parse::<u16>().unwrap();
+        let obsidian_clay = tokens[19].parse::<u16>().unwrap();
+        let geode_ore = tokens[25].parse::<u16>().unwrap();
+        let geode_obsidian = tokens[28].parse::<u16>().unwrap();
 
         let max_spend = [
             ore.max(clay.max(obsidian_ore.max(geode_ore))),
@@ -188,17 +168,6 @@ fn parse(input: String) -> Vec<Blueprint> {
             ],
             max_spend,
         });
-        //blueprints.push(Blueprint {
-        //    ore,
-        //    clay,
-        //    obsidian: (obsidian_ore, obsidian_clay),
-        //    geode: (geode_ore, geode_obsidian),
-        //    max_spend: [
-        //        ore.max(obsidian_ore.max(geode_ore)),
-        //        clay.max(obsidian_clay),
-        //        geode_obsidian,
-        //    ],
-        //});
     }
 
     blueprints
