@@ -32,14 +32,14 @@ impl State {
     }
 }
 
-fn dfs(bp: &Blueprint, cache: &mut HashMap<State, u16>, state: &State) -> u16 {
+fn dfs(bp: &Blueprint, cache: &mut HashMap<State, u16>, state: State) -> u16 {
     //println!("Running minute: {}", state.minutes);
     //dbg!(state);
     if state.minutes == 0 {
         return state.resources[3];
     }
 
-    if let Some(v) = cache.get(state) {
+    if let Some(v) = cache.get(&state) {
         return *v;
     }
 
@@ -88,13 +88,13 @@ fn dfs(bp: &Blueprint, cache: &mut HashMap<State, u16>, state: &State) -> u16 {
 
         for i in 0..3 {
             // new_state.resources[i].min((bp.max_spend[i] - new_state.robots[i]) * remtime);
-            new_state.resources[i].min(bp.max_spend[i] * remtime);
+            new_state.resources[i] = new_state.resources[i].min(bp.max_spend[i] * remtime);
         }
 
-        max = max.max(dfs(bp, cache, &new_state));
+        max = max.max(dfs(bp, cache, new_state));
     }
 
-    cache.insert(state.clone(), max);
+    cache.insert(state, max);
     max
 }
 
@@ -126,9 +126,9 @@ pub fn part1(input: String) -> String {
 
     let mut total: u16 = 0;
     for (i, bp) in blueprints.iter().enumerate() {
-        dbg!(bp);
+        //dbg!(bp);
         let mut cache: HashMap<State, u16> = HashMap::new();
-        let v = dfs(bp, &mut cache, &State::get_start_state());
+        let v = dfs(bp, &mut cache, State::get_start_state());
         total += (i as u16 + 1) * v;
     }
 
@@ -146,14 +146,14 @@ mod tests {
     #[test]
     fn part1_sample() {
         let input = util::read_file("inputs/day19-sample.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("33", part1(input));
     }
 
-    //#[test]
-    //fn part1_input() {
-    //    let input = util::read_file("inputs/day19.txt");
-    //    assert_eq!("", part1(input));
-    //}
+    #[test]
+    fn part1_input() {
+        let input = util::read_file("inputs/day19.txt");
+        assert_eq!("", part1(input));
+    }
 
     //#[test]
     //fn part2_sample() {
