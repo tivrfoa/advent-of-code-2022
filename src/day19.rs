@@ -19,11 +19,11 @@ struct State {
 }
 
 impl State {
-    fn get_start_state() -> Self {
+    fn get_start_state(minutes: u16) -> Self {
         Self {
             robots: [1, 0, 0, 0],
             resources: [0, 0, 0, 0],
-            minutes: 24,
+            minutes,
         }
     }
 }
@@ -41,7 +41,9 @@ fn dfs(bp: &Blueprint, cache: &mut HashMap<State, u16>, state: State) -> u16 {
     let mut max = state.resources[3] + state.robots[3] * state.minutes;
 
     'lr: for (btype, recipe) in bp.recipes.iter().enumerate() {
-        if btype != 3 && state.robots[btype] >= bp.max_spend[btype] {
+        // if btype != 3 && state.robots[btype] >= bp.max_spend[btype] {
+        if btype != 3 &&
+                state.robots[btype] * state.minutes >= bp.max_spend[btype] * state.minutes - state.resources[btype] {
             continue;
         }
 
@@ -75,7 +77,7 @@ fn dfs(bp: &Blueprint, cache: &mut HashMap<State, u16>, state: State) -> u16 {
         new_state.robots[btype] += 1;
 
         for i in 0..3 {
-            // new_state.resources[i].min((bp.max_spend[i] - new_state.robots[i]) * remtime);
+            // new_state.resources[i] = new_state.resources[i].min((bp.max_spend[i] - new_state.robots[i]) * remtime);
             new_state.resources[i] = new_state.resources[i].min(bp.max_spend[i] * remtime);
         }
 
@@ -93,7 +95,7 @@ pub fn part1(input: String) -> String {
     for (i, bp) in blueprints.iter().enumerate() {
         dbg!(bp);
         let mut cache: HashMap<State, u16> = HashMap::new();
-        let v = dfs(bp, &mut cache, State::get_start_state());
+        let v = dfs(bp, &mut cache, State::get_start_state(24));
         total += (i as u16 + 1) * v;
     }
 
@@ -101,43 +103,17 @@ pub fn part1(input: String) -> String {
 }
 
 pub fn part2(input: String) -> String {
-    todo!()
-}
+    let blueprints = parse(input);
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn part1_sample() {
-        let input = util::read_file("inputs/day19-sample.txt");
-        assert_eq!("33", part1(input));
+    let mut total: u16 = 1;
+    for bp in &blueprints[..3] {
+        dbg!(bp);
+        let mut cache: HashMap<State, u16> = HashMap::new();
+        let v = dfs(bp, &mut cache, State::get_start_state(32));
+        total *= v;
     }
 
-    #[test]
-    fn part1_input() {
-        let input = util::read_file("inputs/day19.txt");
-        assert_eq!("978", part1(input));
-    }
-
-    //#[test]
-    //fn part2_sample() {
-    //    let input = util::read_file("inputs/day19-sample.txt");
-    //    assert_eq!("", part2(input));
-    //}
-
-    //#[test]
-    //fn part2_input() {
-    //    let input = util::read_file("inputs/day19.txt");
-    //    assert_eq!("", part2(input));
-    //}
-}
-
-#[allow(dead_code)]
-fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
-    for item in grid {
-        println!("{item:?}");
-    }
+    total.to_string()
 }
 
 fn parse(input: String) -> Vec<Blueprint> {
@@ -171,4 +147,40 @@ fn parse(input: String) -> Vec<Blueprint> {
     }
 
     blueprints
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn part1_sample() {
+        let input = util::read_file("inputs/day19-sample.txt");
+        assert_eq!("33", part1(input));
+    }
+
+    #[test]
+    fn part1_input() {
+        let input = util::read_file("inputs/day19.txt");
+        assert_eq!("978", part1(input));
+    }
+
+    //#[test]
+    //fn part2_sample() {
+    //    let input = util::read_file("inputs/day19-sample.txt");
+    //    assert_eq!("", part2(input));
+    //}
+
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/day19.txt");
+        assert_eq!("15939", part2(input));
+    }
+}
+
+#[allow(dead_code)]
+fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
+    for item in grid {
+        println!("{item:?}");
+    }
 }
