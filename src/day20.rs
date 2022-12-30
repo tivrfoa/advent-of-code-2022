@@ -51,17 +51,8 @@ fn trim_value(n: i32, len: usize) -> i32 {
     n % (len as i32 - 1)
 }
 
-pub fn part1(input: String) -> String {
-    let numbers = parse(input);
-    let original = numbers.clone();
+fn mix_numbers(numbers: &mut [(i32, usize)], curr_positions: &mut [usize]) {
     let len = numbers.len();
-    let mut numbers: Vec<(i32, usize)> = numbers.into_iter().zip(0..len).collect();
-    let mut curr_positions: Vec<usize> = (0..len).collect();
-
-    numbers = numbers
-        .into_iter()
-        .map(|t| (trim_value(t.0, len), t.1))
-        .collect();
 
     for i in 0..len {
         let curr_pos = curr_positions[i];
@@ -121,6 +112,21 @@ pub fn part1(input: String) -> String {
             }
         }
     }
+}
+
+pub fn part1(input: String) -> String {
+    let numbers = parse(input);
+    let original = numbers.clone();
+    let len = numbers.len();
+    let mut numbers: Vec<(i32, usize)> = numbers.into_iter().zip(0..len).collect();
+    let mut curr_positions: Vec<usize> = (0..len).collect();
+
+    numbers = numbers
+        .into_iter()
+        .map(|t| (trim_value(t.0, len), t.1))
+        .collect();
+
+    mix_numbers(&mut numbers, &mut curr_positions);
 
     //dbg!(&numbers);
 
@@ -129,18 +135,16 @@ pub fn part1(input: String) -> String {
     dbg!(&zero_index);
 
     let mut sum: i32 = 0;
-    let mut idx = zero_index + 1;
-    if idx == len {
-        idx = 0;
-    }
-    for i in 1..=3000 {
-        if i % 1000 == 0 {
-            sum += original[numbers[idx].1];
+    let mut idx = zero_index;
+
+    for _ in 1..=3 {
+        for _ in 1..=1000 {
+            idx += 1;
+            if idx == len {
+                idx = 0;
+            }
         }
-        idx += 1;
-        if idx == len {
-            idx = 0;
-        }
+        sum += original[numbers[idx].1];
     }
 
     sum.to_string()
