@@ -132,8 +132,6 @@ pub fn part1(input: String) -> String {
 
     // find 0 value position
     let zero_index = numbers.iter().position(|t| t.0 == 0).unwrap();
-    dbg!(&zero_index);
-
     let mut sum: i32 = 0;
     let mut idx = zero_index;
 
@@ -151,7 +149,39 @@ pub fn part1(input: String) -> String {
 }
 
 pub fn part2(input: String) -> String {
-    todo!()
+    let numbers = parse(input);
+    let original = numbers.clone();
+    let len = numbers.len();
+    let mut numbers: Vec<(i32, usize)> = numbers.into_iter().zip(0..len).collect();
+    let mut curr_positions: Vec<usize> = (0..len).collect();
+
+    numbers = numbers
+        .into_iter()
+        .map(|t| ((t.0 as i64 * 811589153 % (len as i64 - 1)) as i32, t.1))
+        .collect();
+
+    for _ in 0..10 {
+        mix_numbers(&mut numbers, &mut curr_positions);
+    }
+
+    //dbg!(&numbers);
+
+    // find 0 value position
+    let zero_index = numbers.iter().position(|t| t.0 == 0).unwrap();
+    let mut sum: i64 = 0;
+    let mut idx = zero_index;
+
+    for _ in 1..=3 {
+        for _ in 1..=1000 {
+            idx += 1;
+            if idx == len {
+                idx = 0;
+            }
+        }
+        sum += (original[numbers[idx].1] as i64 * 811589153);
+    }
+
+    sum.to_string()
 }
 
 fn parse(input: String) -> Vec<i32> {
@@ -180,17 +210,17 @@ mod tests {
         assert_eq!("19559", part1(input));
     }
 
-    //#[test]
-    //fn part2_sample() {
-    //    let input = util::read_file("inputs/day20-sample.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn part2_sample() {
+        let input = util::read_file("inputs/day20-sample.txt");
+        assert_eq!("1623178306", part2(input));
+    }
 
-    //#[test]
-    //fn part2_input() {
-    //    let input = util::read_file("inputs/day20.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/day20.txt");
+        assert_eq!("912226207972", part2(input));
+    }
 }
 
 #[allow(dead_code)]
