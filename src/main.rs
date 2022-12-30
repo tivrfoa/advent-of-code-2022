@@ -18,6 +18,7 @@ fn test_sample() {
 
 fn test_input() {
     let input = util::read_file("inputs/day20.txt");
+    // let input = util::read_file("inputs/day20-simple1.txt");
     println!("{}", day20::part1(input));
 }
 

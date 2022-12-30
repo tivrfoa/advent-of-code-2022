@@ -49,23 +49,12 @@ the array, eg:
 
 fn trim_value(n: i32, len: usize) -> i32 {
     let len = len as i32;
-    let negative = n < 0;
-
-    let mut n = n.abs();
-
-    while n >= len {
-        n -= len;
-    }
-
-    if negative {
-        -n
-    } else {
-        n
-    }
+    n % (len - 1)
 }
 
 pub fn part1(input: String) -> String {
     let numbers = parse(input);
+    let original = numbers.clone();
     let len = numbers.len();
     dbg!(&len);
     let mut numbers: Vec<(i32, usize)> = numbers.into_iter().zip(0..len).collect();
@@ -85,7 +74,14 @@ pub fn part1(input: String) -> String {
     for i in 0..len {
         let curr_pos = curr_positions[i];
         let (value, original_index) = numbers[curr_pos];
-        // dbg!(&numbers);
+
+        /*println!("[");
+        for (v, _) in &numbers {
+            print!("\t{v}, ")
+        }
+        println!("]\n--------------------------\n");*/
+        
+        //dbg!(&numbers);
         // println!("Moving value: {value}, current position {curr_pos}");
 
         if value == 0 {
@@ -156,7 +152,7 @@ pub fn part1(input: String) -> String {
     }
     for i in 1..=3000 {
         if i % 1000 == 0 {
-            sum += numbers[idx].0;
+            sum += original[numbers[idx].1];
         }
         idx += 1;
         if idx == len {
