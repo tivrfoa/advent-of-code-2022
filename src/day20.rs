@@ -50,14 +50,19 @@ the array, eg:
 pub fn part1(input: String) -> String {
     let numbers = parse(input);
     let len = numbers.len();
+    dbg!(&len);
     let mut numbers: Vec<(i32, usize)> = numbers.into_iter().zip(0..len).collect();
     let mut curr_positions: Vec<usize> = (0..len).collect();
+
+    dbg!(numbers.iter().map(|t| t.0).min());
+    dbg!(numbers.iter().map(|t| t.0).max());
 
     for i in 0..len {
         let curr_pos = curr_positions[i];
         let (value, original_index) = numbers[curr_pos];
         // dbg!(&numbers);
         // println!("Moving value: {value}, current position {curr_pos}");
+
 
         if value == 0 {
             continue;
@@ -69,7 +74,7 @@ pub fn part1(input: String) -> String {
             if final_pos >= len {
                 // rotate right
                 let final_pos = value as usize - (len - curr_pos) + 1;
-                assert!(final_pos < curr_pos);
+                // assert!(final_pos < curr_pos);
                 for j in (final_pos..curr_pos).rev() {
                     numbers[j + 1] = numbers[j];
                     curr_positions[numbers[j].1] = j + 1;
@@ -115,7 +120,26 @@ pub fn part1(input: String) -> String {
 
     dbg!(&numbers);
 
-    "".into()
+    // find 0 value position
+    let zero_index = numbers.iter().position(|t| t.0 == 0).unwrap();
+    dbg!(&zero_index);
+
+    let mut sum: i32 = 0;
+    let mut idx = zero_index + 1;
+    if idx == len {
+        idx = 0;
+    }
+    for i in 1..=3000 {
+        if i % 1000 == 0 {
+            sum += numbers[idx].0;
+        }
+        idx += 1;
+        if idx == len {
+            idx = 0;
+        }
+    }
+
+    sum.to_string()
 }
 
 pub fn part2(input: String) -> String {
