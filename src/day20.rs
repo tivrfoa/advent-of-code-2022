@@ -48,41 +48,24 @@ the array, eg:
 */
 
 fn trim_value(n: i32, len: usize) -> i32 {
-    let len = len as i32;
-    n % (len - 1)
+    n % (len as i32 - 1)
 }
 
 pub fn part1(input: String) -> String {
     let numbers = parse(input);
     let original = numbers.clone();
     let len = numbers.len();
-    dbg!(&len);
     let mut numbers: Vec<(i32, usize)> = numbers.into_iter().zip(0..len).collect();
     let mut curr_positions: Vec<usize> = (0..len).collect();
-
-    dbg!(numbers.iter().map(|t| t.0).min());
-    dbg!(numbers.iter().map(|t| t.0).max());
 
     numbers = numbers
         .into_iter()
         .map(|t| (trim_value(t.0, len), t.1))
         .collect();
 
-    dbg!(numbers.iter().map(|t| t.0).min());
-    dbg!(numbers.iter().map(|t| t.0).max());
-
     for i in 0..len {
         let curr_pos = curr_positions[i];
         let (value, original_index) = numbers[curr_pos];
-
-        /*println!("[");
-        for (v, _) in &numbers {
-            print!("\t{v}, ")
-        }
-        println!("]\n--------------------------\n");*/
-        
-        //dbg!(&numbers);
-        // println!("Moving value: {value}, current position {curr_pos}");
 
         if value == 0 {
             continue;
@@ -184,14 +167,14 @@ mod tests {
     #[test]
     fn part1_sample() {
         let input = util::read_file("inputs/day20-sample.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("3", part1(input));
     }
 
-    //#[test]
-    //fn part1_input() {
-    //    let input = util::read_file("inputs/day20.txt");
-    //    assert_eq!("", part1(input));
-    //}
+    #[test]
+    fn part1_input() {
+        let input = util::read_file("inputs/day20.txt");
+        assert_eq!("19559", part1(input));
+    }
 
     //#[test]
     //fn part2_sample() {
