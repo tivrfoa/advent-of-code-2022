@@ -47,6 +47,23 @@ the array, eg:
 
 */
 
+fn trim_value(n: i32, len: usize) -> i32 {
+    let len = len as i32;
+    let negative = n < 0;
+
+    let mut n = n.abs();
+
+    while n >= len {
+        n -= len;
+    }
+
+    if negative {
+        -n
+    } else {
+        n
+    }
+}
+
 pub fn part1(input: String) -> String {
     let numbers = parse(input);
     let len = numbers.len();
@@ -57,12 +74,19 @@ pub fn part1(input: String) -> String {
     dbg!(numbers.iter().map(|t| t.0).min());
     dbg!(numbers.iter().map(|t| t.0).max());
 
+    numbers = numbers
+        .into_iter()
+        .map(|t| (trim_value(t.0, len), t.1))
+        .collect();
+
+    dbg!(numbers.iter().map(|t| t.0).min());
+    dbg!(numbers.iter().map(|t| t.0).max());
+
     for i in 0..len {
         let curr_pos = curr_positions[i];
         let (value, original_index) = numbers[curr_pos];
         // dbg!(&numbers);
         // println!("Moving value: {value}, current position {curr_pos}");
-
 
         if value == 0 {
             continue;
@@ -92,7 +116,8 @@ pub fn part1(input: String) -> String {
         } else {
             let final_pos = curr_pos as i32 + value;
             if final_pos < 0 {
-                let final_pos = (len as i32 + value) as usize;
+                let final_pos = (len as i32 + final_pos - 1) as usize;
+                // println!("curr_pos: {curr_pos}, value: {value}");
                 for j in curr_pos + 1..=final_pos {
                     numbers[j - 1] = numbers[j];
                     curr_positions[numbers[j].1] = j - 1;
@@ -118,7 +143,7 @@ pub fn part1(input: String) -> String {
         }
     }
 
-    dbg!(&numbers);
+    //dbg!(&numbers);
 
     // find 0 value position
     let zero_index = numbers.iter().position(|t| t.0 == 0).unwrap();

@@ -4,14 +4,16 @@ mod day20;
 mod util;
 
 fn main() {
-    test_sample();
+    // test_sample();
     test_input();
     //test_part2();
 }
 
 fn test_sample() {
     let input = util::read_file("inputs/day20-sample.txt");
-    println!("{}", day20::part1(input));
+    let ans = day20::part1(input);
+    assert_eq!("3", ans);
+    println!("{}", ans);
 }
 
 fn test_input() {
