@@ -3,6 +3,7 @@ use crate::util;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::cmp::Ordering;
 use std::fmt::{Debug, Display};
+use std::iter::zip;
 
 pub fn part1(input: String) -> String {
     "".into()

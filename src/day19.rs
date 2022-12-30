@@ -42,8 +42,10 @@ fn dfs(bp: &Blueprint, cache: &mut HashMap<State, u16>, state: State) -> u16 {
 
     'lr: for (btype, recipe) in bp.recipes.iter().enumerate() {
         // if btype != 3 && state.robots[btype] >= bp.max_spend[btype] {
-        if btype != 3 &&
-                state.robots[btype] * state.minutes >= bp.max_spend[btype] * state.minutes - state.resources[btype] {
+        if btype != 3
+            && state.robots[btype] * state.minutes
+                >= bp.max_spend[btype] * state.minutes - state.resources[btype]
+        {
             continue;
         }
 
