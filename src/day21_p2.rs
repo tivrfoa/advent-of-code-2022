@@ -29,7 +29,6 @@ fn solve(jobs: &mut Vec<Job>, pos: usize) -> i64 {
 
 Need to know which path from humn leads to root, and check if it's left
 or right from root.
-Then it must compute the (left - right).abs() diff from root to humn
 
 */
 pub fn part2(input: String) -> String {
@@ -47,7 +46,9 @@ pub fn part2(input: String) -> String {
     dbg!(&path);
 
     // now we need to find the difference between root.left and root.right
-    assert_eq!(152, solve(&mut jobs, root)); // for sample
+    let root_result = solve(&mut jobs, root);
+    // assert_eq!(152, root_result); // for sample
+    // assert_eq!(93813115694560, root_result); // for input
     let left = jobs[root].left;
     let right = jobs[root].right;
     println!("left = {:?}", jobs[left].result);
@@ -194,9 +195,6 @@ fn parse(input: String) -> (Vec<Job>, Vec<usize>, usize, usize) {
         }
     }
 
-    //dbg!(jobs_id);
-    //dbg!(&used_by);
-
     (jobs, used_by, you, root)
 }
 
@@ -210,11 +208,11 @@ mod tests {
         assert_eq!("301", part2(input));
     }
 
-    //#[test]
-    //fn part2_input() {
-    //    let input = util::read_file("inputs/day21.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/day21.txt");
+        assert_eq!("3910938071092", part2(input));
+    }
 }
 
 #[allow(dead_code)]
