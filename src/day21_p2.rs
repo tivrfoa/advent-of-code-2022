@@ -44,7 +44,7 @@ pub fn part2(input: String) -> String {
 
     dbg!(&path);
 
-    // now we need to find the difference between root.left and root.right
+    // find which side of root we must be equal too
     let root_result = solve(&mut jobs, root);
     // assert_eq!(152, root_result); // for sample
     // assert_eq!(93813115694560, root_result); // for input
