@@ -1,6 +1,6 @@
 #![feature(int_roundings)]
 #[allow(dead_code, unused_imports)]
-mod day21;
+mod day21_p2;
 mod util;
 
 fn main() {
@@ -11,15 +11,10 @@ fn main() {
 
 fn test_sample() {
     let input = util::read_file("inputs/day21-sample.txt");
-    println!("{}", day21::part1(input));
+    println!("{}", day21_p2::part2(input));
 }
 
 fn test_input() {
     let input = util::read_file("inputs/day21.txt");
-    println!("{}", day21::part1(input));
-}
-
-fn test_part2() {
-    let input = util::read_file("inputs/day21.txt");
-    println!("{}", day21::part2(input));
+    println!("{}", day21_p2::part2(input));
 }

@@ -33,7 +33,6 @@ or right from root.
 */
 pub fn part2(input: String) -> String {
     let (mut jobs, used_by, you, root) = parse(input);
-    //dbg!(&jobs);
 
     // build path from you to root
     let mut path = vec![];
@@ -56,12 +55,11 @@ pub fn part2(input: String) -> String {
 
     // last index in path will be either left or right of root
     // value is what we aim for at each operation
-    let (mut pos, mut value) = if path[path.len() - 1] == left {
-        (left, jobs[right].result.take().unwrap())
+    let mut value = if path[path.len() - 1] == left {
+        jobs[right].result.take().unwrap()
     } else {
-        (right, jobs[left].result.take().unwrap())
+        jobs[left].result.take().unwrap()
     };
-    // dbg!(pos, value);
 
     // walk path in reverse order
     for i in (1..path.len()).rev() {
@@ -128,7 +126,7 @@ impl Op {
             Sub => a - b,
             Div => a / b,
             Mul => a * b,
-            _ => panic!("{:?}", self),
+            _ => panic!("{self:?}"),
         }
     }
 }
