@@ -132,18 +132,9 @@ pub fn part1(input: String) -> String {
 
     // find 0 value position
     let zero_index = numbers.iter().position(|t| t.0 == 0).unwrap();
-    let mut sum: i32 = 0;
-    let mut idx = zero_index;
-
-    for _ in 1..=3 {
-        for _ in 1..=1000 {
-            idx += 1;
-            if idx == len {
-                idx = 0;
-            }
-        }
-        sum += original[numbers[idx].1];
-    }
+    let sum = original[numbers[(zero_index + 1000) % len].1]
+        + original[numbers[(zero_index + 2000) % len].1]
+        + original[numbers[(zero_index + 3000) % len].1];
 
     sum.to_string()
 }
@@ -168,18 +159,9 @@ pub fn part2(input: String) -> String {
 
     // find 0 value position
     let zero_index = numbers.iter().position(|t| t.0 == 0).unwrap();
-    let mut sum: i64 = 0;
-    let mut idx = zero_index;
-
-    for _ in 1..=3 {
-        for _ in 1..=1000 {
-            idx += 1;
-            if idx == len {
-                idx = 0;
-            }
-        }
-        sum += (original[numbers[idx].1] as i64 * 811589153);
-    }
+    let sum = original[numbers[(zero_index + 1000) % len].1] as i64 * 811589153
+        + original[numbers[(zero_index + 2000) % len].1] as i64 * 811589153
+        + original[numbers[(zero_index + 3000) % len].1] as i64 * 811589153;
 
     sum.to_string()
 }
