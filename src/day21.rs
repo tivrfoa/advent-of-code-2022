@@ -13,7 +13,7 @@ All jobs (monkeys) are unique!!!
 
 */
 
-fn solve(jobs: &mut HashMap<String, Job>, key: String) -> i32 {
+fn solve(jobs: &mut HashMap<String, Job>, key: String) -> i64 {
     let job = jobs.get(&key).unwrap().clone();
 
     if let Some(r) = job.result {
@@ -41,7 +41,7 @@ pub fn part2(input: String) -> String {
 
 #[derive(Clone, Debug)]
 struct Job {
-    result: Option<i32>,
+    result: Option<i64>,
     operation: Option<Calc>,
 }
 
@@ -71,7 +71,7 @@ impl Op {
         }
     }
 
-    fn calc(&self, a: i32, b: i32) -> i32 {
+    fn calc(&self, a: i64, b: i64) -> i64 {
         match self {
             Add => a + b,
             Sub => a - b,
@@ -92,7 +92,7 @@ fn parse(input: String) -> HashMap<String, Job> {
             jobs.insert(
                 job_name.into(),
                 Job {
-                    result: Some(tokens[1].parse::<i32>().unwrap()),
+                    result: Some(tokens[1].parse::<i64>().unwrap()),
                     operation: None,
                 },
             );
@@ -125,11 +125,11 @@ mod tests {
         assert_eq!("152", part1(input));
     }
 
-    //#[test]
-    //fn part1_input() {
-    //    let input = util::read_file("inputs/day21.txt");
-    //    assert_eq!("", part1(input));
-    //}
+    #[test]
+    fn part1_input() {
+        let input = util::read_file("inputs/day21.txt");
+        assert_eq!("93813115694560", part1(input));
+    }
 
     //#[test]
     //fn part2_sample() {
