@@ -32,7 +32,30 @@ pub fn part1(input: String) -> String {
     let mut jobs = parse(input);
     // dbg!(&jobs);
 
-    solve(&mut jobs, "root".to_string()).to_string()
+    let ans = solve(&mut jobs, "root".to_string()).to_string();
+
+    let left = jobs
+        .get("root")
+        .unwrap()
+        .operation
+        .as_ref()
+        .unwrap()
+        .left
+        .clone();
+    let left_value = jobs.get(&left).unwrap().result.as_ref().unwrap();
+    let right = jobs
+        .get("root")
+        .unwrap()
+        .operation
+        .as_ref()
+        .unwrap()
+        .right
+        .clone();
+    let right_value = jobs.get(&right).unwrap().result.as_ref().unwrap();
+    println!("left {left} = {left_value}");
+    println!("right {right} = {right_value}");
+
+    ans
 }
 
 pub fn part2(input: String) -> String {
