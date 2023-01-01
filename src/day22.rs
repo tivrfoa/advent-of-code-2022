@@ -40,7 +40,7 @@ pub fn part1(input: String) -> String {
                             }
                         }
                         Facing::L => {
-                            if cc - 1 < first_col {
+                            if cc == 0 || cc - 1 < first_col {
                                 // wrap around if last col is not a wall
                                 if row[last_col] == '#' {
                                     continue 'la;
@@ -139,12 +139,12 @@ impl Facing {
             (R, Action::R) => D,
             (R, Action::L) => U,
             (L, Action::L) => D,
-            (L, Action::L) => U,
+            (L, Action::R) => U,
             (D, Action::L) => R,
             (D, Action::R) => L,
             (U, Action::L) => L,
             (U, Action::R) => R,
-            _ => panic!("{:?}", turn),
+            _ => panic!("{self:?}, {:?}", turn),
         }
     }
 }
@@ -217,7 +217,7 @@ mod tests {
     #[test]
     fn part1_sample() {
         let input = util::read_file("inputs/day22-sample.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("6032", part1(input));
     }
 
     //#[test]
