@@ -8,21 +8,25 @@ use std::iter::zip;
 pub fn part1(input: String) -> String {
     let (rows, actions) = parse(input);
     //dbg!(&tmp);
+    //dbg!(&actions[0]);
+    //dbg!(&actions[actions.len() - 1]);
 
     let num_rows = rows.len();
     let mut cr = 0;
-    let mut cc = 0; // rows[0].first_col;
+    let mut cc = rows[0].first_col;
     let mut cf = Facing::R;
 
     'la: for a in actions {
         let first_col = rows[cr].first_col;
         let last_col = rows[cr].last_col;
         let row = &rows[cr].row;
+
         match a {
             Action::R | Action::L => {
                 cf = cf.rotate(&a);
             }
             Action::Move(qt) => {
+                // println!("move {qt}, r = {cr}, c = {cc}, face = {:?}", &cf);
                 for _ in 0..qt {
                     match cf {
                         Facing::R => {
@@ -54,11 +58,14 @@ pub fn part1(input: String) -> String {
                             }
                         }
                         Facing::D => {
-                            let mut next_row = cr;
-                            if cr + 1 == num_rows || rows[cr + 1].last_col < cc {
+                            if cr + 1 == num_rows
+                                || rows[cr + 1].first_col > cc
+                                || rows[cr + 1].last_col < cc
+                            {
                                 // wrap around if next row/col is not a wall
-                                next_row = 0;
-                                while rows[next_row].last_col < cc {
+                                let mut next_row = 0;
+                                while rows[next_row].first_col > cc || rows[next_row].last_col < cc
+                                {
                                     next_row += 1;
                                 }
                                 if rows[next_row].row[cc] == '#' || next_row == cr {
@@ -73,11 +80,12 @@ pub fn part1(input: String) -> String {
                             }
                         }
                         Facing::U => {
-                            let mut next_row = cr;
-                            if cr == 0 || rows[cr - 1].last_col < cc {
+                            if cr == 0 || rows[cr - 1].first_col > cc || rows[cr - 1].last_col < cc
+                            {
                                 // wrap around if next row/col is not a wall
-                                next_row = num_rows - 1;
-                                while rows[next_row].last_col < cc {
+                                let mut next_row = num_rows - 1;
+                                while rows[next_row].first_col > cc || rows[next_row].last_col < cc
+                                {
                                     next_row -= 1;
                                 }
                                 if rows[next_row].row[cc] == '#' || next_row == cr {
@@ -91,13 +99,13 @@ pub fn part1(input: String) -> String {
                                 cr -= 1;
                             }
                         }
-                        _ => panic!("{:?}", cf),
                     }
                 }
             }
         }
     }
 
+    println!("r = {cr}, c = {cc}, face = {:?}", &cf);
     let ans = 1000 * (cr + 1) + 4 * (cc + 1) + cf as usize;
 
     ans.to_string()
@@ -144,7 +152,7 @@ impl Facing {
             (D, Action::R) => L,
             (U, Action::L) => L,
             (U, Action::R) => R,
-            _ => panic!("{self:?}, {:?}", turn),
+            _ => panic!("{self:?}, {turn:?}"),
         }
     }
 }
@@ -200,10 +208,7 @@ fn parse(input: String) -> (Vec<Row>, Vec<Action>) {
             continue;
         }
         // find pos of first non-empty space
-        let first_col = match row.iter().position(|c| *c != ' ') {
-            Some(pos) => pos,
-            None => 0,
-        };
+        let first_col = row.iter().position(|c| *c != ' ').unwrap_or(0);
         rows.push(Row::new(first_col, row));
     }
 
@@ -220,11 +225,11 @@ mod tests {
         assert_eq!("6032", part1(input));
     }
 
-    //#[test]
-    //fn part1_input() {
-    //    let input = util::read_file("inputs/day22.txt");
-    //    assert_eq!("", part1(input));
-    //}
+    #[test]
+    fn part1_input() {
+        let input = util::read_file("inputs/day22.txt");
+        assert_eq!("95358", part1(input));
+    }
 
     //#[test]
     //fn part2_sample() {
