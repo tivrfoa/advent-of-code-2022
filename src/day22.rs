@@ -126,7 +126,7 @@ impl Row {
     fn new(first_col: usize, row: Vec<char>) -> Self {
         Self {
             first_col,
-            last_col: row.len() - first_col - 1 + first_col,
+            last_col: row.len() - 1,
             row,
         }
     }
