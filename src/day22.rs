@@ -11,17 +11,16 @@ use crate::aoc::AOC;
 pub struct Day22 {}
 
 impl AOC for Day22 {
-    fn part1(&self, input: String, args: Vec<String>) -> String {
+    fn part1(&self, input: Option<String>, args: Vec<String>) -> String {
 
-
-        // it can ignore the input param and read default day file
-        // TODO main should default to day file, but allow from
-        // stdin if a parameter is passed.
-        let input = util::read_file("inputs/day22.txt");
+        let input = match input {
+            Some(input) => input,
+            None => util::read_file("inputs/day22.txt"),
+        };
         part1(input)
     }
 
-    fn part2(&self, input: String, args: Vec<String>) -> String {
+    fn part2(&self, input: Option<String>, args: Vec<String>) -> String {
         todo!()
     }
 }

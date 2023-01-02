@@ -25,25 +25,25 @@ mod tests {
 
     #[test]
     fn part1_sample() {
-        let input = util::read_file("inputs/dayX-sample.txt");
+        let input = util::read_file("inputs/day23-sample.txt");
         assert_eq!("", part1(input));
     }
 
     //#[test]
     //fn part1_input() {
-    //    let input = util::read_file("inputs/dayX.txt");
+    //    let input = util::read_file("inputs/day23.txt");
     //    assert_eq!("", part1(input));
     //}
 
     //#[test]
     //fn part2_sample() {
-    //    let input = util::read_file("inputs/dayX-sample.txt");
+    //    let input = util::read_file("inputs/day23-sample.txt");
     //    assert_eq!("", part2(input));
     //}
 
     //#[test]
     //fn part2_input() {
-    //    let input = util::read_file("inputs/dayX.txt");
+    //    let input = util::read_file("inputs/day23.txt");
     //    assert_eq!("", part2(input));
     //}
 }
@@ -55,13 +55,13 @@ fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
     }
 }
 
-pub struct DayX {}
+pub struct Day23 {}
 
-impl AOC for DayX {
+impl AOC for Day23 {
     fn part1(&self, input: Option<String>, args: Vec<String>) -> String {
         let input = match input {
             Some(input) => input,
-            None => util::read_file("inputs/dayX.txt"),
+            None => util::read_file("inputs/day23.txt"),
         };
         part1(input)
     }
@@ -69,7 +69,7 @@ impl AOC for DayX {
     fn part2(&self, input: Option<String>, args: Vec<String>) -> String {
         let input = match input {
             Some(input) => input,
-            None => util::read_file("inputs/dayX.txt"),
+            None => util::read_file("inputs/day23.txt"),
         };
         part2(input)
     }

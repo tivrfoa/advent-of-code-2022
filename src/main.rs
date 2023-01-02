@@ -5,19 +5,64 @@ mod day22;
 mod util;
 
 use std::io::{self};
+use std::env;
 
 use crate::aoc::AOC;
 
 use crate::day22::Day22;
 
 fn main() {
-    let days: [&dyn AOC; 1] = [&Day22 {}];
+    /*
+        args[0] = run stdin S or file F
+        args[1] = day to run, eg: 22
+    */
+    let args: Vec<String> = env::args().collect();
+    dbg!(&args);
+
+    let days: [&dyn AOC; 22] = [
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+        &Day22 {},
+    ];
+    let mut day_to_run = days[days.len() - 1];
+
+    let mut input = None;
+
+    // args[0] is executable name
+    if args.len() > 1 {
+        if args[1] == "S" {
+            input = Some(get_input());
+        }
+
+        if args.len() == 3 {
+            day_to_run = days[args[2].parse::<usize>().unwrap() - 1];
+        }
+    }
+
     // test_sample();
-    let input = get_input();
 
     // TODO read args for which day to run
     // if none is passed, then run last day
-    println!("{}", days[days.len() - 1].part1(input, vec![]));
+    println!("{}", day_to_run.part1(input, vec![]));
 }
 
 fn get_input() -> String {
