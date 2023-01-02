@@ -1,5 +1,5 @@
-use crate::util;
 use crate::aoc;
+use crate::util;
 
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet, VecDeque};

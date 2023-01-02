@@ -11,9 +11,7 @@ use crate::aoc::AOC;
 use crate::day22::Day22;
 
 fn main() {
-    let days: &[&dyn AOC; 1] = &[
-        &Day22{}
-    ];
+    let days: [&dyn AOC; 1] = [&Day22 {}];
     // test_sample();
     let input = get_input();
 
@@ -27,10 +25,12 @@ fn get_input() -> String {
     loop {
         let mut line = String::new();
         match io::stdin().read_line(&mut line) {
-            Ok(len) => if len == 0 {
-                break;
-            } else {
-                input.push_str(&line);
+            Ok(len) => {
+                if len == 0 {
+                    break;
+                } else {
+                    input.push_str(&line);
+                }
             }
             Err(error) => {
                 eprintln!("error: {}", error);
