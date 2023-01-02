@@ -5,11 +5,13 @@ use std::cmp::Ordering;
 use std::fmt::{Debug, Display};
 use std::iter::zip;
 
-pub fn part1(input: String) -> String {
+use crate::aoc::AOC;
+
+fn part1(input: String) -> String {
     "".into()
 }
 
-pub fn part2(input: String) -> String {
+fn part2(input: String) -> String {
     todo!()
 }
 
@@ -50,5 +52,17 @@ mod tests {
 fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
     for item in grid {
         println!("{item:?}");
+    }
+}
+
+pub struct DayX {}
+
+impl AOC for DayX {
+    fn part1(&self, input: String, args: Vec<String>) -> String {
+        part1(input)
+    }
+
+    fn part2(&self, input: String, args: Vec<String>) -> String {
+        part2(input)
     }
 }

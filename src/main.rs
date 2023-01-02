@@ -41,8 +41,3 @@ fn get_input() -> String {
 
     input
 }
-
-fn test_sample() {
-    let input = util::read_file("inputs/day22.txt");
-    println!("{}", day22::part1(input));
-}

@@ -12,6 +12,12 @@ pub struct Day22 {}
 
 impl AOC for Day22 {
     fn part1(&self, input: String, args: Vec<String>) -> String {
+
+
+        // it can ignore the input param and read default day file
+        // TODO main should default to day file, but allow from
+        // stdin if a parameter is passed.
+        let input = util::read_file("inputs/day22.txt");
         part1(input)
     }
 
@@ -20,7 +26,7 @@ impl AOC for Day22 {
     }
 }
 
-pub fn part1(input: String) -> String {
+fn part1(input: String) -> String {
     let (rows, actions) = parse(input);
     //dbg!(&tmp);
     //dbg!(&actions[0]);
@@ -126,7 +132,7 @@ pub fn part1(input: String) -> String {
     ans.to_string()
 }
 
-pub fn part2(input: String) -> String {
+fn part2(input: String) -> String {
     todo!()
 }
 
