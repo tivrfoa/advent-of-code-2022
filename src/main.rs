@@ -1,16 +1,28 @@
 #![feature(int_roundings)]
 #[allow(dead_code, unused_imports)]
+mod aoc;
 mod day22;
 mod util;
 
-use std::io::{self, BufRead};
+use std::io::{self};
+
+use crate::aoc::AOC;
+
+use crate::day22::Day22;
 
 fn main() {
+    let days: &[&dyn AOC; 1] = &[
+        &Day22{}
+    ];
     // test_sample();
-    run_stdin();
+    let input = get_input();
+
+    // TODO read args for which day to run
+    // if none is passed, then run last day
+    println!("{}", days[days.len() - 1].part1(input, vec![]));
 }
 
-fn run_stdin() {
+fn get_input() -> String {
     let mut input = String::new();
     loop {
         let mut line = String::new();
@@ -26,7 +38,8 @@ fn run_stdin() {
             }
         }
     }
-    println!("{}", day22::part1(input));
+
+    input
 }
 
 fn test_sample() {

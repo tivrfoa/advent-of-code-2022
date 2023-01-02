@@ -1,9 +1,24 @@
 use crate::util;
+use crate::aoc;
 
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 use std::iter::zip;
+
+use crate::aoc::AOC;
+
+pub struct Day22 {}
+
+impl AOC for Day22 {
+    fn part1(&self, input: String, args: Vec<String>) -> String {
+        part1(input)
+    }
+
+    fn part2(&self, input: String, args: Vec<String>) -> String {
+        todo!()
+    }
+}
 
 pub fn part1(input: String) -> String {
     let (rows, actions) = parse(input);
