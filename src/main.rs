@@ -65,7 +65,8 @@ fn main() {
 
     // TODO read args for which day to run
     // if none is passed, then run last day
-    println!("{}", day_to_run.part1(input, vec![]));
+    println!("{}", day_to_run.part1(input.clone(), vec![]));
+    println!("{}", day_to_run.part2(input, vec![]));
 }
 
 fn get_input() -> String {

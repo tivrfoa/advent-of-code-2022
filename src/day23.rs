@@ -73,17 +73,17 @@ fn get_new_pos(
 }
 
 fn part1(input: String) -> String {
-    let mut grid = parse(input);
+    let mut grid = parse(input, 10);
     let rows = grid.len();
     let cols = grid[0].len();
     let mut dir = 0;
 
-    for r in 0..grid.len() {
-        for c in 0..grid[0].len() {
-            print!("{}", grid[r][c]);
-        }
-        println!();
-    }
+    // for r in 0..grid.len() {
+    //     for c in 0..grid[0].len() {
+    //         print!("{}", grid[r][c]);
+    //     }
+    //     println!();
+    // }
 
     for _ in 0..10 {
         let mut moves: HashMap<(usize, usize), Vec<(usize, usize)>> = HashMap::new();
@@ -159,38 +159,83 @@ fn part1(input: String) -> String {
         }
     }
 
-    dbg!(grid.len());
-    for r in 0..grid.len() {
-        for c in 0..grid[0].len() {
-            print!("{}", grid[r][c]);
-        }
-        println!();
-    }
+    // dbg!(grid.len());
+    // for r in 0..grid.len() {
+    //     for c in 0..grid[0].len() {
+    //         print!("{}", grid[r][c]);
+    //     }
+    //     println!();
+    // }
 
     num_empty_tiles.to_string()
 }
 
 fn part2(input: String) -> String {
-    todo!()
-}
+    let mut grid = parse(input, 100);
+    let rows = grid.len();
+    let cols = grid[0].len();
+    let mut dir = 0;
 
-fn parse(input: String) -> Vec<Vec<char>> {
-    let mut tmp_grid: Vec<Vec<char>> = vec![];
+    for round in 1..100000 {
+        let mut moves: HashMap<(usize, usize), Vec<(usize, usize)>> = HashMap::new();
+        for r in 1..rows {
+            for c in 1..cols {
+                if grid[r][c] == '#' {
+                    if let Some(pos) = get_new_pos(&grid, dir, r, c) {
+                        match moves.get_mut(&pos) {
+                            Some(v) => {
+                                v.push((r, c));
+                            }
+                            None => {
+                                moves.insert(pos, vec![(r, c)]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-    for line in input.lines() {
-        tmp_grid.push(line.chars().collect::<Vec<char>>());
+        if moves.is_empty() {
+            return round.to_string();
+        }
+
+        for (key, value) in moves.into_iter() {
+            if value.len() > 1 {
+                continue;
+            }
+            let (oldr, oldc) = value[0];
+            let (newr, newc) = key;
+            grid[oldr][oldc] = '.';
+            grid[newr][newc] = '#';
+        }
+
+        dir = (dir + 1) % DIRS.len();
     }
 
-    let cols = tmp_grid[0].len() + 20;
-    let rows = tmp_grid.len() + 20;
+    panic!("not good");
+}
+
+fn make_room(tmp_grid: Vec<Vec<char>>, room: usize) -> Vec<Vec<char>> {
+    let cols = tmp_grid[0].len() + room * 2;
+    let rows = tmp_grid.len() + room * 2;
     let mut grid = vec![vec!['.'; cols]; rows];
-    for r in 10..rows - 10 {
-        for c in 10..cols - 10 {
-            grid[r][c] = tmp_grid[r - 10][c - 10];
+    for r in room..rows - room {
+        for c in room..cols - room {
+            grid[r][c] = tmp_grid[r - room][c - room];
         }
     }
 
     grid
+}
+
+fn parse(input: String, room: usize) -> Vec<Vec<char>> {
+    let mut grid: Vec<Vec<char>> = vec![];
+
+    for line in input.lines() {
+        grid.push(line.chars().collect::<Vec<char>>());
+    }
+
+    make_room(grid, room)
 }
 
 #[cfg(test)]
@@ -209,17 +254,17 @@ mod tests {
         assert_eq!("3882", part1(input));
     }
 
-    //#[test]
-    //fn part2_sample() {
-    //    let input = util::read_file("inputs/day23-sample.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn part2_sample() {
+        let input = util::read_file("inputs/day23-sample.txt");
+        assert_eq!("20", part2(input));
+    }
 
-    //#[test]
-    //fn part2_input() {
-    //    let input = util::read_file("inputs/day23.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/day23.txt");
+        assert_eq!("1116", part2(input));
+    }
 }
 
 #[allow(dead_code)]
