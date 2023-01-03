@@ -2,14 +2,16 @@
 #[allow(dead_code, unused_imports)]
 mod aoc;
 mod day22;
+mod day23;
 mod util;
 
-use std::io::{self};
 use std::env;
+use std::io::{self};
 
 use crate::aoc::AOC;
 
 use crate::day22::Day22;
+use crate::day23::Day23;
 
 fn main() {
     /*
@@ -19,7 +21,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     dbg!(&args);
 
-    let days: [&dyn AOC; 22] = [
+    let days: [&dyn AOC; 23] = [
         &Day22 {},
         &Day22 {},
         &Day22 {},
@@ -42,6 +44,7 @@ fn main() {
         &Day22 {},
         &Day22 {},
         &Day22 {},
+        &Day23 {},
     ];
     let mut day_to_run = days[days.len() - 1];
 

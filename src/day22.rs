@@ -12,7 +12,6 @@ pub struct Day22 {}
 
 impl AOC for Day22 {
     fn part1(&self, input: Option<String>, args: Vec<String>) -> String {
-
         let input = match input {
             Some(input) => input,
             None => util::read_file("inputs/day22.txt"),
