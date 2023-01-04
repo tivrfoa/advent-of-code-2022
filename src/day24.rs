@@ -84,7 +84,9 @@ impl State {
     fn draw(&self) {
         for r in 1..self.grid.len() - 1 {
             for c in 1..self.grid[0].len() - 1 {
-                if self.grid[r][c].len() > 1 {
+                if self.pos.0 == r && self.pos.1 == c {
+                    print!("E");
+                } else if self.grid[r][c].len() > 1 {
                     print!("{}", self.grid[r][c].len());
                 } else {
                     print!("{}", self.grid[r][c][0]);
@@ -188,28 +190,28 @@ meeting a blizzard when exiting.
 
 fn part1(input: String) -> String {
     // let mut min_minutes = u32::MAX;
-    let mut min_minutes = 1000;
+    let mut min_minutes = 200;
     let grid = parse(input);
     let rows = grid.len();
     let cols = grid[0].len();
     let initial_pos = (0, 1);
     let last_pos = (grid.len() - 2, grid[0].len() - 2); // row, col
-    dbg!(&last_pos);
+    // dbg!(&last_pos);
 
-    let mut initial_state = State::new(grid, 0, (0, 1));
+    let mut initial_state = State::new(grid, 0, initial_pos);
     initial_state.move_blizzards();
+    // Enter grid
     initial_state.minutes += 1;
     initial_state.pos = (1, 1);
 
-    let mut visited: HashSet<State> = HashSet::new();
-    visited.insert(initial_state.clone());
+    let mut visited: HashMap<((usize, usize), Vec<Vec<Vec<char>>>), u32> = HashMap::new();
 
     let mut states: VecDeque<State> = VecDeque::new();
     states.push_front(initial_state);
 
     while let Some(mut state) = states.pop_front() {
         // println!("min {}", state.minutes);
-        if states.len() > 20000 {
+        if states.len() > 2000 {
             dbg!(state.minutes);
             state.draw();
             return "".into();
@@ -224,6 +226,18 @@ fn part1(input: String) -> String {
             continue;
         }
 
+        match visited.get(&(state.pos, state.grid.clone())) {
+            Some(m) => {
+                if *m <= state.minutes {
+                    continue;
+                }
+                visited.insert((state.pos, state.grid.clone()), state.minutes);
+            },
+            None => {
+                visited.insert((state.pos, state.grid.clone()), state.minutes);
+            }
+        }
+
         if state.minutes == min_minutes {
             continue;
         }
@@ -232,40 +246,25 @@ fn part1(input: String) -> String {
         state.move_blizzards();
 
         if let Some(s) = state.move_right() {
-            if !visited.contains(&s) {
-                visited.insert(s.clone());
-                states.push_front(s);
-            }
+            states.push_front(s);
         }
 
         if let Some(s) = state.move_left() {
-            if !visited.contains(&s) {
-                visited.insert(s.clone());
-                states.push_front(s);
-            }
+            states.push_front(s);
         }
 
         if let Some(s) = state.move_up() {
-            if !visited.contains(&s) {
-                visited.insert(s.clone());
-                states.push_front(s);
-            }
+            states.push_front(s);
         }
 
         if let Some(s) = state.move_down() {
-            if !visited.contains(&s) {
-                visited.insert(s.clone());
-                states.push_front(s);
-            }
+            states.push_front(s);
         }
 
         // wait
         if !state.position_contain_blizzard(state.pos.0, state.pos.1) {
             state.minutes += 1;
-            if !visited.contains(&state) {
-                visited.insert(state.clone());
-                states.push_front(state);
-            }
+            states.push_front(state);
         }
     }
 
@@ -328,11 +327,10 @@ pub struct Day24 {}
 
 impl AOC for Day24 {
     fn part1(&self, input: Option<String>, args: Vec<String>) -> String {
+        println!("sample answer: {}", part1(util::read_file("inputs/day24-sample2.txt")));
         let input = match input {
             Some(input) => input,
             None => util::read_file("inputs/day24.txt"),
-            //None => util::read_file("inputs/day24-sample.txt"),
-            //None => util::read_file("inputs/day24-sample2.txt"),
         };
         part1(input)
     }
