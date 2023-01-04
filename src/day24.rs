@@ -27,6 +27,64 @@ impl State {
         }
     }
 
+    fn undo_move_blizzards(&mut self) {
+        let rows = self.grid.len();
+        let cols = self.grid[0].len();
+        let mut new_grid = vec![vec![vec![]; cols]; rows];
+
+        for row in 1..rows - 1 {
+            for col in 1..cols - 1 {
+                for c in &self.grid[row][col] {
+                    match c {
+                        '.' => {
+                            break;
+                        }
+                        '<' => {
+                            if col == cols - 2 {
+                                new_grid[row][1].push('<');
+                            } else {
+                                new_grid[row][col + 1].push('<');
+                            }
+                        }
+                        '>' => {
+                            if col == 1 {
+                                new_grid[row][cols - 2].push('>');
+                            } else {
+                                new_grid[row][col - 1].push('>');
+                            }
+                        }
+                        '^' => {
+                            if row == rows - 2 {
+                                new_grid[1][col].push('^');
+                            } else {
+                                new_grid[row + 1][col].push('^');
+                            }
+                        }
+                        'v' => {
+                            if row == 1 {
+                                new_grid[rows - 2][col].push('v');
+                            } else {
+                                new_grid[row - 1][col].push('v');
+                            }
+                        }
+                        _ => panic!("{c}"),
+                    }
+                }
+            }
+        }
+
+        // fill empty pos with '.'
+        for row in 1..rows - 1 {
+            for col in 1..cols - 1 {
+                if new_grid[row][col].is_empty() {
+                    new_grid[row][col].push('.');
+                }
+            }
+        }
+
+        self.grid = new_grid;
+    }
+
     fn move_blizzards(&mut self) {
         let rows = self.grid.len();
         let cols = self.grid[0].len();
@@ -189,7 +247,8 @@ fn draw(grid: &[Vec<Vec<char>>]) {
 type Pos = (usize, usize);
 
 fn dfs(visited: &mut HashMap<State, u32>, last_pos: Pos,
-        minutes: u32, mut state: State, ans: &mut u32) {
+        minutes: u32, state: &mut State, ans: &mut u32,
+        rows: usize, cols: usize) {
     match visited.get(&state) {
         Some(m) => {
             if *m <= minutes {
@@ -218,26 +277,40 @@ fn dfs(visited: &mut HashMap<State, u32>, last_pos: Pos,
     // move blizzards, then check where we can go
     state.move_blizzards();
 
-    if let Some(s) = state.move_right() {
-        dfs(visited, last_pos, minutes + 1, s, ans);
+    // right
+    if state.pos.1 < cols - 2 && !state.position_contain_blizzard(state.pos.0, state.pos.1 + 1) {
+        state.pos = (state.pos.0, state.pos.1 + 1);
+        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols);
+        state.pos = (state.pos.0, state.pos.1 - 1);
     }
 
-    if let Some(s) = state.move_left() {
-        dfs(visited, last_pos, minutes + 1, s, ans);
+    // left
+    if state.pos.1 > 1 && !state.position_contain_blizzard(state.pos.0, state.pos.1 - 1) {
+        state.pos = (state.pos.0, state.pos.1 - 1);
+        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols);
+        state.pos = (state.pos.0, state.pos.1 + 1);
     }
 
-    if let Some(s) = state.move_up() {
-        dfs(visited, last_pos, minutes + 1, s, ans);
+    // up
+    if state.pos.0 > 1 && !state.position_contain_blizzard(state.pos.0 - 1, state.pos.1) {
+        state.pos = (state.pos.0 - 1, state.pos.1);
+        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols);
+        state.pos = (state.pos.0 + 1, state.pos.1);
     }
 
-    if let Some(s) = state.move_down() {
-        dfs(visited, last_pos, minutes + 1, s, ans);
+    // down
+    if state.pos.0 < rows - 2 && !state.position_contain_blizzard(state.pos.0 + 1, state.pos.1) {
+        state.pos = (state.pos.0 + 1, state.pos.1);
+        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols);
+        state.pos = (state.pos.0 - 1, state.pos.1);
     }
 
     // wait
     if !state.position_contain_blizzard(state.pos.0, state.pos.1) {
-        dfs(visited, last_pos, minutes + 1, state, ans);
+        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols);
     }
+
+    state.undo_move_blizzards();
 }
 
 fn part1(input: String) -> String {
@@ -247,7 +320,9 @@ fn part1(input: String) -> String {
     //let mut min_minutes = 2000; // found 1963
     //let mut min_minutes = 1000; // found 933
     //let mut min_minutes = 500; // not found in a reasonable time
-    let mut min_minutes = 700; //  found 652
+    //let mut min_minutes = 700; //  found 669
+    //let mut min_minutes = 600; //  587
+    let mut min_minutes = 550; //  
     let grid = parse(input);
     let rows = grid.len();
     let cols = grid[0].len();
@@ -262,7 +337,7 @@ fn part1(input: String) -> String {
 
     let mut visited: HashMap<State, u32> = HashMap::new();
 
-    dfs(&mut visited, last_pos, 1, initial_state, &mut min_minutes);
+    dfs(&mut visited, last_pos, 1, &mut initial_state, &mut min_minutes, rows, cols);
 
     (min_minutes + 1).to_string()
 }
