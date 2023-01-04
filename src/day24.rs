@@ -7,18 +7,22 @@ use std::iter::zip;
 
 use crate::aoc::AOC;
 
+/*
+
+The last column does not contain up and down, so there's no danger of
+meeting a blizzard when exiting.
+*/
+
 #[derive(Clone, Eq, PartialEq, Hash)]
 struct State {
     grid: Vec<Vec<Vec<char>>>,
-    minutes: u32,
     pos: (usize, usize),
 }
 
 impl State {
-    fn new(grid: Vec<Vec<Vec<char>>>, minutes: u32, pos: (usize, usize)) -> Self {
+    fn new(grid: Vec<Vec<Vec<char>>>, pos: (usize, usize)) -> Self {
         Self {
             grid,
-            minutes,
             pos,
         }
     }
@@ -101,7 +105,7 @@ impl State {
         let rows = self.grid.len();
         let cols = self.grid[0].len();
         if c < cols - 2 && !self.position_contain_blizzard(r, c + 1) {
-            let new_state = Self::new(self.grid.clone(), self.minutes + 1, (r, c + 1));
+            let new_state = Self::new(self.grid.clone(), (r, c + 1));
             return Some(new_state);
         }
         None
@@ -112,7 +116,7 @@ impl State {
         let rows = self.grid.len();
         let cols = self.grid[0].len();
         if c > 1 && !self.position_contain_blizzard(r, c - 1) {
-            let new_state = Self::new(self.grid.clone(), self.minutes + 1, (r, c - 1));
+            let new_state = Self::new(self.grid.clone(), (r, c - 1));
             return Some(new_state);
         }
         None
@@ -123,7 +127,7 @@ impl State {
         let rows = self.grid.len();
         let cols = self.grid[0].len();
         if r > 1 && !self.position_contain_blizzard(r - 1, c) {
-            let new_state = Self::new(self.grid.clone(), self.minutes + 1, (r - 1, c));
+            let new_state = Self::new(self.grid.clone(), (r - 1, c));
             return Some(new_state);
         }
         None
@@ -134,7 +138,7 @@ impl State {
         let rows = self.grid.len();
         let cols = self.grid[0].len();
         if r < rows - 2 && !self.position_contain_blizzard(r + 1, c) {
-            let new_state = Self::new(self.grid.clone(), self.minutes + 1, (r + 1, c));
+            let new_state = Self::new(self.grid.clone(), (r + 1, c));
             return Some(new_state);
         }
         None
@@ -182,11 +186,59 @@ fn draw(grid: &[Vec<Vec<char>>]) {
     }
 }
 
-/*
+type Pos = (usize, usize);
 
-The last column does not contain up and down, so there's no danger of
-meeting a blizzard when exiting.
-*/
+fn dfs(visited: &mut HashMap<State, u32>, last_pos: Pos,
+        minutes: u32, mut state: State, ans: &mut u32) {
+    match visited.get(&state) {
+        Some(m) => {
+            if *m <= minutes {
+                return;
+            }
+            visited.insert(state.clone(), minutes);
+        },
+        None => {
+            visited.insert(state.clone(), minutes);
+        }
+    }
+
+    if state.pos == last_pos {
+        if minutes < *ans {
+            println!("best min is now: {}", minutes);
+            *ans = minutes;
+        }
+        return;
+    }
+
+    if minutes == *ans {
+        // can only get worse, so return
+        return;
+    }
+
+    // move blizzards, then check where we can go
+    state.move_blizzards();
+
+    if let Some(s) = state.move_right() {
+        dfs(visited, last_pos, minutes + 1, s, ans);
+    }
+
+    if let Some(s) = state.move_left() {
+        dfs(visited, last_pos, minutes + 1, s, ans);
+    }
+
+    if let Some(s) = state.move_up() {
+        dfs(visited, last_pos, minutes + 1, s, ans);
+    }
+
+    if let Some(s) = state.move_down() {
+        dfs(visited, last_pos, minutes + 1, s, ans);
+    }
+
+    // wait
+    if !state.position_contain_blizzard(state.pos.0, state.pos.1) {
+        dfs(visited, last_pos, minutes + 1, state, ans);
+    }
+}
 
 fn part1(input: String) -> String {
     // let mut min_minutes = u32::MAX;
@@ -198,75 +250,14 @@ fn part1(input: String) -> String {
     let last_pos = (grid.len() - 2, grid[0].len() - 2); // row, col
     // dbg!(&last_pos);
 
-    let mut initial_state = State::new(grid, 0, initial_pos);
+    let mut initial_state = State::new(grid, initial_pos);
     initial_state.move_blizzards();
     // Enter grid
-    initial_state.minutes += 1;
     initial_state.pos = (1, 1);
 
-    let mut visited: HashMap<((usize, usize), Vec<Vec<Vec<char>>>), u32> = HashMap::new();
+    let mut visited: HashMap<State, u32> = HashMap::new();
 
-    let mut states: VecDeque<State> = VecDeque::new();
-    states.push_front(initial_state);
-
-    while let Some(mut state) = states.pop_front() {
-        // println!("min {}", state.minutes);
-        if states.len() > 2000 {
-            dbg!(state.minutes);
-            state.draw();
-            return "".into();
-        }
-        //dbg!(state.minutes);
-        //state.draw();
-        if state.pos == last_pos {
-            if state.minutes < min_minutes {
-                println!("best min is now: {}", state.minutes);
-                min_minutes = state.minutes;
-            }
-            continue;
-        }
-
-        match visited.get(&(state.pos, state.grid.clone())) {
-            Some(m) => {
-                if *m <= state.minutes {
-                    continue;
-                }
-                visited.insert((state.pos, state.grid.clone()), state.minutes);
-            },
-            None => {
-                visited.insert((state.pos, state.grid.clone()), state.minutes);
-            }
-        }
-
-        if state.minutes == min_minutes {
-            continue;
-        }
-
-        // move blizzards, then check where we can go
-        state.move_blizzards();
-
-        if let Some(s) = state.move_right() {
-            states.push_front(s);
-        }
-
-        if let Some(s) = state.move_left() {
-            states.push_front(s);
-        }
-
-        if let Some(s) = state.move_up() {
-            states.push_front(s);
-        }
-
-        if let Some(s) = state.move_down() {
-            states.push_front(s);
-        }
-
-        // wait
-        if !state.position_contain_blizzard(state.pos.0, state.pos.1) {
-            state.minutes += 1;
-            states.push_front(state);
-        }
-    }
+    dfs(&mut visited, last_pos, 1, initial_state, &mut min_minutes);
 
     (min_minutes + 1).to_string()
 }
@@ -332,7 +323,8 @@ impl AOC for Day24 {
             Some(input) => input,
             None => util::read_file("inputs/day24.txt"),
         };
-        part1(input)
+        //part1(input)
+        "".into()
     }
 
     fn part2(&self, input: Option<String>, args: Vec<String>) -> String {
