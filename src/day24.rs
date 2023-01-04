@@ -7,6 +7,7 @@ use std::iter::zip;
 
 use crate::aoc::AOC;
 
+#[derive(Clone, Eq, PartialEq, Hash)]
 struct State {
     grid: Vec<Vec<Vec<char>>>,
     minutes: u32,
@@ -187,25 +188,27 @@ meeting a blizzard when exiting.
 
 fn part1(input: String) -> String {
     // let mut min_minutes = u32::MAX;
-    let mut min_minutes = 20;
+    let mut min_minutes = 1000;
     let grid = parse(input);
     let rows = grid.len();
     let cols = grid[0].len();
     let initial_pos = (0, 1);
-    let last_pos = (grid.len() - 1, grid[0].len() - 2); // row, col
+    let last_pos = (grid.len() - 2, grid[0].len() - 2); // row, col
     dbg!(&last_pos);
 
     let mut initial_state = State::new(grid, 0, (0, 1));
-    /*for _ in 0..4 {
-        initial_state.move_blizzards();
-        initial_state.draw();
-    }*/
+    initial_state.move_blizzards();
+    initial_state.minutes += 1;
+    initial_state.pos = (1, 1);
 
-    // draw(&grid);
+    let mut visited: HashSet<State> = HashSet::new();
+    visited.insert(initial_state.clone());
+
     let mut states: VecDeque<State> = VecDeque::new();
     states.push_front(initial_state);
 
     while let Some(mut state) = states.pop_front() {
+        // println!("min {}", state.minutes);
         if states.len() > 20000 {
             dbg!(state.minutes);
             state.draw();
@@ -229,29 +232,44 @@ fn part1(input: String) -> String {
         state.move_blizzards();
 
         if let Some(s) = state.move_right() {
-            states.push_back(s);
+            if !visited.contains(&s) {
+                visited.insert(s.clone());
+                states.push_front(s);
+            }
         }
 
         if let Some(s) = state.move_left() {
-            states.push_back(s);
+            if !visited.contains(&s) {
+                visited.insert(s.clone());
+                states.push_front(s);
+            }
         }
 
         if let Some(s) = state.move_up() {
-            states.push_back(s);
+            if !visited.contains(&s) {
+                visited.insert(s.clone());
+                states.push_front(s);
+            }
         }
 
         if let Some(s) = state.move_down() {
-            states.push_back(s);
+            if !visited.contains(&s) {
+                visited.insert(s.clone());
+                states.push_front(s);
+            }
         }
 
         // wait
-        if state.pos != initial_pos && !state.position_contain_blizzard(state.pos.0, state.pos.1) {
+        if !state.position_contain_blizzard(state.pos.0, state.pos.1) {
             state.minutes += 1;
-            states.push_back(state);
+            if !visited.contains(&state) {
+                visited.insert(state.clone());
+                states.push_front(state);
+            }
         }
     }
 
-    min_minutes.to_string()
+    (min_minutes + 1).to_string()
 }
 
 fn part2(input: String) -> String {
@@ -276,15 +294,15 @@ mod tests {
 
     #[test]
     fn part1_sample() {
-        let input = util::read_file("inputs/day24-sample.txt");
-        assert_eq!("", part1(input));
+        let input = util::read_file("inputs/day24-sample2.txt");
+        assert_eq!("18", part1(input));
     }
 
-    //#[test]
-    //fn part1_input() {
-    //    let input = util::read_file("inputs/day24.txt");
-    //    assert_eq!("", part1(input));
-    //}
+    #[test]
+    fn part1_input() {
+        let input = util::read_file("inputs/day24.txt");
+        assert_eq!("", part1(input));
+    }
 
     //#[test]
     //fn part2_sample() {
@@ -312,8 +330,9 @@ impl AOC for Day24 {
     fn part1(&self, input: Option<String>, args: Vec<String>) -> String {
         let input = match input {
             Some(input) => input,
-            // None => util::read_file("inputs/day24.txt"),
-            None => util::read_file("inputs/day24-sample.txt"),
+            None => util::read_file("inputs/day24.txt"),
+            //None => util::read_file("inputs/day24-sample.txt"),
+            //None => util::read_file("inputs/day24-sample2.txt"),
         };
         part1(input)
     }
