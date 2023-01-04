@@ -1,7 +1,7 @@
 use crate::util;
 
-use std::collections::{HashMap, HashSet, VecDeque};
 use std::cmp::Ordering;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 use std::iter::zip;
 
@@ -9,62 +9,140 @@ use crate::aoc::AOC;
 
 #[derive(Clone, Eq, PartialEq, Hash)]
 struct State {
-    grid: Vec<Vec<Vec<char>>>,
+    grid: Vec<Vec<char>>,
     minutes: u32,
     pos: (usize, usize),
 }
 
 impl State {
-    fn new(grid: Vec<Vec<Vec<char>>>, minutes: u32, pos: (usize, usize)) -> Self {
-        Self {
-            grid,
-            minutes,
-            pos,
-        }
+    fn new(grid: Vec<Vec<char>>, minutes: u32, pos: (usize, usize)) -> Self {
+        Self { grid, minutes, pos }
     }
 
     fn move_blizzards(&mut self) {
         let rows = self.grid.len();
         let cols = self.grid[0].len();
-        let mut new_grid = vec![vec![vec![]; cols]; rows];
+        let mut new_grid = vec![vec!['.'; cols]; rows];
 
         for row in 1..rows - 1 {
             for col in 1..cols - 1 {
-                for c in &self.grid[row][col] {
-                    match c {
-                        '.' => {
-                            break;
-                        }
-                        '<' => {
-                            if col == 1 {
-                                new_grid[row][cols - 2].push('<');
-                            } else {
-                                new_grid[row][col - 1].push('<');
-                            }
-                        }
-                        '>' => {
-                            if col == cols - 2 {
-                                new_grid[row][1].push('>');
-                            } else {
-                                new_grid[row][col + 1].push('>');
-                            }
-                        }
-                        '^' => {
-                            if row == 1 {
-                                new_grid[rows - 2][col].push('^');
-                            } else {
-                                new_grid[row - 1][col].push('^');
-                            }
-                        }
-                        'v' => {
-                            if row == rows - 2 {
-                                new_grid[1][col].push('v');
-                            } else {
-                                new_grid[row + 1][col].push('v');
-                            }
-                        }
-                        _ => panic!("{c}"),
+                match (self.grid[row][col], new_grid[row][col]) {
+                    ('.', _) => {
+                        continue;
                     }
+                    ('<', '.') => {
+                        if col == 1 {
+                            new_grid[row][cols - 2] = '<';
+                        } else {
+                            new_grid[row][col - 1] = '<';
+                        }
+                    }
+                    ('<', '>') => {
+                        if col == 1 {
+                            new_grid[row][cols - 2] = 'A';
+                        } else {
+                            new_grid[row][col - 1] = 'A';
+                        }
+                    }
+                    ('<', '^') => {
+                        if col == 1 {
+                            new_grid[row][cols - 2] = 'B';
+                        } else {
+                            new_grid[row][col - 1] = 'B';
+                        }
+                    }
+                    ('<', 'v') => {
+                        if col == 1 {
+                            new_grid[row][cols - 2] = 'C';
+                        } else {
+                            new_grid[row][col - 1] = 'C';
+                        }
+                    }
+                    ('>', '.') => {
+                        if col == cols - 2 {
+                            new_grid[row][1] = '>';
+                        } else {
+                            new_grid[row][col + 1] = '>';
+                        }
+                    }
+                    ('>', '<') => {
+                        if col == cols - 2 {
+                            new_grid[row][1] = 'A';
+                        } else {
+                            new_grid[row][col + 1] = 'A';
+                        }
+                    }
+                    ('>', '^') => {
+                        if col == cols - 2 {
+                            new_grid[row][1] = 'D';
+                        } else {
+                            new_grid[row][col + 1] = 'D';
+                        }
+                    }
+                    ('>', 'v') => {
+                        if col == cols - 2 {
+                            new_grid[row][1] = 'E';
+                        } else {
+                            new_grid[row][col + 1] = 'E';
+                        }
+                    }
+                    ('^', '.') => {
+                        if row == 1 {
+                            new_grid[rows - 2][col] = '^';
+                        } else {
+                            new_grid[row - 1][col] = '^';
+                        }
+                    }
+                    ('^', '<') => {
+                        if row == 1 {
+                            new_grid[rows - 2][col] = 'B';
+                        } else {
+                            new_grid[row - 1][col] = 'B';
+                        }
+                    }
+                    ('^', '>') => {
+                        if row == 1 {
+                            new_grid[rows - 2][col] = 'D';
+                        } else {
+                            new_grid[row - 1][col] = 'D';
+                        }
+                    }
+                    ('^', 'v') => {
+                        if row == 1 {
+                            new_grid[rows - 2][col] = 'F';
+                        } else {
+                            new_grid[row - 1][col] = 'F';
+                        }
+                    }
+                    ('v', '.') => {
+                        if row == rows - 2 {
+                            new_grid[1][col] = 'v';
+                        } else {
+                            new_grid[row + 1][col] = 'v';
+                        }
+                    }
+                    ('v', '<') => {
+                        if row == rows - 2 {
+                            new_grid[1][col] = 'C';
+                        } else {
+                            new_grid[row + 1][col] = 'C';
+                        }
+                    }
+                    ('v', '>') => {
+                        if row == rows - 2 {
+                            new_grid[1][col] = 'E';
+                        } else {
+                            new_grid[row + 1][col] = 'E';
+                        }
+                    }
+                    ('v', '^') => {
+                        if row == rows - 2 {
+                            new_grid[1][col] = 'F';
+                        } else {
+                            new_grid[row + 1][col] = 'F';
+                        }
+                    }
+                    _ => panic!("{c}"),
                 }
             }
         }
@@ -141,13 +219,10 @@ impl State {
     }
 
     fn position_contain_blizzard(&self, r: usize, c: usize) -> bool {
-        for p in &self.grid[r][c] {
-            match p {
-                '<' | '>' |'^' | 'v' => return true,
-                _ => continue,
-            }
+        match self.grid[r][c] {
+            '<' | '>' | '^' | 'v' | '4' | 'A'..='J' => true,
+            _ => false,
         }
-        false
     }
 }
 
@@ -155,8 +230,7 @@ impl State {
 
 Maybe encode directions in chars if it uses too much memory ...
 
-4: blizard in all directions
-
+4: blizard in all directions -> <>^v
 <>: A
 <^: B
 <v: C
@@ -164,7 +238,15 @@ Maybe encode directions in chars if it uses too much memory ...
 >v: E
 ^: F
 v
-<>^: A
+
+<>^: G
+<>v: H
+
+^>: I
+v
+
+^<: J
+v
 
 
 */
@@ -182,6 +264,7 @@ fn draw(grid: &[Vec<Vec<char>>]) {
     }
 }
 
+
 /*
 
 The last column does not contain up and down, so there's no danger of
@@ -196,7 +279,6 @@ fn part1(input: String) -> String {
     let cols = grid[0].len();
     let initial_pos = (0, 1);
     let last_pos = (grid.len() - 2, grid[0].len() - 2); // row, col
-    // dbg!(&last_pos);
 
     let mut initial_state = State::new(grid, 0, initial_pos);
     initial_state.move_blizzards();
@@ -204,7 +286,7 @@ fn part1(input: String) -> String {
     initial_state.minutes += 1;
     initial_state.pos = (1, 1);
 
-    let mut visited: HashMap<((usize, usize), Vec<Vec<Vec<char>>>), u32> = HashMap::new();
+    let mut visited: HashMap<((usize, usize), Vec<Vec<char>>), u32> = HashMap::new();
 
     let mut states: VecDeque<State> = VecDeque::new();
     states.push_front(initial_state);
@@ -232,7 +314,7 @@ fn part1(input: String) -> String {
                     continue;
                 }
                 visited.insert((state.pos, state.grid.clone()), state.minutes);
-            },
+            }
             None => {
                 visited.insert((state.pos, state.grid.clone()), state.minutes);
             }
@@ -275,7 +357,15 @@ fn part2(input: String) -> String {
     todo!()
 }
 
-fn parse(input: String) -> Vec<Vec<Vec<char>>> {
+fn parse(input: String) -> Vec<Vec<char>> {
+    let mut grid: Vec<Vec<char>> = vec![];
+    for line in input.lines() {
+        grid.push(line.chars().collect::<Vec<_>>());
+    }
+    grid
+}
+
+fn _parse0(input: String) -> Vec<Vec<Vec<char>>> {
     let mut grid: Vec<Vec<Vec<char>>> = vec![];
     for line in input.lines() {
         let mut row = vec![];
@@ -327,7 +417,10 @@ pub struct Day24 {}
 
 impl AOC for Day24 {
     fn part1(&self, input: Option<String>, args: Vec<String>) -> String {
-        println!("sample answer: {}", part1(util::read_file("inputs/day24-sample2.txt")));
+        println!(
+            "sample answer: {}",
+            part1(util::read_file("inputs/day24-sample2.txt"))
+        );
         let input = match input {
             Some(input) => input,
             None => util::read_file("inputs/day24.txt"),
