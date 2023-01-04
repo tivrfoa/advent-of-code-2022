@@ -242,7 +242,12 @@ fn dfs(visited: &mut HashMap<State, u32>, last_pos: Pos,
 
 fn part1(input: String) -> String {
     // let mut min_minutes = u32::MAX;
-    let mut min_minutes = 200;
+    //let mut min_minutes = 4000; // found 3952
+    //let mut min_minutes = 3000; // found 2956
+    //let mut min_minutes = 2000; // found 1963
+    //let mut min_minutes = 1000; // found 933
+    //let mut min_minutes = 500; // not found in a reasonable time
+    let mut min_minutes = 700; //  found 652
     let grid = parse(input);
     let rows = grid.len();
     let cols = grid[0].len();
@@ -323,8 +328,7 @@ impl AOC for Day24 {
             Some(input) => input,
             None => util::read_file("inputs/day24.txt"),
         };
-        //part1(input)
-        "".into()
+        part1(input)
     }
 
     fn part2(&self, input: Option<String>, args: Vec<String>) -> String {
