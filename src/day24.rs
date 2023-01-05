@@ -256,11 +256,11 @@ fn dfs(
             println!("best min is now: {}", minutes);
             *ans = minutes;
             *final_grid = state.grid.clone();
-            println!("======== FINAL GRID =======");
-            state.draw();
+            // println!("======== FINAL GRID =======");
+            // state.draw();
             //draw(&final_grid);
             //dbg!(final_grid);
-            println!("^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+            // println!("^^^^^^^^^^^^^^^^^^^^^^^^^^^");
         }
         return;
     }
@@ -273,11 +273,11 @@ fn dfs(
     // move blizzards, then check where we can go
     state.move_blizzards();
 
-    let mut you_moved = false;
+    // let mut you_moved = false;
 
     // right
     if state.pos.1 < cols - 2 && !state.position_contain_blizzard(state.pos.0, state.pos.1 + 1) {
-        you_moved = true;
+        // you_moved = true;
         state.pos = (state.pos.0, state.pos.1 + 1);
         dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
         state.pos = (state.pos.0, state.pos.1 - 1);
@@ -285,7 +285,7 @@ fn dfs(
 
     // left
     if state.pos.1 > 1 && !state.position_contain_blizzard(state.pos.0, state.pos.1 - 1) {
-        you_moved = true;
+        // you_moved = true;
         state.pos = (state.pos.0, state.pos.1 - 1);
         dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
         state.pos = (state.pos.0, state.pos.1 + 1);
@@ -293,7 +293,7 @@ fn dfs(
 
     // up
     if state.pos.0 > 1 && !state.position_contain_blizzard(state.pos.0 - 1, state.pos.1) {
-        you_moved = true;
+        // you_moved = true;
         state.pos = (state.pos.0 - 1, state.pos.1);
         dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
         state.pos = (state.pos.0 + 1, state.pos.1);
@@ -301,7 +301,7 @@ fn dfs(
 
     // down
     if state.pos.0 < rows - 2 && !state.position_contain_blizzard(state.pos.0 + 1, state.pos.1) {
-        you_moved = true;
+        // you_moved = true;
         state.pos = (state.pos.0 + 1, state.pos.1);
         dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
         state.pos = (state.pos.0 - 1, state.pos.1);
@@ -309,14 +309,14 @@ fn dfs(
 
     // wait
     if !state.position_contain_blizzard(state.pos.0, state.pos.1) {
-        you_moved = true;
+        // you_moved = true;
         dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
     }
 
-    if !you_moved {
-        println!("You got killed! ({}, {}), minutes = {minutes}", state.pos.0, state.pos.1);
-        state.draw();
-    }
+    // if !you_moved {
+    //     println!("You got killed! ({}, {}), minutes = {minutes}", state.pos.0, state.pos.1);
+    //     state.draw();
+    // }
 
     state.undo_move_blizzards();
 }
@@ -375,14 +375,14 @@ fn solve(grid: Vec<Vec<Vec<char>>>, initial_pos: Pos, final_pos: Pos) -> (u32, V
 
         while initial_state.position_contain_blizzard(initial_state.pos.0, initial_state.pos.1) {
             println!("It can't enter the grid. minutes: {minutes}");
-            initial_state.draw();
+            // initial_state.draw();
             minutes += 1;
             initial_state.move_blizzards();
         }
 
         let mut visited: HashMap<Vec<u16>, u32> = HashMap::new();
-        println!("------grid before dfs-------");
-        initial_state.draw();
+        // println!("------grid before dfs-------");
+        // initial_state.draw();
         dfs(
             &mut visited,
             final_pos,
@@ -468,7 +468,7 @@ mod tests {
     #[test]
     fn part2_sample() {
         let input = util::read_file("inputs/day24-sample2.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("54", part2(input));
     }
 
     //#[test]
@@ -505,11 +505,10 @@ impl AOC for Day24 {
             "sample answer: {}",
             part2(util::read_file("inputs/day24-sample2.txt"))
         );
-        // let input = match input {
-        //     Some(input) => input,
-        //     None => util::read_file("inputs/day24.txt"),
-        // };
-        // part2(input)
-        "".into()
+        let input = match input {
+            Some(input) => input,
+            None => util::read_file("inputs/day24.txt"),
+        };
+        part2(input)
     }
 }
