@@ -356,8 +356,8 @@ fn part2(input: String) -> String {
     );
 
     initial_state.grid = final_grid;
-    initial_state.move_blizzards();
     initial_state.draw();
+    initial_state.move_blizzards();
 
     let mut visited: HashMap<Vec<u16>, u32> = HashMap::new();
     let mut final_grid: Vec<Vec<Vec<char>>> = vec![];
@@ -381,9 +381,9 @@ fn part2(input: String) -> String {
     );
 
     initial_state.grid = final_grid;
-    initial_state.move_blizzards();
     initial_state.draw();
-    sum = min_minutes + 1;
+    initial_state.move_blizzards();
+    sum += min_minutes + 1;
 
     let mut visited: HashMap<Vec<u16>, u32> = HashMap::new();
     let mut final_grid: Vec<Vec<Vec<char>>> = vec![];
