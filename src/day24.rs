@@ -1,7 +1,7 @@
 use crate::util;
 
-use std::collections::{HashMap, HashSet, VecDeque};
 use std::cmp::Ordering;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 use std::iter::zip;
 
@@ -21,10 +21,7 @@ struct State {
 
 impl State {
     fn new(grid: Vec<Vec<Vec<char>>>, pos: (usize, usize)) -> Self {
-        Self {
-            grid,
-            pos,
-        }
+        Self { grid, pos }
     }
 
     fn undo_move_blizzards(&mut self) {
@@ -158,58 +155,30 @@ impl State {
         }
     }
 
-    fn move_right(&self) -> Option<Self> {
-        let (r, c) = self.pos;
-        let rows = self.grid.len();
-        let cols = self.grid[0].len();
-        if c < cols - 2 && !self.position_contain_blizzard(r, c + 1) {
-            let new_state = Self::new(self.grid.clone(), (r, c + 1));
-            return Some(new_state);
-        }
-        None
-    }
-
-    fn move_left(&self) -> Option<Self> {
-        let (r, c) = self.pos;
-        let rows = self.grid.len();
-        let cols = self.grid[0].len();
-        if c > 1 && !self.position_contain_blizzard(r, c - 1) {
-            let new_state = Self::new(self.grid.clone(), (r, c - 1));
-            return Some(new_state);
-        }
-        None
-    }
-
-    fn move_up(&self) -> Option<Self> {
-        let (r, c) = self.pos;
-        let rows = self.grid.len();
-        let cols = self.grid[0].len();
-        if r > 1 && !self.position_contain_blizzard(r - 1, c) {
-            let new_state = Self::new(self.grid.clone(), (r - 1, c));
-            return Some(new_state);
-        }
-        None
-    }
-
-    fn move_down(&self) -> Option<Self> {
-        let (r, c) = self.pos;
-        let rows = self.grid.len();
-        let cols = self.grid[0].len();
-        if r < rows - 2 && !self.position_contain_blizzard(r + 1, c) {
-            let new_state = Self::new(self.grid.clone(), (r + 1, c));
-            return Some(new_state);
-        }
-        None
-    }
-
     fn position_contain_blizzard(&self, r: usize, c: usize) -> bool {
         for p in &self.grid[r][c] {
             match p {
-                '<' | '>' |'^' | 'v' => return true,
+                '<' | '>' | '^' | 'v' => return true,
                 _ => continue,
             }
         }
         false
+    }
+
+    fn get_key(&self) -> Vec<u16> {
+        let mut key = vec![];
+        for (r, row) in self.grid.iter().enumerate() {
+            for (c, p) in row.iter().enumerate() {
+                for l in p {
+                    match l {
+                        '<' | '>' | '^' | 'v' => key.push((r * 100 + c) as u16),
+                        _ => continue,
+                    }
+                }
+            }
+        }
+        key.push((self.pos.0 * 100 + self.pos.1) as u16);
+        key
     }
 }
 
@@ -246,18 +215,30 @@ fn draw(grid: &[Vec<Vec<char>>]) {
 
 type Pos = (usize, usize);
 
-fn dfs(visited: &mut HashMap<State, u32>, last_pos: Pos,
-        minutes: u32, state: &mut State, ans: &mut u32,
-        rows: usize, cols: usize) {
-    match visited.get(&state) {
-        Some(m) => {
-            if *m <= minutes {
-                return;
+fn dfs(
+    visited: &mut HashMap<Vec<u16>, u32>,
+    last_pos: Pos,
+    minutes: u32,
+    state: &mut State,
+    ans: &mut u32,
+    rows: usize,
+    cols: usize,
+) {
+    // to avoid using too much memory, store only up to some minutes
+    // TODO maybe the hash key can only be position and it's surroundings, and
+    // and then we can void cloning the entire grid.
+    let key = state.get_key();
+    if minutes < 550 {
+        match visited.get(&key) {
+            Some(m) => {
+                if *m <= minutes {
+                    return;
+                }
+                visited.insert(key, minutes);
             }
-            visited.insert(state.clone(), minutes);
-        },
-        None => {
-            visited.insert(state.clone(), minutes);
+            None => {
+                visited.insert(key, minutes);
+            }
         }
     }
 
@@ -313,6 +294,8 @@ fn dfs(visited: &mut HashMap<State, u32>, last_pos: Pos,
     state.undo_move_blizzards();
 }
 
+const MAX_MINUTES: u32 = 526;
+
 fn part1(input: String) -> String {
     // let mut min_minutes = u32::MAX;
     //let mut min_minutes = 4000; // found 3952
@@ -322,22 +305,32 @@ fn part1(input: String) -> String {
     //let mut min_minutes = 500; // not found in a reasonable time
     //let mut min_minutes = 700; //  found 669
     //let mut min_minutes = 600; //  587
-    let mut min_minutes = 550; //  
+    //let mut min_minutes = 550; // 547
+    //let mut min_minutes = 547; // 526 -> too high
+    let mut min_minutes = MAX_MINUTES; //
     let grid = parse(input);
     let rows = grid.len();
     let cols = grid[0].len();
     let initial_pos = (0, 1);
     let last_pos = (grid.len() - 2, grid[0].len() - 2); // row, col
-    // dbg!(&last_pos);
+                                                        // dbg!(&last_pos);
 
     let mut initial_state = State::new(grid, initial_pos);
     initial_state.move_blizzards();
     // Enter grid
     initial_state.pos = (1, 1);
 
-    let mut visited: HashMap<State, u32> = HashMap::new();
+    let mut visited: HashMap<Vec<u16>, u32> = HashMap::new();
 
-    dfs(&mut visited, last_pos, 1, &mut initial_state, &mut min_minutes, rows, cols);
+    dfs(
+        &mut visited,
+        last_pos,
+        1,
+        &mut initial_state,
+        &mut min_minutes,
+        rows,
+        cols,
+    );
 
     (min_minutes + 1).to_string()
 }
@@ -371,7 +364,7 @@ mod tests {
     #[test]
     fn part1_input() {
         let input = util::read_file("inputs/day24.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("240", part1(input));
     }
 
     //#[test]
@@ -398,7 +391,10 @@ pub struct Day24 {}
 
 impl AOC for Day24 {
     fn part1(&self, input: Option<String>, args: Vec<String>) -> String {
-        println!("sample answer: {}", part1(util::read_file("inputs/day24-sample2.txt")));
+        println!(
+            "sample answer: {}",
+            part1(util::read_file("inputs/day24-sample2.txt"))
+        );
         let input = match input {
             Some(input) => input,
             None => util::read_file("inputs/day24.txt"),
