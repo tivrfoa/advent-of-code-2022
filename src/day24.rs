@@ -145,7 +145,8 @@ impl State {
             for c in 1..self.grid[0].len() - 1 {
                 /*if self.pos.0 == r && self.pos.1 == c {
                     print!("E");
-                } else */if self.grid[r][c].len() > 1 {
+                } else */
+                if self.grid[r][c].len() > 1 {
                     print!("{}", self.grid[r][c].len());
                 } else {
                     print!("{}", self.grid[r][c][0]);
@@ -181,7 +182,7 @@ impl State {
                 for l in p {
                     match l {
                         '<' | '>' | '^' | 'v' => {
-                            key.push((l_to_n(*l) * 10_000 + (r+1) * 100 + c) as u16);
+                            key.push((l_to_n(*l) * 10_000 + (r + 1) * 100 + c) as u16);
                         }
                         _ => continue,
                     }
@@ -279,7 +280,16 @@ fn dfs(
     if state.pos.1 < cols - 2 && !state.position_contain_blizzard(state.pos.0, state.pos.1 + 1) {
         // you_moved = true;
         state.pos = (state.pos.0, state.pos.1 + 1);
-        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
+        dfs(
+            visited,
+            last_pos,
+            minutes + 1,
+            state,
+            ans,
+            rows,
+            cols,
+            final_grid,
+        );
         state.pos = (state.pos.0, state.pos.1 - 1);
     }
 
@@ -287,7 +297,16 @@ fn dfs(
     if state.pos.1 > 1 && !state.position_contain_blizzard(state.pos.0, state.pos.1 - 1) {
         // you_moved = true;
         state.pos = (state.pos.0, state.pos.1 - 1);
-        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
+        dfs(
+            visited,
+            last_pos,
+            minutes + 1,
+            state,
+            ans,
+            rows,
+            cols,
+            final_grid,
+        );
         state.pos = (state.pos.0, state.pos.1 + 1);
     }
 
@@ -295,7 +314,16 @@ fn dfs(
     if state.pos.0 > 1 && !state.position_contain_blizzard(state.pos.0 - 1, state.pos.1) {
         // you_moved = true;
         state.pos = (state.pos.0 - 1, state.pos.1);
-        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
+        dfs(
+            visited,
+            last_pos,
+            minutes + 1,
+            state,
+            ans,
+            rows,
+            cols,
+            final_grid,
+        );
         state.pos = (state.pos.0 + 1, state.pos.1);
     }
 
@@ -303,14 +331,32 @@ fn dfs(
     if state.pos.0 < rows - 2 && !state.position_contain_blizzard(state.pos.0 + 1, state.pos.1) {
         // you_moved = true;
         state.pos = (state.pos.0 + 1, state.pos.1);
-        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
+        dfs(
+            visited,
+            last_pos,
+            minutes + 1,
+            state,
+            ans,
+            rows,
+            cols,
+            final_grid,
+        );
         state.pos = (state.pos.0 - 1, state.pos.1);
     }
 
     // wait
     if !state.position_contain_blizzard(state.pos.0, state.pos.1) {
         // you_moved = true;
-        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
+        dfs(
+            visited,
+            last_pos,
+            minutes + 1,
+            state,
+            ans,
+            rows,
+            cols,
+            final_grid,
+        );
     }
 
     // if !you_moved {
@@ -354,13 +400,16 @@ fn part1(input: String) -> String {
     (min_minutes + 1).to_string()
 }
 
-
 /// initial and final position "inside" the grid
-fn solve(grid: Vec<Vec<Vec<char>>>, initial_pos: Pos, final_pos: Pos) -> (u32, Vec<Vec<Vec<char>>>) {
+fn solve(
+    grid: Vec<Vec<Vec<char>>>,
+    initial_pos: Pos,
+    final_pos: Pos,
+) -> (u32, Vec<Vec<Vec<char>>>) {
     println!("Trying to get from {:?} to {:?}", initial_pos, final_pos);
     let mut min_minutes = MAX_MINUTES;
     let mut final_grid: Vec<Vec<Vec<char>>> = vec![];
-    
+
     let mut minutes = 0;
     let rows = grid.len();
     let cols = grid[0].len();
