@@ -143,9 +143,9 @@ impl State {
     fn draw(&self) {
         for r in 1..self.grid.len() - 1 {
             for c in 1..self.grid[0].len() - 1 {
-                if self.pos.0 == r && self.pos.1 == c {
+                /*if self.pos.0 == r && self.pos.1 == c {
                     print!("E");
-                } else if self.grid[r][c].len() > 1 {
+                } else */if self.grid[r][c].len() > 1 {
                     print!("{}", self.grid[r][c].len());
                 } else {
                     print!("{}", self.grid[r][c][0]);
@@ -166,12 +166,23 @@ impl State {
     }
 
     fn get_key(&self) -> Vec<u16> {
+        const fn l_to_n(l: char) -> usize {
+            match l {
+                '<' => 1,
+                '>' => 2,
+                '^' => 3,
+                'v' => 4,
+                _ => 10,
+            }
+        }
         let mut key = vec![];
         for (r, row) in self.grid.iter().enumerate() {
             for (c, p) in row.iter().enumerate() {
                 for l in p {
                     match l {
-                        '<' | '>' | '^' | 'v' => key.push((r * 100 + c) as u16),
+                        '<' | '>' | '^' | 'v' => {
+                            key.push((l_to_n(*l) * 10_000 + (r+1) * 100 + c) as u16);
+                        }
                         _ => continue,
                     }
                 }
@@ -205,8 +216,10 @@ fn draw(grid: &[Vec<Vec<char>>]) {
         for c in 0..grid[0].len() {
             if grid[r][c].len() > 1 {
                 print!("{}", grid[r][c].len());
-            } else {
+            } else if grid[r][c].len() == 1 {
                 print!("{}", grid[r][c][0]);
+            } else {
+                print!("#");
             }
         }
         println!();
@@ -226,25 +239,28 @@ fn dfs(
     final_grid: &mut Vec<Vec<Vec<char>>>,
 ) {
     let key = state.get_key();
-    // if minutes < 550 {
-        match visited.get(&key) {
-            Some(m) => {
-                if *m <= minutes {
-                    return;
-                }
-                visited.insert(key, minutes);
+    match visited.get(&key) {
+        Some(m) => {
+            if *m <= minutes {
+                return;
             }
-            None => {
-                visited.insert(key, minutes);
-            }
+            visited.insert(key, minutes);
         }
-    //}
+        None => {
+            visited.insert(key, minutes);
+        }
+    }
 
     if state.pos == last_pos {
         if minutes < *ans {
             println!("best min is now: {}", minutes);
             *ans = minutes;
             *final_grid = state.grid.clone();
+            println!("======== FINAL GRID =======");
+            state.draw();
+            //draw(&final_grid);
+            //dbg!(final_grid);
+            println!("^^^^^^^^^^^^^^^^^^^^^^^^^^^");
         }
         return;
     }
@@ -257,8 +273,11 @@ fn dfs(
     // move blizzards, then check where we can go
     state.move_blizzards();
 
+    let mut you_moved = false;
+
     // right
     if state.pos.1 < cols - 2 && !state.position_contain_blizzard(state.pos.0, state.pos.1 + 1) {
+        you_moved = true;
         state.pos = (state.pos.0, state.pos.1 + 1);
         dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
         state.pos = (state.pos.0, state.pos.1 - 1);
@@ -266,6 +285,7 @@ fn dfs(
 
     // left
     if state.pos.1 > 1 && !state.position_contain_blizzard(state.pos.0, state.pos.1 - 1) {
+        you_moved = true;
         state.pos = (state.pos.0, state.pos.1 - 1);
         dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
         state.pos = (state.pos.0, state.pos.1 + 1);
@@ -273,6 +293,7 @@ fn dfs(
 
     // up
     if state.pos.0 > 1 && !state.position_contain_blizzard(state.pos.0 - 1, state.pos.1) {
+        you_moved = true;
         state.pos = (state.pos.0 - 1, state.pos.1);
         dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
         state.pos = (state.pos.0 + 1, state.pos.1);
@@ -280,6 +301,7 @@ fn dfs(
 
     // down
     if state.pos.0 < rows - 2 && !state.position_contain_blizzard(state.pos.0 + 1, state.pos.1) {
+        you_moved = true;
         state.pos = (state.pos.0 + 1, state.pos.1);
         dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
         state.pos = (state.pos.0 - 1, state.pos.1);
@@ -287,7 +309,13 @@ fn dfs(
 
     // wait
     if !state.position_contain_blizzard(state.pos.0, state.pos.1) {
+        you_moved = true;
         dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
+    }
+
+    if !you_moved {
+        println!("You got killed! ({}, {}), minutes = {minutes}", state.pos.0, state.pos.1);
+        state.draw();
     }
 
     state.undo_move_blizzards();
@@ -326,83 +354,87 @@ fn part1(input: String) -> String {
     (min_minutes + 1).to_string()
 }
 
-fn part2(input: String) -> String {
-    let mut min_minutes = MAX_MINUTES; //
-    let grid = parse(input);
+
+/// initial and final position "inside" the grid
+fn solve(grid: Vec<Vec<Vec<char>>>, initial_pos: Pos, final_pos: Pos) -> (u32, Vec<Vec<Vec<char>>>) {
+    println!("Trying to get from {:?} to {:?}", initial_pos, final_pos);
+    let mut min_minutes = MAX_MINUTES;
+    let mut final_grid: Vec<Vec<Vec<char>>> = vec![];
+    
+    let mut minutes = 0;
     let rows = grid.len();
     let cols = grid[0].len();
-    let initial_pos = (0, 1);
-    let last_pos = (grid.len() - 2, grid[0].len() - 2); // row, col
-    let mut final_grid: Vec<Vec<Vec<char>>> = vec![];
-
     let mut initial_state = State::new(grid, initial_pos);
+
+    println!("=========== INITIAL STATE =============");
+
+    while minutes < 15 {
+        initial_state.draw();
+        minutes += 1;
+        initial_state.move_blizzards();
+
+        while initial_state.position_contain_blizzard(initial_state.pos.0, initial_state.pos.1) {
+            println!("It can't enter the grid. minutes: {minutes}");
+            initial_state.draw();
+            minutes += 1;
+            initial_state.move_blizzards();
+        }
+
+        let mut visited: HashMap<Vec<u16>, u32> = HashMap::new();
+        println!("------grid before dfs-------");
+        initial_state.draw();
+        dfs(
+            &mut visited,
+            final_pos,
+            minutes,
+            &mut initial_state,
+            &mut min_minutes,
+            rows,
+            cols,
+            &mut final_grid,
+        );
+
+        if !final_grid.is_empty() {
+            break;
+        }
+
+        println!("It didn't find a solution. Let's try again.");
+    }
+
+    if final_grid.is_empty() {
+        panic!("Mission Failed");
+    }
+
+    println!("--->> debugging final grid");
+    draw(&final_grid);
+
+    // before return, we need to move blizzards in the final grid one more time
+    initial_state.grid = final_grid;
     initial_state.move_blizzards();
-    // Enter grid
-    initial_state.pos = (1, 1);
 
-    let mut visited: HashMap<Vec<u16>, u32> = HashMap::new();
+    (min_minutes + 1, initial_state.grid)
+}
 
+fn part2(input: String) -> String {
     let mut sum = 0;
+    let grid = parse(input);
+    let initial_pos = (1, 1);
+    // row, col
+    let last_pos = (grid.len() - 2, grid[0].len() - 2);
 
-    dfs(
-        &mut visited,
-        last_pos,
-        1,
-        &mut initial_state,
-        &mut min_minutes,
-        rows,
-        cols,
-        &mut final_grid,
-    );
+    // go
+    let (minutes, grid) = solve(grid, initial_pos, last_pos);
+    sum += minutes;
 
-    initial_state.grid = final_grid;
-    initial_state.draw();
-    initial_state.move_blizzards();
+    // go back
+    let (minutes, grid) = solve(grid, last_pos, (1, 1));
+    sum += minutes;
 
-    let mut visited: HashMap<Vec<u16>, u32> = HashMap::new();
-    let mut final_grid: Vec<Vec<Vec<char>>> = vec![];
-    initial_state.move_blizzards();
-    // TODO maybe cannot enter grid immediately
-    initial_state.pos = last_pos;
-    min_minutes = MAX_MINUTES;
+    // go again
+    let (minutes, _) = solve(grid, initial_pos, last_pos);
+    sum += minutes;
 
-
-    let mut sum = min_minutes + 1;
-
-    dfs(
-        &mut visited,
-        (1, 1),
-        1,
-        &mut initial_state,
-        &mut min_minutes,
-        rows,
-        cols,
-        &mut final_grid,
-    );
-
-    initial_state.grid = final_grid;
-    initial_state.draw();
-    initial_state.move_blizzards();
-    sum += min_minutes + 1;
-
-    let mut visited: HashMap<Vec<u16>, u32> = HashMap::new();
-    let mut final_grid: Vec<Vec<Vec<char>>> = vec![];
-    initial_state.move_blizzards();
-    min_minutes = MAX_MINUTES;
-    initial_state.pos = initial_pos;
-
-    dfs(
-        &mut visited,
-        last_pos,
-        1,
-        &mut initial_state,
-        &mut min_minutes,
-        rows,
-        cols,
-        &mut final_grid,
-    );
-
-    (sum + min_minutes + 1).to_string()
+    sum.to_string()
 }
 
 fn parse(input: String) -> Vec<Vec<Vec<char>>> {
@@ -469,10 +501,15 @@ impl AOC for Day24 {
     }
 
     fn part2(&self, input: Option<String>, args: Vec<String>) -> String {
-        let input = match input {
-            Some(input) => input,
-            None => util::read_file("inputs/day24.txt"),
-        };
-        part2(input)
+        println!(
+            "sample answer: {}",
+            part2(util::read_file("inputs/day24-sample2.txt"))
+        );
+        // let input = match input {
+        //     Some(input) => input,
+        //     None => util::read_file("inputs/day24.txt"),
+        // };
+        // part2(input)
+        "".into()
     }
 }
