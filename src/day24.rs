@@ -223,12 +223,10 @@ fn dfs(
     ans: &mut u32,
     rows: usize,
     cols: usize,
+    final_grid: &mut Vec<Vec<Vec<char>>>,
 ) {
-    // to avoid using too much memory, store only up to some minutes
-    // TODO maybe the hash key can only be position and it's surroundings, and
-    // and then we can void cloning the entire grid.
     let key = state.get_key();
-    if minutes < 550 {
+    // if minutes < 550 {
         match visited.get(&key) {
             Some(m) => {
                 if *m <= minutes {
@@ -240,17 +238,18 @@ fn dfs(
                 visited.insert(key, minutes);
             }
         }
-    }
+    //}
 
     if state.pos == last_pos {
         if minutes < *ans {
             println!("best min is now: {}", minutes);
             *ans = minutes;
+            *final_grid = state.grid.clone();
         }
         return;
     }
 
-    if minutes == *ans {
+    if minutes >= *ans {
         // can only get worse, so return
         return;
     }
@@ -261,52 +260,42 @@ fn dfs(
     // right
     if state.pos.1 < cols - 2 && !state.position_contain_blizzard(state.pos.0, state.pos.1 + 1) {
         state.pos = (state.pos.0, state.pos.1 + 1);
-        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols);
+        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
         state.pos = (state.pos.0, state.pos.1 - 1);
     }
 
     // left
     if state.pos.1 > 1 && !state.position_contain_blizzard(state.pos.0, state.pos.1 - 1) {
         state.pos = (state.pos.0, state.pos.1 - 1);
-        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols);
+        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
         state.pos = (state.pos.0, state.pos.1 + 1);
     }
 
     // up
     if state.pos.0 > 1 && !state.position_contain_blizzard(state.pos.0 - 1, state.pos.1) {
         state.pos = (state.pos.0 - 1, state.pos.1);
-        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols);
+        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
         state.pos = (state.pos.0 + 1, state.pos.1);
     }
 
     // down
     if state.pos.0 < rows - 2 && !state.position_contain_blizzard(state.pos.0 + 1, state.pos.1) {
         state.pos = (state.pos.0 + 1, state.pos.1);
-        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols);
+        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
         state.pos = (state.pos.0 - 1, state.pos.1);
     }
 
     // wait
     if !state.position_contain_blizzard(state.pos.0, state.pos.1) {
-        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols);
+        dfs(visited, last_pos, minutes + 1, state, ans, rows, cols, final_grid);
     }
 
     state.undo_move_blizzards();
 }
 
-const MAX_MINUTES: u32 = 526;
+const MAX_MINUTES: u32 = 270;
 
 fn part1(input: String) -> String {
-    // let mut min_minutes = u32::MAX;
-    //let mut min_minutes = 4000; // found 3952
-    //let mut min_minutes = 3000; // found 2956
-    //let mut min_minutes = 2000; // found 1963
-    //let mut min_minutes = 1000; // found 933
-    //let mut min_minutes = 500; // not found in a reasonable time
-    //let mut min_minutes = 700; //  found 669
-    //let mut min_minutes = 600; //  587
-    //let mut min_minutes = 550; // 547
-    //let mut min_minutes = 547; // 526 -> too high
     let mut min_minutes = MAX_MINUTES; //
     let grid = parse(input);
     let rows = grid.len();
@@ -320,6 +309,7 @@ fn part1(input: String) -> String {
     // Enter grid
     initial_state.pos = (1, 1);
 
+    let mut final_grid: Vec<Vec<Vec<char>>> = vec![];
     let mut visited: HashMap<Vec<u16>, u32> = HashMap::new();
 
     dfs(
@@ -330,13 +320,89 @@ fn part1(input: String) -> String {
         &mut min_minutes,
         rows,
         cols,
+        &mut final_grid,
     );
 
     (min_minutes + 1).to_string()
 }
 
 fn part2(input: String) -> String {
-    todo!()
+    let mut min_minutes = MAX_MINUTES; //
+    let grid = parse(input);
+    let rows = grid.len();
+    let cols = grid[0].len();
+    let initial_pos = (0, 1);
+    let last_pos = (grid.len() - 2, grid[0].len() - 2); // row, col
+    let mut final_grid: Vec<Vec<Vec<char>>> = vec![];
+
+    let mut initial_state = State::new(grid, initial_pos);
+    initial_state.move_blizzards();
+    // Enter grid
+    initial_state.pos = (1, 1);
+
+    let mut visited: HashMap<Vec<u16>, u32> = HashMap::new();
+
+    let mut sum = 0;
+
+    dfs(
+        &mut visited,
+        last_pos,
+        1,
+        &mut initial_state,
+        &mut min_minutes,
+        rows,
+        cols,
+        &mut final_grid,
+    );
+
+    initial_state.grid = final_grid;
+    initial_state.move_blizzards();
+    initial_state.draw();
+
+    let mut visited: HashMap<Vec<u16>, u32> = HashMap::new();
+    let mut final_grid: Vec<Vec<Vec<char>>> = vec![];
+    initial_state.move_blizzards();
+    // TODO maybe cannot enter grid immediately
+    initial_state.pos = last_pos;
+    min_minutes = MAX_MINUTES;
+
+
+    let mut sum = min_minutes + 1;
+
+    dfs(
+        &mut visited,
+        (1, 1),
+        1,
+        &mut initial_state,
+        &mut min_minutes,
+        rows,
+        cols,
+        &mut final_grid,
+    );
+
+    initial_state.grid = final_grid;
+    initial_state.move_blizzards();
+    initial_state.draw();
+    sum = min_minutes + 1;
+
+    let mut visited: HashMap<Vec<u16>, u32> = HashMap::new();
+    let mut final_grid: Vec<Vec<Vec<char>>> = vec![];
+    initial_state.move_blizzards();
+    min_minutes = MAX_MINUTES;
+    initial_state.pos = initial_pos;
+
+    dfs(
+        &mut visited,
+        last_pos,
+        1,
+        &mut initial_state,
+        &mut min_minutes,
+        rows,
+        cols,
+        &mut final_grid,
+    );
+
+    (sum + min_minutes + 1).to_string()
 }
 
 fn parse(input: String) -> Vec<Vec<Vec<char>>> {
@@ -367,11 +433,11 @@ mod tests {
         assert_eq!("240", part1(input));
     }
 
-    //#[test]
-    //fn part2_sample() {
-    //    let input = util::read_file("inputs/day24-sample.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn part2_sample() {
+        let input = util::read_file("inputs/day24-sample2.txt");
+        assert_eq!("", part2(input));
+    }
 
     //#[test]
     //fn part2_input() {
