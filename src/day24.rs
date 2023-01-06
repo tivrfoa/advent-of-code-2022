@@ -7,12 +7,6 @@ use std::iter::zip;
 
 use crate::aoc::AOC;
 
-/*
-
-The last column does not contain up and down, so there's no danger of
-meeting a blizzard when exiting.
-*/
-
 #[derive(Clone, Eq, PartialEq, Hash)]
 struct State {
     grid: Vec<Vec<Vec<char>>>,
@@ -29,9 +23,9 @@ impl State {
         let cols = self.grid[0].len();
         let mut new_grid = vec![vec![vec![]; cols]; rows];
 
-        for row in 1..rows - 1 {
-            for col in 1..cols - 1 {
-                for c in &self.grid[row][col] {
+        for (row, row_item) in self.grid.iter().enumerate().take(rows - 1).skip(1) {
+            for (col, col_item) in row_item.iter().enumerate().take(cols - 1).skip(1) {
+                for c in col_item {
                     match c {
                         '.' => {
                             break;
@@ -71,10 +65,10 @@ impl State {
         }
 
         // fill empty pos with '.'
-        for row in 1..rows - 1 {
-            for col in 1..cols - 1 {
-                if new_grid[row][col].is_empty() {
-                    new_grid[row][col].push('.');
+        for row in new_grid.iter_mut().take(rows - 1).skip(1) {
+            for pos in row.iter_mut().take(cols - 1).skip(1) {
+                if pos.is_empty() {
+                    pos.push('.');
                 }
             }
         }
@@ -87,9 +81,9 @@ impl State {
         let cols = self.grid[0].len();
         let mut new_grid = vec![vec![vec![]; cols]; rows];
 
-        for row in 1..rows - 1 {
-            for col in 1..cols - 1 {
-                for c in &self.grid[row][col] {
+        for (row, row_item) in self.grid.iter().enumerate().take(rows - 1).skip(1) {
+            for (col, col_item) in row_item.iter().enumerate().take(cols - 1).skip(1) {
+                for c in col_item {
                     match c {
                         '.' => {
                             break;
@@ -129,10 +123,10 @@ impl State {
         }
 
         // fill empty pos with '.'
-        for row in 1..rows - 1 {
-            for col in 1..cols - 1 {
-                if new_grid[row][col].is_empty() {
-                    new_grid[row][col].push('.');
+        for row in new_grid.iter_mut().take(rows - 1).skip(1) {
+            for pos in row.iter_mut().take(cols - 1).skip(1) {
+                if pos.is_empty() {
+                    pos.push('.');
                 }
             }
         }
@@ -520,11 +514,11 @@ mod tests {
         assert_eq!("54", part2(input));
     }
 
-    //#[test]
-    //fn part2_input() {
-    //    let input = util::read_file("inputs/day24.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn part2_input() {
+       let input = util::read_file("inputs/day24.txt");
+       assert_eq!("717", part2(input));
+    }
 }
 
 #[allow(dead_code)]
