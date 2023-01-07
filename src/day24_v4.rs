@@ -1,13 +1,13 @@
 use crate::util;
 
-use std::cmp::Ordering;
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::cmp::{Ordering, Reverse};
+use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 use std::iter::zip;
 
 use crate::aoc::AOC;
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct State {
     map_idx: usize,
     pos: (usize, usize),
@@ -143,63 +143,49 @@ fn draw(grid: &[Vec<u8>]) {
 
 type Pos = (usize, usize);
 
-fn dfs(
+fn solve_with_min_heap(
     maps: &[Vec<Vec<u8>>],
-    visited: &mut HashSet<State>,
     mut state: State,
     last_pos: Pos,
     minutes: u16,
-    rows: usize,
-    cols: usize,
     min_minutes: &mut u16,
     final_map_idx: &mut usize,
 ) {
-    if minutes >= *min_minutes {
-        return;
-    }
-    //if visited.contains(&state) || minutes >= *min_minutes {
-    //    return;
-    //}
+    let rows = maps[0].len();
+    let cols = maps[0][0].len();
+    let mut visited: HashSet<State> = HashSet::new();
+    let mut states: BinaryHeap<Reverse<(u16, State)>> = BinaryHeap::new();
+    states.push(Reverse((minutes, state)));
 
-    //visited.insert(state.clone());
-
-    if state.pos == last_pos {
-        if minutes < *min_minutes {
-            println!("best min is now: {}", minutes);
+    while let Some(Reverse((minutes, mut state))) = states.pop() {
+        if state.pos == last_pos {
             *min_minutes = minutes;
             *final_map_idx = state.map_idx;
+            return;
         }
-        return;
-    }
 
-    // move blizzards, then check where we can go
-    state.move_blizzards(maps.len());
+        // move blizzards, then check where we can go
+        state.move_blizzards(maps.len());
 
-    let moves: [(bool, (i32, i32)); 5] = [
-        (state.pos.1 < cols - 2, (0, 1)),
-        (state.pos.1 > 1, (0, -1)),
-        (state.pos.0 > 1, (-1, 0)),
-        (state.pos.0 < rows - 2, (1, 0)),
-        (true, (0, 0)),
-    ];
+        let moves: [(bool, (i32, i32)); 5] = [
+            (state.pos.1 < cols - 2, (0, 1)),
+            (state.pos.1 > 1, (0, -1)),
+            (state.pos.0 > 1, (-1, 0)),
+            (state.pos.0 < rows - 2, (1, 0)),
+            (true, (0, 0)),
+        ];
 
-    for m in &moves {
-        if m.0 {
-            let r = (state.pos.0 as i32 + m.1.0) as usize;
-            let c = (state.pos.1 as i32 + m.1.1) as usize;
-            if !position_contain_blizzard(&maps[state.map_idx], r, c) {
-                let new_state = state.move_to(r, c);
-                dfs(
-                    maps,
-                    visited,
-                    new_state,
-                    last_pos,
-                    minutes + 1,
-                    rows,
-                    cols,
-                    min_minutes,
-                    final_map_idx,
-                );
+        for m in &moves {
+            if m.0 {
+                let r = (state.pos.0 as i32 + m.1.0) as usize;
+                let c = (state.pos.1 as i32 + m.1.1) as usize;
+                if !position_contain_blizzard(&maps[state.map_idx], r, c) {
+                    let new_state = state.move_to(r, c);
+                    if !visited.contains(&new_state) {
+                        visited.insert(new_state.clone());
+                        states.push(Reverse((minutes + 1, new_state)));
+                    }
+                }
             }
         }
     }
@@ -220,17 +206,13 @@ fn part1(input: String) -> String {
         pos: (1, 1),
     };
 
-    let mut visited: HashSet<State> = HashSet::new();
     let mut final_map_idx = 0;
 
-    dfs(
+    solve_with_min_heap(
         &maps,
-        &mut visited,
         initial_state,
         last_pos,
         1,
-        rows,
-        cols,
         &mut min_minutes,
         &mut final_map_idx,
     );
@@ -271,16 +253,13 @@ fn solve(
         }
 
         let mut visited: HashSet<State> = HashSet::new();
-        // println!("------grid before dfs-------");
+        // println!("------grid before solve_with_min_heap-------");
         //draw(&maps[map_idx]);
-        dfs(
+        solve_with_min_heap(
             maps,
-            &mut visited,
             initial_state.clone(),
             final_pos,
             minutes,
-            rows,
-            cols,
             &mut min_minutes,
             &mut final_map_idx,
         );
