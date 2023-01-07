@@ -4,4 +4,5 @@ main
 perf.data
 perf.data.old
 out.txt
+bin/
 
