@@ -70,7 +70,7 @@ fn generate_maps(mut grid: Vec<Vec<u8>>) -> Vec<Vec<Vec<u8>>> {
     let mut maps = Vec::with_capacity(len);
 
     maps.push(grid.clone());
-    for i in 1..len {
+    for _ in 1..len {
         grid = move_blizzards(grid);
         maps.push(grid.clone());
     }
@@ -148,9 +148,7 @@ fn solve_with_min_heap(
     mut state: State,
     last_pos: Pos,
     minutes: u16,
-    min_minutes: &mut u16,
-    final_map_idx: &mut usize,
-) {
+) -> (u16, usize) {
     let rows = maps[0].len();
     let cols = maps[0][0].len();
     let mut visited: HashSet<State> = HashSet::new();
@@ -159,9 +157,7 @@ fn solve_with_min_heap(
 
     while let Some(Reverse((minutes, mut state))) = states.pop() {
         if state.pos == last_pos {
-            *min_minutes = minutes;
-            *final_map_idx = state.map_idx;
-            return;
+            return (minutes, state.map_idx);
         }
 
         // move blizzards, then check where we can go
@@ -189,32 +185,25 @@ fn solve_with_min_heap(
             }
         }
     }
+
+    (u16::MAX, usize::MAX)
 }
 
-const MAX_MINUTES: u16 = 270;
-
 fn part1(input: String) -> String {
-    let mut min_minutes = MAX_MINUTES;
     let grid = parse(input);
-    let rows = grid.len();
-    let cols = grid[0].len();
     let last_pos = (grid.len() - 2, grid[0].len() - 2); // row, col
     let maps = generate_maps(grid);
 
-    let mut initial_state = State {
+    let initial_state = State {
         map_idx: 1,
         pos: (1, 1),
     };
 
-    let mut final_map_idx = 0;
-
-    solve_with_min_heap(
+    let (min_minutes, _) = solve_with_min_heap(
         &maps,
         initial_state,
         last_pos,
         1,
-        &mut min_minutes,
-        &mut final_map_idx,
     );
 
     (min_minutes + 1).to_string()
@@ -228,11 +217,9 @@ fn solve(
     final_pos: Pos,
 ) -> (u16, usize) {
     println!("Trying to get from {:?} to {:?}", initial_pos, final_pos);
-    let mut min_minutes = MAX_MINUTES;
-    let mut minutes = 0;
-    let rows = maps[0].len();
-    let cols = maps[0][0].len();
+    let mut min_minutes = u16::MAX;
     let mut final_map_idx = usize::MAX;
+    let mut minutes = 0;
     let mut initial_state = State {
         map_idx,
         pos: initial_pos,
@@ -252,26 +239,25 @@ fn solve(
             initial_state.move_blizzards(maps.len());
         }
 
-        let mut visited: HashSet<State> = HashSet::new();
         // println!("------grid before solve_with_min_heap-------");
         //draw(&maps[map_idx]);
-        solve_with_min_heap(
+        let (tmp_t, tmp_idx) = solve_with_min_heap(
             maps,
             initial_state.clone(),
             final_pos,
             minutes,
-            &mut min_minutes,
-            &mut final_map_idx,
         );
+        min_minutes = tmp_t;
+        final_map_idx = tmp_idx;
 
-        if min_minutes != MAX_MINUTES {
+        if min_minutes != u16::MAX {
             break;
         }
 
         println!("It didn't find a solution. Let's try again.");
     }
 
-    if min_minutes == MAX_MINUTES {
+    if min_minutes == u16::MAX {
         panic!("Mission Failed");
     }
 
