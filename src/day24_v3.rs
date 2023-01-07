@@ -244,7 +244,7 @@ fn solve(
 ) -> (u16, usize) {
     println!("Trying to get from {:?} to {:?}", initial_pos, final_pos);
     let mut min_minutes = MAX_MINUTES;
-    let mut minutes = 1;
+    let mut minutes = 0;
     let rows = maps[0].len();
     let cols = maps[0][0].len();
     let mut final_map_idx = usize::MAX;
@@ -254,13 +254,15 @@ fn solve(
     };
 
     println!("=========== INITIAL STATE =============");
+    draw(&maps[initial_state.map_idx]);
 
     while minutes < 15 {
-        draw(&maps[initial_state.map_idx]);
+        minutes += 1;
         initial_state.move_blizzards(maps.len());
 
         while position_contain_blizzard(&maps[initial_state.map_idx], initial_state.pos.0, initial_state.pos.1) {
             println!("It can't enter the grid. minutes: {minutes}");
+            draw(&maps[initial_state.map_idx]);
             minutes += 1;
             initial_state.move_blizzards(maps.len());
         }
