@@ -5,32 +5,6 @@ use std::collections::HashSet;
 use std::ops::Range;
 use std::ops::RangeInclusive;
 
-/*
-
-There are negative numbers, so it's best to avoid usize
-
-Columns is actually unbounded.
-So it's not infite because at some point (column) there might be
-only beacon afterwards, then you just stop.
-
-So how to calculate distance between two points?
-
-The taxicab distance between two points ( x 1 , y 1 ) and ( x 2 , y 2 )
-is | x 1 − x 2 | + | y 1 − y 2 | . That is, it is the sum of the absolute
-values of the differences in both coordinates.
-
-If a distance between an unvisited point and a sensor is lower
-than the sensor closest beacon, then it cannot be a beacon.
-So it needs to do this for all sensors, and if it is greater than all
-sensors' beacon, the it might be a beacon.
-
-So the remaining question is at which point to stop looking for positions
-that do not contain a beacon?
-Maybe it can stop when it might be a beacon and after it's x position is:
-  - greater than all beacons when looking right;
-  - smaller than all beacons when looking left.
-
-*/
 fn calc_distance(point1: &Pos, point2: &Pos) -> i64 {
     (point1.col - point2.col).abs() + (point1.row - point2.row).abs()
 }
@@ -214,61 +188,77 @@ pub fn solve(input: String, row_to_check: i64) -> usize {
     positions_without_beacon
 }
 
+struct SB {
+    sx: i64,
+    sy: i64,
+    bx: i64,
+    by: i64,
+    d: i64,
+}
+
+impl SB {
+    fn get_sb_vec(sensors: &[Sensor]) -> Vec<Self> {
+        let mut vec = Vec::with_capacity(sensors.len());
+        for s in sensors {
+            let sx = s.at.col;
+            let sy = s.at.row;
+            let bx = s.closest_beacon.col;
+            let by = s.closest_beacon.row;
+            let d = (sx - bx).abs() + (sy - by).abs();
+            vec.push(SB { sx, sy, bx, by, d });
+        }
+        vec
+    }
+}
+
+#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct Ev {
+    x: i64,
+    d: i64,
+}
+
 pub fn solve_part2(input: String, max: i64) -> i64 {
     let (sensors, beacons_set) = parse_input(input);
     let (min_col, max_col) = get_min_max_x(&sensors);
     let (min_row, max_row) = get_min_max_y(&sensors);
 
-    // let's try to use ranges. Copying Login from Uncle Scientist
-    // https://www.youtube.com/watch?v=oOgDTx_tAp4
+    // based on Elizarov solution
+    // https://github.com/elizarov/AdventOfCode2022/blob/main/src/Day15.kt
+    let sbs = SB::get_sb_vec(&sensors);
+    let max_c = 4_000_000;
+    let mut es: Vec<Ev> = vec![];
+    let mut ans: i64 = 0;
 
-    for row in 0..=max {
-        let mut rowdata: Vec<RangeInclusive<i64>> = vec![0..=max];
-        for s in &sensors {
-            let radius = s.radius();
-            let top = 0.max(s.at.row - radius);
-            let bottom = max.min(s.at.row + radius);
-
-            if top > row || bottom < row {
-                continue;
+    for ty in 0..max_c {
+        es.clear();
+        for SB { sx, sy, bx, by, d } in &sbs {
+            let d = *d;
+            if (ty - sy).abs() <= d {
+                let w = d - (ty - sy).abs();
+                es.push(Ev { x: sx - w, d: 1 });
+                es.push(Ev {
+                    x: sx + w + 1,
+                    d: -1,
+                });
             }
-
-            let dist = (s.at.row - row).abs();
-            let min_x = 0.max(s.at.col - (radius - dist));
-            let max_x = max.min(s.at.col + (radius - dist));
-
-            let mut new_range = vec![];
-            for r in &rowdata {
-                let start = *r.start();
-                if start > max_x {
-                    new_range.push(r.clone());
-                    continue;
-                }
-
-                let end = *r.end();
-                if end < min_x {
-                    new_range.push(r.clone());
-                    continue;
-                }
-
-                if start < min_x {
-                    new_range.push(start..=min_x - 1);
-                }
-                if end > max_x {
-                    new_range.push(max_x + 1..=end);
-                }
-            }
-
-            rowdata = new_range;
         }
 
-        if !rowdata.is_empty() {
-            let x = *rowdata[0].start();
-            return x * 4_000_000 + row;
+        es.sort();
+        let mut px = es[0].x;
+        let mut cnt = 0;
+        for e in &es {
+            if e.x > px {
+                if cnt == 0 && px >= 0 && px <= max_c {
+                    println!("{px} {ty}");
+                    return px * 4_000_000 + ty;
+                }
+                px = e.x;
+            }
+            cnt += e.d;
         }
     }
 
-    panic!("It didn't find a beacon :(");
+    panic!("failed!");
 }
 
 #[allow(dead_code)]
@@ -284,25 +274,25 @@ mod tests {
 
     #[test]
     fn part1_sample() {
-        let input = util::read_file("inputs/day15-sample.txt");
+        let input = util::read_file("inputs/2022/day15-sample.txt");
         assert_eq!(26, solve(input, 10));
     }
 
     #[test]
     fn part1_input() {
-        let input = util::read_file("inputs/day15.txt");
+        let input = util::read_file("inputs/2022/day15.txt");
         assert_eq!(5181556, solve(input, 2_000_000));
     }
 
     #[test]
     fn part2_sample() {
-        let input = util::read_file("inputs/day15-sample.txt");
+        let input = util::read_file("inputs/2022/day15-sample.txt");
         assert_eq!(56000011, solve_part2(input, 20));
     }
 
     #[test]
     fn part2_input() {
-        let input = util::read_file("inputs/day15.txt");
+        let input = util::read_file("inputs/2022/day15.txt");
         assert_eq!(12817603219131, solve_part2(input, 4000000));
     }
 }

@@ -72,19 +72,19 @@ mod tests {
 
     #[test]
     fn part1_sample() {
-        let input = util::read_file("inputs/sample-day9.txt");
+        let input = util::read_file("inputs/2022/sample-day9.txt");
         assert_eq!(13, solve(input, 2));
     }
 
     #[test]
     fn part1_input() {
-        let input = util::read_file("inputs/input-day9.txt");
+        let input = util::read_file("inputs/2022/input-day9.txt");
         assert_eq!(6522, solve(input, 2));
     }
 
     #[test]
     fn part2_input() {
-        let input = util::read_file("inputs/input-day9.txt");
+        let input = util::read_file("inputs/2022/input-day9.txt");
         assert_eq!(2717, solve(input, 10));
     }
 }

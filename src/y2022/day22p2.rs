@@ -1,4 +1,3 @@
-use crate::aoc;
 use crate::util;
 
 use std::cmp::Ordering;
@@ -6,50 +5,100 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 use std::iter::zip;
 
-use crate::aoc::AOC;
+#[derive(Debug)]
+struct CubeFace {
+    grid: Vec<Vec<char>>,
+}
 
-pub struct Day22 {}
+impl CubeFace {
+    fn parse_cube_faces(mut rows: Vec<Row>) -> [Self; 6] {
+        let mut cube_faces = [
+            CubeFace::default(),
+            CubeFace::default(),
+            CubeFace::default(),
+            CubeFace::default(),
+            CubeFace::default(),
+            CubeFace::default(),
+        ];
 
-impl AOC for Day22 {
-    fn part1(&self, input: Option<String>, args: Vec<String>) -> String {
-        let input = match input {
-            Some(input) => input,
-            None => util::read_file("inputs/day22.txt"),
-        };
-        part1(input)
+        // 2 and 3
+        for i in 0..50 {
+            cube_faces[2].grid.push(rows[i].row.split_off(100));
+            cube_faces[1].grid.push(rows[i].row.split_off(50));
+        }
+
+        // 1
+        for i in 50..100 {
+            cube_faces[0].grid.push(rows[i].row.split_off(50));
+        }
+
+        // 4 and 5
+        for i in 100..150 {
+            cube_faces[4].grid.push(rows[i].row.split_off(50));
+            cube_faces[3].grid.push(rows[i].row.clone());
+        }
+
+        // 6
+        for i in 150..200 {
+            cube_faces[5].grid.push(rows[i].row.clone());
+        }
+
+        cube_faces
     }
 
-    fn part2(&self, input: Option<String>, args: Vec<String>) -> String {
-        todo!()
+    fn default() -> Self {
+        Self {
+            grid: vec![],
+        }
     }
 }
 
-fn part1(input: String) -> String {
-    let (rows, actions) = parse(input);
-    //dbg!(&tmp);
-    //dbg!(&actions[0]);
-    //dbg!(&actions[actions.len() - 1]);
+/*
 
-    let num_rows = rows.len();
+0 move up    -> 1 bottom (0 top left  -> 1 bottom left)
+0 move right -> 2 bottom (0 top right -> 2 bottom left)
+0 move down  -> 4 top    (0 bot left  -> 4 top    left)
+
+
+
+*/
+fn handle_wrap
+
+pub fn part2(input: String) -> String {
+    let (rows, actions) = parse(input);
+
+    // I'll hard code the cube faces :(
+    let cube: [CubeFace; 6] = CubeFace::parse_cube_faces(rows.clone());
+    /*for c in cube {
+        for r in c.grid {
+            for c in r {
+                print!("{c}");
+            }
+            println!();
+        }
+    }*/
+
+    let mut cf = 0;
     let mut cr = 0;
-    let mut cc = rows[0].first_col;
-    let mut cf = Facing::R;
+    let mut cc = 0;
+    let mut dir = Dir::R;
 
     'la: for a in actions {
-        let first_col = rows[cr].first_col;
-        let last_col = rows[cr].last_col;
-        let row = &rows[cr].row;
+        let first_col = 0;
+        let last_col  = 50;
+        let row = &cube[cf].grid[cr];
 
         match a {
             Action::R | Action::L => {
-                cf = cf.rotate(&a);
+                dir = dir.rotate(&a);
             }
             Action::Move(qt) => {
-                // println!("move {qt}, r = {cr}, c = {cc}, face = {:?}", &cf);
+                // println!("move {qt}, r = {cr}, c = {cc}, face = {:?}", &dir);
                 for _ in 0..qt {
-                    match cf {
-                        Facing::R => {
+                    match dir {
+                        Dir::R => {
                             if cc + 1 > last_col {
+                                handle_wrap(&cube, cf, &dir);
                                 // wrap around if first col is not a wall
                                 if row[first_col] == '#' {
                                     continue 'la;
@@ -62,7 +111,7 @@ fn part1(input: String) -> String {
                                 cc += 1;
                             }
                         }
-                        Facing::L => {
+                        Dir::L => {
                             if cc == 0 || cc - 1 < first_col {
                                 // wrap around if last col is not a wall
                                 if row[last_col] == '#' {
@@ -76,7 +125,7 @@ fn part1(input: String) -> String {
                                 cc -= 1;
                             }
                         }
-                        Facing::D => {
+                        Dir::D => {
                             if cr + 1 == num_rows
                                 || rows[cr + 1].first_col > cc
                                 || rows[cr + 1].last_col < cc
@@ -98,7 +147,7 @@ fn part1(input: String) -> String {
                                 cr += 1;
                             }
                         }
-                        Facing::U => {
+                        Dir::U => {
                             if cr == 0 || rows[cr - 1].first_col > cc || rows[cr - 1].last_col < cc
                             {
                                 // wrap around if next row/col is not a wall
@@ -124,17 +173,16 @@ fn part1(input: String) -> String {
         }
     }
 
-    println!("r = {cr}, c = {cc}, face = {:?}", &cf);
-    let ans = 1000 * (cr + 1) + 4 * (cc + 1) + cf as usize;
+    println!("r = {cr}, c = {cc}, face = {:?}", &dir);
+    let ans = 1000 * (cr + 1) + 4 * (cc + 1) + dir as usize;
 
     ans.to_string()
 }
 
-fn part2(input: String) -> String {
-    todo!()
+fn wrap_cube_face() {
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct Row {
     first_col: usize,
     last_col: usize,
@@ -152,16 +200,16 @@ impl Row {
 }
 
 #[derive(Debug)]
-enum Facing {
+enum Dir {
     R,
     D,
     L,
     U,
 }
 
-impl Facing {
-    fn rotate(&self, turn: &Action) -> Facing {
-        use Facing::*;
+impl Dir {
+    fn rotate(&self, turn: &Action) -> Dir {
+        use Dir::*;
         match (self, turn) {
             (R, Action::R) => D,
             (R, Action::L) => U,
@@ -239,26 +287,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn part1_sample() {
-        let input = util::read_file("inputs/day22-sample.txt");
-        assert_eq!("6032", part1(input));
+    fn part2_sample() {
+        let input = util::read_file("inputs/2022/day22-sample.txt");
+        assert_eq!("", part2(input));
     }
-
-    #[test]
-    fn part1_input() {
-        let input = util::read_file("inputs/day22.txt");
-        assert_eq!("95358", part1(input));
-    }
-
-    //#[test]
-    //fn part2_sample() {
-    //    let input = util::read_file("inputs/day22-sample.txt");
-    //    assert_eq!("", part2(input));
-    //}
 
     //#[test]
     //fn part2_input() {
-    //    let input = util::read_file("inputs/day22.txt");
+    //    let input = util::read_file("inputs/2022/day22.txt");
     //    assert_eq!("", part2(input));
     //}
 }

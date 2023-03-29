@@ -202,13 +202,13 @@ mod tests {
 
     #[test]
     fn part2_sample() {
-        let input = util::read_file("inputs/day21-sample.txt");
+        let input = util::read_file("inputs/2022/day21-sample.txt");
         assert_eq!("301", part2(input));
     }
 
     #[test]
     fn part2_input() {
-        let input = util::read_file("inputs/day21.txt");
+        let input = util::read_file("inputs/2022/day21.txt");
         assert_eq!("3910938071092", part2(input));
     }
 }

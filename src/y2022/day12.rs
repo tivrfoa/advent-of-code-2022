@@ -180,25 +180,25 @@ mod tests {
 
     #[test]
     fn part1_sample() {
-        let input = util::read_file("inputs/day12-sample.txt");
+        let input = util::read_file("inputs/2022/day12-sample.txt");
         assert_eq!(31, solve(input));
     }
 
     #[test]
     fn part1_input() {
-        let input = util::read_file("inputs/day12.txt");
+        let input = util::read_file("inputs/2022/day12.txt");
         assert_eq!(408, solve(input));
     }
 
     #[test]
     fn part2_sample() {
-        let input = util::read_file("inputs/day12-sample.txt");
+        let input = util::read_file("inputs/2022/day12-sample.txt");
         assert_eq!(29, solve_part2(input));
     }
 
     #[test]
     fn part2_input() {
-        let input = util::read_file("inputs/day12.txt");
+        let input = util::read_file("inputs/2022/day12.txt");
         assert_eq!(399, solve_part2(input));
     }
 }

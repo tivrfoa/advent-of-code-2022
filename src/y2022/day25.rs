@@ -87,25 +87,25 @@ mod tests {
 
     #[test]
     fn part1_sample() {
-        let input = util::read_file("inputs/day25-sample.txt");
+        let input = util::read_file("inputs/2022/day25-sample.txt");
         assert_eq!("2=-1=0", part1(input));
     }
 
     #[test]
     fn part1_input() {
-        let input = util::read_file("inputs/day25.txt");
+        let input = util::read_file("inputs/2022/day25.txt");
         assert_eq!("2-0-0=1-0=2====20=-2", part1(input));
     }
 
     //#[test]
     //fn part2_sample() {
-    //    let input = util::read_file("inputs/day25-sample.txt");
+    //    let input = util::read_file("inputs/2022/day25-sample.txt");
     //    assert_eq!("", part2(input));
     //}
 
     //#[test]
     //fn part2_input() {
-    //    let input = util::read_file("inputs/day25.txt");
+    //    let input = util::read_file("inputs/2022/day25.txt");
     //    assert_eq!("", part2(input));
     //}
 }
@@ -123,7 +123,7 @@ impl AOC for Day25 {
     fn part1(&self, input: Option<String>, args: Vec<String>) -> String {
         let input = match input {
             Some(input) => input,
-            None => util::read_file("inputs/day25.txt"),
+            None => util::read_file("inputs/2022/day25.txt"),
         };
         part1(input)
     }
@@ -131,7 +131,7 @@ impl AOC for Day25 {
     fn part2(&self, input: Option<String>, args: Vec<String>) -> String {
         let input = match input {
             Some(input) => input,
-            None => util::read_file("inputs/day25.txt"),
+            None => util::read_file("inputs/2022/day25.txt"),
         };
         part2(input)
     }

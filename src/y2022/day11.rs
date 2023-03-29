@@ -137,25 +137,25 @@ mod tests {
 
     #[test]
     fn part1_sample() {
-        let input = util::read_file("inputs/sample-day11.txt");
+        let input = util::read_file("inputs/2022/sample-day11.txt");
         assert_eq!(10605, solve(input, 3, 20));
     }
 
     #[test]
     fn part1_input() {
-        let input = util::read_file("inputs/input-day11.txt");
+        let input = util::read_file("inputs/2022/input-day11.txt");
         assert_eq!(119715, solve(input, 3, 20));
     }
 
     #[test]
     fn part2_sample() {
-        let input = util::read_file("inputs/sample-day11.txt");
+        let input = util::read_file("inputs/2022/sample-day11.txt");
         assert_eq!(2713310158, solve(input, 1, 10_000));
     }
 
     #[test]
     fn part2_input() {
-        let input = util::read_file("inputs/input-day11.txt");
+        let input = util::read_file("inputs/2022/input-day11.txt");
         assert_eq!(18085004878, solve(input, 1, 10_000));
     }
 }

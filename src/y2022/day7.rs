@@ -105,13 +105,13 @@ mod tests {
 
     #[test]
     fn part1_sample() {
-        let input = util::read_file("inputs/sample-day7.txt");
+        let input = util::read_file("inputs/2022/sample-day7.txt");
         assert_eq!(24933642, solve(input));
     }
 
     #[test]
     fn part1_input() {
-        let input = util::read_file("inputs/input-day7.txt");
+        let input = util::read_file("inputs/2022/input-day7.txt");
         assert_eq!(7991939, solve(input));
     }
 }

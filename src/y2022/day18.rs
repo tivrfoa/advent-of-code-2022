@@ -87,13 +87,13 @@ mod tests {
 
     #[test]
     fn part1_sample() {
-        let input = util::read_file("inputs/day18-sample.txt");
+        let input = util::read_file("inputs/2022/day18-sample.txt");
         assert_eq!(64, solve(input));
     }
 
     #[test]
     fn part1_input() {
-        let input = util::read_file("inputs/day18.txt");
+        let input = util::read_file("inputs/2022/day18.txt");
         assert_eq!(3374, solve(input));
     }
 
@@ -105,13 +105,13 @@ mod tests {
     //    //      the begenning the clear the rest
     //    //   2. Detect when the patter repeats and then just multiply for the
     //    //      remaining stones
-    //    let input = util::read_file("inputs/day18-sample.txt");
+    //    let input = util::read_file("inputs/2022/day18-sample.txt");
     //    assert_eq!(1514285714288, solve_part2(input));
     //}
 
     //#[test]
     //fn part2_input() {
-    //    let input = util::read_file("inputs/day18.txt");
+    //    let input = util::read_file("inputs/2022/day18.txt");
     //    assert_eq!(1537175792495, solve_part2(input));
     //}
 }

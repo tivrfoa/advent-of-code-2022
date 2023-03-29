@@ -76,13 +76,13 @@ mod tests {
 
     #[test]
     fn part1_sample() {
-        let input = util::read_file("inputs/sample-day10.txt");
+        let input = util::read_file("inputs/2022/sample-day10.txt");
         assert_eq!(13140, solve(input));
     }
 
     #[test]
     fn part1_input() {
-        let input = util::read_file("inputs/input-day10.txt");
+        let input = util::read_file("inputs/2022/input-day10.txt");
         assert_eq!(14060, solve(input));
     }
 
@@ -96,7 +96,7 @@ mod tests {
             "######......######......######......####".into(),
             "#######.......#######.......#######.....".into(),
         ];
-        let input = util::read_file("inputs/sample-day10.txt");
+        let input = util::read_file("inputs/2022/sample-day10.txt");
         assert_eq!(expected, solve_part2(input));
     }
 
@@ -110,7 +110,7 @@ mod tests {
             "#....#..#.#....#.#..#....#.#..#....#..#.".into(),
             "#....#..#.#....#..#.#....#..#.####..##..".into(),
         ];
-        let input = util::read_file("inputs/input-day10.txt");
+        let input = util::read_file("inputs/2022/input-day10.txt");
         assert_eq!(expected, solve_part2(input));
     }
 }
