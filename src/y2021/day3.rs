@@ -98,10 +98,11 @@ fn part2(input: String) -> String {
 
     let most = most_common(&input);
     let least = least_common(&input);
-    dbg!(&most);
-    dbg!(&least);
+    multiply_binary_string(&most, &least).to_string()
+}
 
-    (i32::from_str_radix(&most, 2).unwrap() * i32::from_str_radix(&least, 2).unwrap()).to_string()
+fn multiply_binary_string(a: &str, b: &str) -> u32 {
+    u32::from_str_radix(&a, 2).unwrap() * u32::from_str_radix(&b, 2).unwrap()
 }
 
 fn parse(input: String) -> String {
