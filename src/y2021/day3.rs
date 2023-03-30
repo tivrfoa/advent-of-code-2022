@@ -38,8 +38,70 @@ fn part1(input: String) -> String {
     (i32::from_str_radix(&g, 2).unwrap() * i32::from_str_radix(&e, 2).unwrap()).to_string()
 }
 
+fn most_common(input: &str) -> String {
+    let len = input.lines().next().unwrap().len();
+    let mut input: Vec<Vec<char>> = input.lines().map(|l| l.chars().collect()).collect();
+    let mut idx = 0;
+
+    while input.len() > 1 {
+        let mut ones = 0;
+        let mut zeros = 0;
+        for i in 0..input.len() {
+            if input[i][idx] == '1' {
+                ones += 1;
+            } else {
+                zeros += 1;
+            }
+        }
+
+        if ones >= zeros {
+            input = input.into_iter().filter(|s| s[idx] == '1').collect();
+        } else {
+            input = input.into_iter().filter(|s| s[idx] == '0').collect();
+        }
+
+        idx += 1;
+    }
+
+    input[0].iter().collect()
+}
+
+fn least_common(input: &str) -> String {
+    let len = input.lines().next().unwrap().len();
+    let mut input: Vec<Vec<char>> = input.lines().map(|l| l.chars().collect()).collect();
+    let mut idx = 0;
+
+    while input.len() > 1 {
+        let mut ones = 0;
+        let mut zeros = 0;
+        for i in 0..input.len() {
+            if input[i][idx] == '1' {
+                ones += 1;
+            } else {
+                zeros += 1;
+            }
+        }
+
+        if ones >= zeros {
+            input = input.into_iter().filter(|s| s[idx] == '0').collect();
+        } else {
+            input = input.into_iter().filter(|s| s[idx] == '1').collect();
+        }
+
+        idx += 1;
+    }
+
+    input[0].iter().collect()
+}
+
 fn part2(input: String) -> String {
-    todo!()
+
+    let most = most_common(&input);
+    let least = least_common(&input);
+    dbg!(&most);
+    dbg!(&least);
+
+    (i32::from_str_radix(&most, 2).unwrap() * i32::from_str_radix(&least, 2).unwrap()).to_string()
 }
 
 fn parse(input: String) -> String {
@@ -59,20 +121,20 @@ mod tests {
     #[test]
     fn part1_input() {
         let input = util::read_file("inputs/2021/day3.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("2640986", part1(input));
     }
 
-    //#[test]
-    //fn part2_sample() {
-    //    let input = util::read_file("inputs/2021/day3-sample.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn part2_sample() {
+        let input = util::read_file("inputs/2021/day3-sample.txt");
+        assert_eq!("230", part2(input));
+    }
 
-    //#[test]
-    //fn part2_input() {
-    //    let input = util::read_file("inputs/2021/day3.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/2021/day3.txt");
+        assert_eq!("6822109", part2(input));
+    }
 }
 
 #[allow(dead_code)]
