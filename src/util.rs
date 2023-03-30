@@ -24,3 +24,8 @@ pub fn input_as_vec_i32(input: &str) -> Vec<i32> {
 pub fn input_line_len(input: &str) -> usize {
     input.lines().next().unwrap().len()
 }
+
+#[allow(dead_code)]
+pub fn input_as_vec_char(input: &str) -> Vec<Vec<char>> {
+    input.lines().map(|l| l.chars().collect()).collect()
+}

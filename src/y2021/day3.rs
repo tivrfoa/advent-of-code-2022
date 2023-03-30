@@ -39,8 +39,8 @@ fn part1(input: String) -> String {
 }
 
 fn find(input: &str, most_common: bool) -> String {
-    let len = input.lines().next().unwrap().len();
-    let mut input: Vec<Vec<char>> = input.lines().map(|l| l.chars().collect()).collect();
+    let len = util::input_line_len(input);
+    let mut input = util::input_as_vec_char(input);
     let mut idx = 0;
 
     while input.len() > 1 {
