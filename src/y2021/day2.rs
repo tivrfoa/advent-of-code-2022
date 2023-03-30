@@ -57,7 +57,27 @@ fn part1(input: String) -> String {
 }
 
 fn part2(input: String) -> String {
-    todo!()
+    let mut h_pos = 0;
+    let mut d_pos = 0;
+    let mut aim = 0;
+
+    let mut data = parse_dir_qt(&input);
+    for dir in data {
+        match dir.0 {
+            Dir::F => {
+                h_pos += dir.1;
+                d_pos += (aim * dir.1);
+            },
+            Dir::U => {
+                aim -= dir.1;
+            },
+            Dir::D => {
+                aim += dir.1;
+            }
+        }
+    }
+
+    (h_pos * d_pos).to_string()
 }
 
 fn parse(input: String) -> String {
@@ -80,17 +100,17 @@ mod tests {
         assert_eq!("1746616", part1(input));
     }
 
-    //#[test]
-    //fn part2_sample() {
-    //    let input = util::read_file("inputs/2021/day2-sample.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn part2_sample() {
+        let input = util::read_file("inputs/2021/day2-sample.txt");
+        assert_eq!("900", part2(input));
+    }
 
-    //#[test]
-    //fn part2_input() {
-    //    let input = util::read_file("inputs/2021/day2.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/2021/day2.txt");
+        assert_eq!("1741971043", part2(input));
+    }
 }
 
 #[allow(dead_code)]
