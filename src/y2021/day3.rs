@@ -46,8 +46,8 @@ fn find(input: &str, most_common: bool) -> String {
     while input.len() > 1 {
         let mut ones = 0;
         let mut zeros = 0;
-        for i in 0..input.len() {
-            if input[i][idx] == '1' {
+        for line in &input {
+            if line[idx] == '1' {
                 ones += 1;
             } else {
                 zeros += 1;
