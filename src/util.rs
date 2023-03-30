@@ -19,3 +19,8 @@ pub fn read_file(file_path: &str) -> String {
 pub fn input_as_vec_i32(input: &str) -> Vec<i32> {
     input.lines().map(|l| l.parse::<i32>().unwrap()).collect()
 }
+
+#[allow(dead_code)]
+pub fn input_line_len(input: &str) -> usize {
+    input.lines().next().unwrap().len()
+}

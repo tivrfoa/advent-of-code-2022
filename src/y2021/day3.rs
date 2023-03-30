@@ -11,7 +11,7 @@ fn part1(input: String) -> String {
 
     let mut g = String::new();
     let mut e = String::new();
-    let len = input.lines().next().unwrap().len();
+    let len = util::input_line_len(&input);
     let mut ones = vec![0; len];
     let mut zeros = vec![0; len];
 
