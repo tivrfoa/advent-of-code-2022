@@ -38,7 +38,7 @@ fn part1(input: String) -> String {
     (i32::from_str_radix(&g, 2).unwrap() * i32::from_str_radix(&e, 2).unwrap()).to_string()
 }
 
-fn most_common(input: &str) -> String {
+fn find(input: &str, most_common: bool) -> String {
     let len = input.lines().next().unwrap().len();
     let mut input: Vec<Vec<char>> = input.lines().map(|l| l.chars().collect()).collect();
     let mut idx = 0;
@@ -54,39 +54,13 @@ fn most_common(input: &str) -> String {
             }
         }
 
-        if ones >= zeros {
-            input = input.into_iter().filter(|s| s[idx] == '1').collect();
+        let keep = if most_common {
+            if ones >= zeros { '1' } else { '0' }
         } else {
-            input = input.into_iter().filter(|s| s[idx] == '0').collect();
-        }
+            if ones >= zeros { '0' } else { '1' }
+        };
 
-        idx += 1;
-    }
-
-    input[0].iter().collect()
-}
-
-fn least_common(input: &str) -> String {
-    let len = input.lines().next().unwrap().len();
-    let mut input: Vec<Vec<char>> = input.lines().map(|l| l.chars().collect()).collect();
-    let mut idx = 0;
-
-    while input.len() > 1 {
-        let mut ones = 0;
-        let mut zeros = 0;
-        for i in 0..input.len() {
-            if input[i][idx] == '1' {
-                ones += 1;
-            } else {
-                zeros += 1;
-            }
-        }
-
-        if ones >= zeros {
-            input = input.into_iter().filter(|s| s[idx] == '0').collect();
-        } else {
-            input = input.into_iter().filter(|s| s[idx] == '1').collect();
-        }
+        input = input.into_iter().filter(|s| s[idx] == keep).collect();
 
         idx += 1;
     }
@@ -96,8 +70,8 @@ fn least_common(input: &str) -> String {
 
 fn part2(input: String) -> String {
 
-    let most = most_common(&input);
-    let least = least_common(&input);
+    let most = find(&input, true);
+    let least = find(&input, false);
     multiply_binary_string(&most, &least).to_string()
 }
 
