@@ -8,7 +8,15 @@ use std::iter::zip;
 use crate::aoc::AOC;
 
 fn part1(input: String) -> String {
-    "".into()
+
+    let mut ans: u32 = 0;
+    let nums = util::input_as_vec_i32(&input);
+    for i in 1..nums.len() {
+        if nums[i] > nums[i - 1] {
+            ans += 1;
+        }
+    }
+    ans.to_string()
 }
 
 fn part2(input: String) -> String {
@@ -26,14 +34,14 @@ mod tests {
     #[test]
     fn part1_sample() {
         let input = util::read_file("inputs/2021/day1-sample.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("7", part1(input));
     }
 
-    //#[test]
-    //fn part1_input() {
-    //    let input = util::read_file("inputs/2021/day1.txt");
-    //    assert_eq!("", part1(input));
-    //}
+    #[test]
+    fn part1_input() {
+        let input = util::read_file("inputs/2021/day1.txt");
+        assert_eq!("1316", part1(input));
+    }
 
     //#[test]
     //fn part2_sample() {

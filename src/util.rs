@@ -14,3 +14,8 @@ pub fn read_file(file_path: &str) -> String {
     println!("In file {file_path}");
     fs::read_to_string(file_path).expect("Should have been able to read the file")
 }
+
+#[allow(dead_code)]
+pub fn input_as_vec_i32(input: &str) -> Vec<i32> {
+    input.lines().map(|l| l.parse::<i32>().unwrap()).collect()
+}
