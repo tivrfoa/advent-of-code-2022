@@ -19,8 +19,27 @@ fn part1(input: String) -> String {
     ans.to_string()
 }
 
+fn three_sum(nums: Vec<i32>) -> Vec<i32> {
+    let mut ans = vec![];
+
+    for i in 2..nums.len() {
+        ans.push(nums[i-2] + nums[i-1] + nums[i]);
+    }
+
+    ans
+}
+
 fn part2(input: String) -> String {
-    todo!()
+
+    let mut ans: u32 = 0;
+    let nums = util::input_as_vec_i32(&input);
+    let nums = three_sum(nums);
+    for i in 1..nums.len() {
+        if nums[i] > nums[i - 1] {
+            ans += 1;
+        }
+    }
+    ans.to_string()
 }
 
 fn parse(input: String) -> String {
@@ -43,17 +62,17 @@ mod tests {
         assert_eq!("1316", part1(input));
     }
 
-    //#[test]
-    //fn part2_sample() {
-    //    let input = util::read_file("inputs/2021/day1-sample.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn part2_sample() {
+        let input = util::read_file("inputs/2021/day1-sample.txt");
+        assert_eq!("5", part2(input));
+    }
 
-    //#[test]
-    //fn part2_input() {
-    //    let input = util::read_file("inputs/2021/day1.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/2021/day1.txt");
+        assert_eq!("1344", part2(input));
+    }
 }
 
 #[allow(dead_code)]
