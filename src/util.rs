@@ -29,3 +29,8 @@ pub fn input_line_len(input: &str) -> usize {
 pub fn input_as_vec_char(input: &str) -> Vec<Vec<char>> {
     input.lines().map(|l| l.chars().collect()).collect()
 }
+
+#[allow(dead_code)]
+pub fn get_numbers_in_line(line: &str) -> Vec<i32> {
+    line.split_ascii_whitespace().map(|s| s.parse::<i32>().unwrap()).collect()
+}
