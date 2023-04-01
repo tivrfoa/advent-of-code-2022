@@ -5,8 +5,6 @@ use std::cmp::Ordering;
 use std::fmt::{Debug, Display};
 use std::iter::zip;
 
-use crate::aoc::AOC;
-
 fn part1(input: String) -> String {
     "".into()
 }
@@ -29,23 +27,23 @@ mod tests {
         assert_eq!("", part1(input));
     }
 
-    //#[test]
-    //fn part1_input() {
-    //    let input = util::read_file("inputs/dayX.txt");
-    //    assert_eq!("", part1(input));
-    //}
+    #[test]
+    fn part1_input() {
+        let input = util::read_file("inputs/dayX.txt");
+        assert_eq!("", part1(input));
+    }
 
-    //#[test]
-    //fn part2_sample() {
-    //    let input = util::read_file("inputs/dayX-sample.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn part2_sample() {
+        let input = util::read_file("inputs/dayX-sample.txt");
+        assert_eq!("", part2(input));
+    }
 
-    //#[test]
-    //fn part2_input() {
-    //    let input = util::read_file("inputs/dayX.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/dayX.txt");
+        assert_eq!("", part2(input));
+    }
 }
 
 #[allow(dead_code)]
