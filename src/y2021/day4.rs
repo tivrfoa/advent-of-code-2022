@@ -157,29 +157,7 @@ fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
 }
 
 fn read_boards(input: &str) -> Vec<Vec<Vec<(i32, bool)>>> {
-    let mut boards = vec![];
-    let cols = 5;
-    let rows = 5;
-    let mut curr_board = vec![vec![(0, false); 5]; 5];
-    let mut r = 0;
-    for l in input.lines() {
-        if l.is_empty() {
-            if r > 0 {
-                boards.push(curr_board);
-                curr_board = vec![vec![(0, false); 5]; 5];
-            }
-            r = 0;
-        } else {
-            let nums = util::get_numbers_in_line(l);
-            for (c, n) in nums.into_iter().enumerate() {
-                curr_board[r][c] = (n, false);
-            }
-            r += 1;
-        }
-    }
-    if r == 5 {
-        boards.push(curr_board);
-    }
-    boards
+    let mut matrices = util::parse_matrices(input, 5, 1);
+    util::map_matrices(matrices, |v| (v, false))
 }
 

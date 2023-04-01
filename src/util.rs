@@ -34,3 +34,47 @@ pub fn input_as_vec_char(input: &str) -> Vec<Vec<char>> {
 pub fn get_numbers_in_line(line: &str) -> Vec<i32> {
     line.split_ascii_whitespace().map(|s| s.parse::<i32>().unwrap()).collect()
 }
+
+#[allow(dead_code)]
+pub fn parse_matrices(input: &str, rows: usize,
+        lines_between_matrices: usize) -> Vec<Vec<Vec<i32>>> {
+    let mut matrices = vec![];
+    let mut curr_matrix = vec![];
+    let mut skip_counter = 0;
+    let mut skip = false;
+
+    for l in input.lines() {
+        if skip {
+            skip_counter += 1;
+            if skip_counter == lines_between_matrices {
+                skip_counter = 0;
+                skip = false;
+            }
+        } else {
+            curr_matrix.push(get_numbers_in_line(l));
+            if curr_matrix.len() == rows {
+                matrices.push(curr_matrix);
+                curr_matrix = vec![];
+                skip = true;
+            }
+        }
+    }
+
+    matrices
+}
+
+#[allow(dead_code)]
+pub fn map_matrices(matrices: Vec<Vec<Vec<i32>>>,
+        map_fn: fn(i32) -> (i32, bool)) -> Vec<Vec<Vec<(i32, bool)>>> {
+    let mut boards = vec![];
+
+    for m in matrices {
+        let mut board = vec![];
+        for r in m {
+            board.push(r.into_iter().map(map_fn).collect());
+        }
+        boards.push(board);
+    }
+
+    boards
+}
