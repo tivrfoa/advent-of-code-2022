@@ -87,9 +87,9 @@ fn part2(input: String, bingo_nums: Vec<i32>) -> String {
         let mut decre = 0;
         for winner in winners {
             let board_index = winner - decre;
-            let sum = get_sum(&boards[board_index]);
             win_count += 1;
             if win_count == number_of_boards {
+                let sum = get_sum(&boards[board_index]);
                 return (sum * n).to_string();
             } else {
                 boards.remove(board_index);
