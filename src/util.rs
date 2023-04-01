@@ -1,5 +1,6 @@
 use std::env;
 use std::fs;
+use std::fmt::{Debug, Display};
 
 #[allow(dead_code)]
 pub fn get_file_contents() -> String {
@@ -77,4 +78,11 @@ pub fn map_matrices(matrices: Vec<Vec<Vec<i32>>>,
     }
 
     boards
+}
+
+#[allow(dead_code)]
+pub fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
+    for item in grid {
+        println!("{item:?}");
+    }
 }
