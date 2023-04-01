@@ -7,6 +7,7 @@ use std::iter::zip;
 
 use crate::aoc::AOC;
 
+#[allow(dead_code)]
 fn part1(input: String) -> String {
     let mut times = parse(&input);
 
@@ -25,22 +26,28 @@ fn part1(input: String) -> String {
     times.len().to_string()
 }
 
+#[allow(dead_code)]
 fn part2(input: String) -> String {
-    let mut times = parse(&input);
+    let mut tmp = parse(&input);
+    let mut times = [0u64; 9];
+    for t in tmp {
+        times[t as usize] += 1;
+    }
+    dbg!(&times);
 
     for _ in 0..256 {
-        let len = times.len();
-        for i in 0..len {
-            if times[i] == 0 {
-                times[i] = 6;
-                times.push(8);
-            } else {
-                times[i] -= 1;
-            }
+        let new_fishes = times[0];
+        let mut prev = times[8];
+        for i in (0..=7).rev() {
+            let tmp = times[i];
+            times[i] = prev;
+            prev = tmp;
         }
+        times[6] += new_fishes;
+        times[8] = new_fishes;
     }
 
-    times.len().to_string()
+    times.iter().sum::<u64>().to_string()
 }
 
 fn parse(input: &str) -> Vec<i32> {
@@ -66,13 +73,13 @@ mod tests {
     #[test]
     fn part2_sample() {
         let input = util::read_file("inputs/2021/day6-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("26984457539", part2(input));
     }
 
     #[test]
     fn part2_input() {
         let input = util::read_file("inputs/2021/day6.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("1609314870967", part2(input));
     }
 }
 
