@@ -12,7 +12,7 @@ fn part1(input: String) -> String {
 }
 
 fn part2(input: String) -> String {
-    todo!()
+    "".into()
 }
 
 fn parse(input: String) -> String {
@@ -55,22 +55,22 @@ fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
     }
 }
 
-pub struct DayX {}
-
-impl AOC for DayX {
-    fn part1(&self, input: Option<String>, args: Vec<String>) -> String {
-        let input = match input {
-            Some(input) => input,
-            None => util::read_file("inputs/dayX.txt"),
-        };
-        part1(input)
-    }
-
-    fn part2(&self, input: Option<String>, args: Vec<String>) -> String {
-        let input = match input {
-            Some(input) => input,
-            None => util::read_file("inputs/dayX.txt"),
-        };
-        part2(input)
-    }
-}
+// pub struct DayX {}
+// 
+// impl AOC for DayX {
+//     fn part1(&self, input: Option<String>, args: Vec<String>) -> String {
+//         let input = match input {
+//             Some(input) => input,
+//             None => util::read_file("inputs/dayX.txt"),
+//         };
+//         part1(input)
+//     }
+// 
+//     fn part2(&self, input: Option<String>, args: Vec<String>) -> String {
+//         let input = match input {
+//             Some(input) => input,
+//             None => util::read_file("inputs/dayX.txt"),
+//         };
+//         part2(input)
+//     }
+// }
