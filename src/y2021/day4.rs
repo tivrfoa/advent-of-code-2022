@@ -81,19 +81,17 @@ fn part2(input: String, bingo_nums: Vec<i32>) -> String {
     let mut boards = read_boards(&input);
     let number_of_boards = boards.len();
     let mut win_count = 0;
+    let mut used = vec![false; boards.len()];
     for n in bingo_nums {
         mark_boards(&mut boards, n);
         let winners = get_winners(&boards);
-        let mut decre = 0;
-        for winner in winners {
-            let board_index = winner - decre;
+        for board_index in winners {
+            if used[board_index] { continue; }
+            used[board_index] = true;
             win_count += 1;
             if win_count == number_of_boards {
                 let sum = get_sum(&boards[board_index]);
                 return (sum * n).to_string();
-            } else {
-                boards.remove(board_index);
-                decre += 1;
             }
         }
     }
