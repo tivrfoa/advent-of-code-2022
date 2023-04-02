@@ -1,6 +1,6 @@
 use std::env;
-use std::fs;
 use std::fmt::{Debug, Display};
+use std::fs;
 
 #[allow(dead_code)]
 pub fn get_file_contents() -> String {
@@ -33,12 +33,17 @@ pub fn input_as_vec_char(input: &str) -> Vec<Vec<char>> {
 
 #[allow(dead_code)]
 pub fn get_numbers_in_line(line: &str) -> Vec<i32> {
-    line.split_ascii_whitespace().map(|s| s.parse::<i32>().unwrap()).collect()
+    line.split_ascii_whitespace()
+        .map(|s| s.parse::<i32>().unwrap())
+        .collect()
 }
 
 #[allow(dead_code)]
-pub fn parse_matrices(input: &str, rows: usize,
-        lines_between_matrices: usize) -> Vec<Vec<Vec<i32>>> {
+pub fn parse_matrices(
+    input: &str,
+    rows: usize,
+    lines_between_matrices: usize,
+) -> Vec<Vec<Vec<i32>>> {
     let mut matrices = vec![];
     let mut curr_matrix = vec![];
     let mut skip_counter = 0;
@@ -65,8 +70,10 @@ pub fn parse_matrices(input: &str, rows: usize,
 }
 
 #[allow(dead_code)]
-pub fn map_matrices(matrices: Vec<Vec<Vec<i32>>>,
-        map_fn: fn(i32) -> (i32, bool)) -> Vec<Vec<Vec<(i32, bool)>>> {
+pub fn map_matrices(
+    matrices: Vec<Vec<Vec<i32>>>,
+    map_fn: fn(i32) -> (i32, bool),
+) -> Vec<Vec<Vec<(i32, bool)>>> {
     let mut boards = vec![];
 
     for m in matrices {
@@ -91,9 +98,9 @@ pub fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
 /// sum of intergers from a + 1 to b
 /// So you need to pass initial_value - 1 for it to be
 /// included, eg:
-/// 
+///
 /// 1 to 3 -> sum_of_consecutive_numbers(0, 3)
-/// 
+///
 /// https://math.stackexchange.com/questions/1100897/sum-of-consecutive-numbers
 pub fn sum_of_consecutive_numbers(a: u32, b: u32) -> u32 {
     ((b * (b + 1)) / 2) - ((a * (a + 1)) / 2)

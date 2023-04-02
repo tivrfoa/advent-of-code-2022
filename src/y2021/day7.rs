@@ -1,7 +1,7 @@
 use crate::util;
 
-use std::collections::{HashMap, HashSet, VecDeque};
 use std::cmp::Ordering;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 use std::iter::zip;
 
@@ -78,29 +78,40 @@ fn dbg_grid<T: Debug + Display>(grid: &[Vec<T>]) {
 
 #[allow(dead_code)]
 fn in_to_nums<T: std::str::FromStr>(input: &str) -> Vec<T>
-         where <T as std::str::FromStr>::Err: Debug {
+where
+    <T as std::str::FromStr>::Err: Debug,
+{
     input.split(',').map(|n| n.parse::<T>().unwrap()).collect()
 }
 
 #[allow(dead_code)]
 fn split_str_to_nums<T: std::str::FromStr>(input: &str, separator: &str) -> Vec<T>
-         where <T as std::str::FromStr>::Err: Debug {
-    input.split(separator).map(|n| n.parse::<T>().unwrap()).collect()
+where
+    <T as std::str::FromStr>::Err: Debug,
+{
+    input
+        .split(separator)
+        .map(|n| n.parse::<T>().unwrap())
+        .collect()
 }
 
 #[allow(dead_code)]
 fn vec_max<T: std::str::FromStr + std::cmp::Ord + Copy>(vec: &[T]) -> T
-         where <T as std::str::FromStr>::Err: Debug {
+where
+    <T as std::str::FromStr>::Err: Debug,
+{
     *vec.iter().max().unwrap()
- }
+}
 
 #[allow(dead_code)]
 fn vec_min<T: std::str::FromStr + std::cmp::Ord + Copy>(vec: &[T]) -> T
-         where <T as std::str::FromStr>::Err: Debug {
+where
+    <T as std::str::FromStr>::Err: Debug,
+{
     *vec.iter().min().unwrap()
- }
+}
 // pub struct Day7 {}
-// 
+//
 // impl AOC for Day7 {
 //     fn part1(&self, input: Option<String>, args: Vec<String>) -> String {
 //         let input = match input {
@@ -109,7 +120,7 @@ fn vec_min<T: std::str::FromStr + std::cmp::Ord + Copy>(vec: &[T]) -> T
 //         };
 //         part1(input)
 //     }
-// 
+//
 //     fn part2(&self, input: Option<String>, args: Vec<String>) -> String {
 //         let input = match input {
 //             Some(input) => input,
