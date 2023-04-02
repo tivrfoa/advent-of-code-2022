@@ -28,16 +28,12 @@ fn part2(input: String) -> String {
         let mut curr = 0;
         for n in &nums {
             let diff = (n - t).abs() as usize;
-            curr += util::sum_of_consecutive_numbers(0, diff as u32) as i32;
+            curr += util::sum_of_consecutive_numbers(1, diff as u32) as i32;
         }
         min = min.min(curr);
     }
 
     min.to_string()
-}
-
-fn parse(input: String) -> String {
-    todo!()
 }
 
 #[cfg(test)]
