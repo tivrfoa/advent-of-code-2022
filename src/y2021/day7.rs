@@ -6,9 +6,9 @@ use std::fmt::{Debug, Display};
 use std::iter::zip;
 
 fn part1(input: String) -> String {
-    let nums: Vec<i32> = input.split(',').map(|n| n.parse::<i32>().unwrap()).collect();
+    let nums: Vec<i32> = in_to_nums(&input);
     let mut min = i32::MAX;
-    let max = *nums.iter().max().unwrap();
+    let max = vec_max(&nums);
     for t in 1..=max {
         let mut curr = 0;
         for n in &nums {
@@ -21,9 +21,9 @@ fn part1(input: String) -> String {
 }
 
 fn part2(input: String) -> String {
-    let nums: Vec<i32> = input.split(',').map(|n| n.parse::<i32>().unwrap()).collect();
+    let nums: Vec<i32> = in_to_nums(&input);
     let mut min = i32::MAX;
-    let max = *nums.iter().max().unwrap();
+    let max = vec_max(&nums);
     for t in 1..=max {
         let mut curr = 0;
         for n in &nums {
@@ -70,12 +70,35 @@ mod tests {
 }
 
 #[allow(dead_code)]
-fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
+fn dbg_grid<T: Debug + Display>(grid: &[Vec<T>]) {
     for item in grid {
         println!("{item:?}");
     }
 }
 
+#[allow(dead_code)]
+fn in_to_nums<T: std::str::FromStr>(input: &str) -> Vec<T>
+         where <T as std::str::FromStr>::Err: Debug {
+    input.split(',').map(|n| n.parse::<T>().unwrap()).collect()
+}
+
+#[allow(dead_code)]
+fn split_str_to_nums<T: std::str::FromStr>(input: &str, separator: &str) -> Vec<T>
+         where <T as std::str::FromStr>::Err: Debug {
+    input.split(separator).map(|n| n.parse::<T>().unwrap()).collect()
+}
+
+#[allow(dead_code)]
+fn vec_max<T: std::str::FromStr + std::cmp::Ord + Copy>(vec: &[T]) -> T
+         where <T as std::str::FromStr>::Err: Debug {
+    *vec.iter().max().unwrap()
+ }
+
+#[allow(dead_code)]
+fn vec_min<T: std::str::FromStr + std::cmp::Ord + Copy>(vec: &[T]) -> T
+         where <T as std::str::FromStr>::Err: Debug {
+    *vec.iter().min().unwrap()
+ }
 // pub struct Day7 {}
 // 
 // impl AOC for Day7 {
