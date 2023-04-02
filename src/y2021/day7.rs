@@ -28,11 +28,9 @@ fn part2(input: String) -> String {
         let mut curr = 0;
         for n in &nums {
             let diff = (n - t).abs() as usize;
-            for c in 1..=diff {
-                curr += c;
-            }
+            curr += util::sum_of_consecutive_numbers(0, diff as u32) as i32;
         }
-        min = min.min(curr as i32);
+        min = min.min(curr);
     }
 
     min.to_string()

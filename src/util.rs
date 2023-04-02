@@ -86,3 +86,15 @@ pub fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
         println!("{item:?}");
     }
 }
+
+#[allow(dead_code)]
+/// sum of intergers from a + 1 to b
+/// So you need to pass initial_value - 1 for it to be
+/// included, eg:
+/// 
+/// 1 to 3 -> sum_of_consecutive_numbers(0, 3)
+/// 
+/// https://math.stackexchange.com/questions/1100897/sum-of-consecutive-numbers
+pub fn sum_of_consecutive_numbers(a: u32, b: u32) -> u32 {
+    ((b * (b + 1)) / 2) - ((a * (a + 1)) / 2)
+}
