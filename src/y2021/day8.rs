@@ -74,45 +74,61 @@ fn part2(input: String) -> String {
             .map(|c| *c)
             .collect();
 
-        // we can get d doing 8 - 7 = t, then t & 4
-        //let d: char = *map[8]
-        //    .iter()
-        //    .filter(|c| !map[7].contains(c) && map[4].contains(c))
-        //    .next()
-        //    .unwrap();
-
-        //// now we know b
-        //let b: char = bd.into_iter().filter(|&c| c != d).next().unwrap();
-
-        // find 6 and 9
-        //for word in left_words {
-        //    if word.len() == 6 && word.contains(d) {
-        //        if word.contains(eg[0]) && word.contains(eg[1]) {
-        //            map[6] = word.chars().collect();
-        //        } else {
-        //            map[9] = word.chars().collect();
-        //        }
-        //    }
-        //}
-
-        //// e = 6 - 9
-        //let e: char = *map[6]
-        //    .iter()
-        //    .filter(|c| !map[9].contains(c))
-        //    .next()
-        //    .unwrap();
-
-        // now we know g
-        let g: char = eg.into_iter().filter(|&c| c != e).next().unwrap();
-
-        // c = 9 - 6
-        let c: char = *map[9]
+        map[2] = left_words
             .iter()
-            .filter(|c| !map[6].contains(c))
+            .filter(|w| w.len() == 5 && w.contains(eg[0]) && w.contains(eg[1]))
+            .next()
+            .unwrap()
+            .chars()
+            .collect();
+
+        let b: char = *bd.iter()
+            .filter(|c| !map[2].contains(c))
+            .next()
+            .unwrap();
+        let d: char = *bd.iter().filter(|&c| *c != b).next().unwrap();
+
+        map[5] = left_words
+            .iter()
+            .filter(|w| w.len() == 5 && w.contains(b) && w.contains(d))
+            .next()
+            .unwrap()
+            .chars()
+            .collect();
+
+        // c = 4 - 5
+        let c: char = *map[4]
+            .iter()
+            .filter(|c| !map[5].contains(c))
             .next()
             .unwrap();
 
         let f: char = *map[1].iter().filter(|&c0| *c0 != c).next().unwrap();
+
+        // find 0, 6 and 9
+        for word in left_words {
+            if word.len() == 6 {
+                if word.contains(eg[0]) && word.contains(eg[1]) {
+                    if word.contains(c) {
+                        map[0] = word.chars().collect();
+                    } else {
+                        map[6] = word.chars().collect();
+                    }
+                } else {
+                    map[9] = word.chars().collect();
+                }
+            }
+        }
+
+        // e = 6 - 9
+        let e: char = *map[6]
+            .iter()
+            .filter(|c| !map[9].contains(c))
+            .next()
+            .unwrap();
+
+        let g: char = eg.into_iter().filter(|&c| c != e).next().unwrap();
+
 
         let mut word = String::new();
         for right_word in right_words {
@@ -130,13 +146,13 @@ fn part2(input: String) -> String {
                     if word.contains(b) {
                         word.push('5');
                     } else if word.contains(f) {
-                        word.push('2');
-                    } else {
                         word.push('3');
+                    } else {
+                        word.push('2');
                     }
                 }
                 6 => {
-                    if word.contains(d) {
+                    if !word.contains(d) {
                         word.push('0');
                     } else if word.contains(e) {
                         word.push('6');
