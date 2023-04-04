@@ -1,7 +1,7 @@
 use crate::util;
 
-use std::collections::{HashMap, HashSet, VecDeque};
 use std::cmp::Ordering;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 use std::iter::zip;
 
@@ -29,18 +29,6 @@ fn part1(input: String) -> String {
 }
 
 fn part2(input: String) -> String {
-    let nums_map: [Vec<char>; 10] = [
-        vec!['a', 'b', 'c', 'e', 'f', 'g'],
-        vec!['c', 'f'],
-        vec!['a', 'c', 'd', 'e', 'g'],
-        vec!['a', 'c', 'd', 'f', 'g'],
-        vec!['b', 'c', 'd', 'f'],
-        vec!['a', 'b', 'd', 'f', 'g'],
-        vec!['a', 'b', 'd', 'e', 'f', 'g'],
-        vec!['a', 'c', 'f'],
-        vec!['a', 'b', 'c', 'd', 'e', 'f', 'g'],
-        vec!['a', 'b', 'c', 'd', 'f', 'g'],
-    ];
     let mut left: Vec<Vec<&str>> = vec![];
     let mut right: Vec<Vec<&str>> = vec![];
     for line in input.lines() {
@@ -49,26 +37,122 @@ fn part2(input: String) -> String {
         right.push(tmp.1.split_ascii_whitespace().collect());
     }
 
-    let mut sum = 0;
+    let mut sum: u32 = 0;
 
-    for left_words in &left {
+    for (left_words, right_words) in left.iter().zip(right.iter()) {
         let mut map: Vec<Vec<char>> = vec![vec![]; 10];
         for word in left_words {
             match word.len() {
-                len @ (2 | 3 | 4 | 7) if map[len].is_empty()  => {
-                    map[len] = word.chars().collect();
-                }
+                2 if map[1].is_empty() => map[1] = word.chars().collect(),
+                3 if map[7].is_empty() => map[7] = word.chars().collect(),
+                4 if map[4].is_empty() => map[4] = word.chars().collect(),
+                7 if map[8].is_empty() => map[8] = word.chars().collect(),
                 _ => (),
             }
         }
 
-        // comparing letters in map[2] with map[7] we will know
+        // comparing letters 1 and 7 we will know
         // which is letter a
-        let a: char = *map[7].iter().filter(|c| !map[2].contains(c)).next().unwrap();
-        dbg!(a);
-        dbg!(&map[2], &map[7]);
-    }
+        let a: char = *map[7]
+            .iter()
+            .filter(|c| !map[1].contains(c))
+            .next()
+            .unwrap();
 
+        // we can get letters b and d comparing 1 and 4,
+        // although we don't know the order yet
+        let bd: Vec<char> = map[4]
+            .iter()
+            .filter(|c| !map[1].contains(c))
+            .map(|c| *c)
+            .collect();
+
+        // e g = 8 - 4 - a
+        let eg: Vec<char> = map[8]
+            .iter()
+            .filter(|c| **c != a && !map[4].contains(c))
+            .map(|c| *c)
+            .collect();
+
+        // we can get d doing 8 - 7 = t, then t & 4
+        //let d: char = *map[8]
+        //    .iter()
+        //    .filter(|c| !map[7].contains(c) && map[4].contains(c))
+        //    .next()
+        //    .unwrap();
+
+        //// now we know b
+        //let b: char = bd.into_iter().filter(|&c| c != d).next().unwrap();
+
+        // find 6 and 9
+        //for word in left_words {
+        //    if word.len() == 6 && word.contains(d) {
+        //        if word.contains(eg[0]) && word.contains(eg[1]) {
+        //            map[6] = word.chars().collect();
+        //        } else {
+        //            map[9] = word.chars().collect();
+        //        }
+        //    }
+        //}
+
+        //// e = 6 - 9
+        //let e: char = *map[6]
+        //    .iter()
+        //    .filter(|c| !map[9].contains(c))
+        //    .next()
+        //    .unwrap();
+
+        // now we know g
+        let g: char = eg.into_iter().filter(|&c| c != e).next().unwrap();
+
+        // c = 9 - 6
+        let c: char = *map[9]
+            .iter()
+            .filter(|c| !map[6].contains(c))
+            .next()
+            .unwrap();
+
+        let f: char = *map[1].iter().filter(|&c0| *c0 != c).next().unwrap();
+
+        let mut word = String::new();
+        for right_word in right_words {
+            match right_word.len() {
+                2 => {
+                    word.push('1');
+                }
+                3 => {
+                    word.push('7');
+                }
+                4 => {
+                    word.push('4');
+                }
+                5 => {
+                    if word.contains(b) {
+                        word.push('5');
+                    } else if word.contains(f) {
+                        word.push('2');
+                    } else {
+                        word.push('3');
+                    }
+                }
+                6 => {
+                    if word.contains(d) {
+                        word.push('0');
+                    } else if word.contains(e) {
+                        word.push('6');
+                    } else {
+                        word.push('9');
+                    }
+                }
+                7 => {
+                    word.push('8');
+                }
+                l @ _ => panic!("invalid length {l}"),
+            }
+        }
+        dbg!(&word);
+        sum += word.parse::<u32>().unwrap();
+    }
 
     sum.to_string()
 }

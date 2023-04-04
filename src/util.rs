@@ -100,7 +100,9 @@ pub fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
 /// https://math.stackexchange.com/questions/1100897/sum-of-consecutive-numbers
 pub fn sum_of_consecutive_numbers(a: u32, b: u32) -> u32 {
     // decrement 1 from initial value because formula is: a + 1 to b
-    if a == 0 { panic!("Initial value must be at least 1."); }
+    if a == 0 {
+        panic!("Initial value must be at least 1.");
+    }
     let a = a - 1;
     ((b * (b + 1)) / 2) - ((a * (a + 1)) / 2)
 }
