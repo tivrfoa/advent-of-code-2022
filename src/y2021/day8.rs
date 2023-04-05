@@ -43,10 +43,10 @@ fn part2(input: String) -> String {
         let mut map: Vec<Vec<char>> = vec![vec![]; 10];
         for word in left_words {
             match word.len() {
-                2 if map[1].is_empty() => map[1] = word.chars().collect(),
-                3 if map[7].is_empty() => map[7] = word.chars().collect(),
-                4 if map[4].is_empty() => map[4] = word.chars().collect(),
-                7 if map[8].is_empty() => map[8] = word.chars().collect(),
+                2 => map[1] = word.chars().collect(),
+                3 => map[7] = word.chars().collect(),
+                4 => map[4] = word.chars().collect(),
+                7 => map[8] = word.chars().collect(),
                 _ => (),
             }
         }
@@ -88,11 +88,11 @@ fn part2(input: String) -> String {
             for (i, m) in map.iter().enumerate() {
                 if *m == rw {
                     n = n * 10 + i;
+                    break;
                 }
             }
         }
 
-        dbg!(&n);
         sum += n;
     }
 
