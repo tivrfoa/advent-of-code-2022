@@ -13,35 +13,6 @@ fn part2(input: String) -> String {
     "".into()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn part1_sample() {
-        let input = util::read_file("inputs/dayX-sample.txt");
-        assert_eq!("", part1(input));
-    }
-
-    #[test]
-    fn part1_input() {
-        let input = util::read_file("inputs/dayX.txt");
-        assert_eq!("", part1(input));
-    }
-
-    #[test]
-    fn part2_sample() {
-        let input = util::read_file("inputs/dayX-sample.txt");
-        assert_eq!("", part2(input));
-    }
-
-    #[test]
-    fn part2_input() {
-        let input = util::read_file("inputs/dayX.txt");
-        assert_eq!("", part2(input));
-    }
-}
-
 #[allow(dead_code)]
 fn dbg_grid<T: Debug + Display>(grid: &[Vec<T>]) {
     for item in grid {
@@ -83,22 +54,32 @@ where
 {
     *vec.iter().min().unwrap()
 }
-// pub struct DayX {}
-// 
-// impl AOC for DayX {
-//     fn part1(&self, input: Option<String>, args: Vec<String>) -> String {
-//         let input = match input {
-//             Some(input) => input,
-//             None => util::read_file("inputs/dayX.txt"),
-//         };
-//         part1(input)
-//     }
-// 
-//     fn part2(&self, input: Option<String>, args: Vec<String>) -> String {
-//         let input = match input {
-//             Some(input) => input,
-//             None => util::read_file("inputs/dayX.txt"),
-//         };
-//         part2(input)
-//     }
-// }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn part1_sample() {
+        let input = util::read_file("inputs/dayX-sample.txt");
+        assert_eq!("", part1(input));
+    }
+
+    #[test]
+    fn part1_input() {
+        let input = util::read_file("inputs/dayX.txt");
+        assert_eq!("", part1(input));
+    }
+
+    #[test]
+    fn part2_sample() {
+        let input = util::read_file("inputs/dayX-sample.txt");
+        assert_eq!("", part2(input));
+    }
+
+    #[test]
+    fn part2_input() {
+        let input = util::read_file("inputs/dayX.txt");
+        assert_eq!("", part2(input));
+    }
+}
