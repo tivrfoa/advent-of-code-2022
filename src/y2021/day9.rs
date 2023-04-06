@@ -40,8 +40,60 @@ fn part1(input: String) -> String {
     ans.to_string()
 }
 
+fn visit_borders(visited: &mut Vec<Vec<bool>>) {
+    let rows = visited.len();
+    let cols = visited[0].len();
+    // top, bottom
+    for c in 0..cols {
+        visited[0][c] = true;
+        visited[rows - 1][c] = true;
+    }
+    // left, right
+    for r in 0..rows {
+        visited[r][0] = true;
+        visited[r][cols - 1] = true;
+    }
+}
+
+fn visit(grid: &[Vec<u32>], visited: &mut Vec<Vec<bool>>, row: usize, col: usize) -> u32 {
+    if visited[row][col] || grid[row][col] == 9 {
+        return 0;
+    }
+
+    visited[row][col] = true;
+    let mut sum = 1;
+
+    // left
+    sum += visit(grid, visited, row, col - 1);
+    // right
+    sum += visit(grid, visited, row, col + 1);
+    // top
+    sum += visit(grid, visited, row - 1, col);
+    // bottom
+    sum += visit(grid, visited, row + 1, col);
+
+    sum
+}
+
 fn part2(input: String) -> String {
-    "".into()
+    let mut grid = parse_grid_extra(&input, u32::MAX);
+    let rows = grid.len() - 2;
+    let cols = grid[0].len() - 2;
+    let mut visited = vec![vec![false; cols + 2]; rows + 2];
+    visit_borders(&mut visited);
+
+    let mut basis = vec![];
+    for r in 1..=rows {
+        for c in 1..=cols {
+            let size = visit(&grid, &mut visited, r, c);
+            if size > 0 {
+                basis.push(size);
+            }
+        }
+    }
+    basis.sort_by(|a, b| b.cmp(a));
+
+    (basis[0] * basis[1] * basis[2]).to_string()
 }
 
 #[allow(dead_code)]
@@ -146,12 +198,12 @@ mod tests {
     #[test]
     fn part2_sample() {
         let input = util::read_file("inputs/2021/day9-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("1134", part2(input));
     }
 
     #[test]
     fn part2_input() {
         let input = util::read_file("inputs/2021/day9.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("1280496", part2(input));
     }
 }
