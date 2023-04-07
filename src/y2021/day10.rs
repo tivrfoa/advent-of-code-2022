@@ -1,7 +1,7 @@
 use crate::util;
 
-use std::collections::{HashMap, HashSet, VecDeque};
 use std::cmp::Ordering;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 use std::iter::zip;
 
@@ -19,8 +19,7 @@ fn part1(input: String) -> String {
     let g_cost = 25137;
 
     let mut ans = 0;
-    'l:
-    for line in input.lines() {
+    'l: for line in input.lines() {
         let mut stack = vec![];
         for c in line.chars() {
             if is_open(c) {
@@ -93,8 +92,7 @@ fn part2(input: String) -> String {
     let g_cost = 25137;
 
     let mut incomplete_lines = vec![];
-    'l:
-    for line in input.lines() {
+    'l: for line in input.lines() {
         let mut stack = vec![];
         for c in line.chars() {
             if is_open(c) {
