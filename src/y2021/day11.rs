@@ -31,7 +31,7 @@ fn part1(input: String) -> String {
         let mut new_visit = HashSet::new();
 
         while !to_visit.is_empty() {
-            for (r, c) in to_visit.drain() {
+            for (r, c) in to_visit {
                 if flashed[r][c] {
                     continue;
                 }
@@ -80,7 +80,7 @@ fn part2(input: String) -> String {
 
         let mut new_visit = HashSet::new();
         while !to_visit.is_empty() {
-            for (r, c) in to_visit.drain() {
+            for (r, c) in to_visit {
                 if flashed[r][c] {
                     continue;
                 }
