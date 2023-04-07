@@ -1,7 +1,7 @@
 use crate::util;
 
-use std::collections::{HashMap, HashSet, VecDeque};
 use std::cmp::Ordering;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 use std::iter::zip;
 
@@ -39,67 +39,12 @@ fn part1(input: String) -> String {
                 grid[r][c] = 0;
                 ans += 1;
 
-                // left
-                if c > 0 && !flashed[r][c - 1] {
-                    grid[r][c - 1] += 1;
-                    if grid[r][c - 1] > 9 {
-                        new_visit.insert((r, c - 1));
-                    }
-                }
-
-                // right
-                if c < cols - 1 && !flashed[r][c + 1] {
-                    grid[r][c + 1] += 1;
-                    if grid[r][c + 1] > 9 {
-                        new_visit.insert((r, c + 1));
-                    }
-                }
-
-                // top
-                if r > 0 && !flashed[r - 1][c] {
-                    grid[r - 1][c] += 1;
-                    if grid[r - 1][c] > 9 {
-                        new_visit.insert((r - 1, c));
-                    }
-                }
-
-                // bottom
-                if r < rows - 1 && !flashed[r + 1][c] {
-                    grid[r + 1][c] += 1;
-                    if grid[r + 1][c] > 9 {
-                        new_visit.insert((r + 1, c));
-                    }
-                }
-
-                // top left
-                if r > 0 && c > 0 && !flashed[r - 1][c - 1] {
-                    grid[r - 1][c - 1] += 1;
-                    if grid[r - 1][c - 1] > 9 {
-                        new_visit.insert((r - 1, c - 1));
-                    }
-                }
-
-                // top right
-                if r > 0 && c < cols - 1 && !flashed[r - 1][c + 1] {
-                    grid[r - 1][c + 1] += 1;
-                    if grid[r - 1][c + 1] > 9 {
-                        new_visit.insert((r - 1, c + 1));
-                    }
-                }
-
-                // bottom left
-                if r < rows - 1 && c > 0 && !flashed[r + 1][c - 1] {
-                    grid[r + 1][c - 1] += 1;
-                    if grid[r + 1][c - 1] > 9 {
-                        new_visit.insert((r + 1, c - 1));
-                    }
-                }
-
-                // bottom right
-                if r < rows - 1 && c < cols - 1 && !flashed[r + 1][c + 1] {
-                    grid[r + 1][c + 1] += 1;
-                    if grid[r + 1][c + 1] > 9 {
-                        new_visit.insert((r + 1, c + 1));
+                for (cond, (r, c)) in get_dirs(r, c, rows, cols) {
+                    if cond && !flashed[r][c] {
+                        grid[r][c] += 1;
+                        if grid[r][c] > 9 {
+                            new_visit.insert((r, c));
+                        }
                     }
                 }
             }
@@ -134,7 +79,6 @@ fn part2(input: String) -> String {
         }
 
         let mut new_visit = HashSet::new();
-
         while !to_visit.is_empty() {
             for (r, c) in to_visit.drain() {
                 if flashed[r][c] {
@@ -143,67 +87,12 @@ fn part2(input: String) -> String {
                 flashed[r][c] = true;
                 grid[r][c] = 0;
 
-                // left
-                if c > 0 && !flashed[r][c - 1] {
-                    grid[r][c - 1] += 1;
-                    if grid[r][c - 1] > 9 {
-                        new_visit.insert((r, c - 1));
-                    }
-                }
-
-                // right
-                if c < cols - 1 && !flashed[r][c + 1] {
-                    grid[r][c + 1] += 1;
-                    if grid[r][c + 1] > 9 {
-                        new_visit.insert((r, c + 1));
-                    }
-                }
-
-                // top
-                if r > 0 && !flashed[r - 1][c] {
-                    grid[r - 1][c] += 1;
-                    if grid[r - 1][c] > 9 {
-                        new_visit.insert((r - 1, c));
-                    }
-                }
-
-                // bottom
-                if r < rows - 1 && !flashed[r + 1][c] {
-                    grid[r + 1][c] += 1;
-                    if grid[r + 1][c] > 9 {
-                        new_visit.insert((r + 1, c));
-                    }
-                }
-
-                // top left
-                if r > 0 && c > 0 && !flashed[r - 1][c - 1] {
-                    grid[r - 1][c - 1] += 1;
-                    if grid[r - 1][c - 1] > 9 {
-                        new_visit.insert((r - 1, c - 1));
-                    }
-                }
-
-                // top right
-                if r > 0 && c < cols - 1 && !flashed[r - 1][c + 1] {
-                    grid[r - 1][c + 1] += 1;
-                    if grid[r - 1][c + 1] > 9 {
-                        new_visit.insert((r - 1, c + 1));
-                    }
-                }
-
-                // bottom left
-                if r < rows - 1 && c > 0 && !flashed[r + 1][c - 1] {
-                    grid[r + 1][c - 1] += 1;
-                    if grid[r + 1][c - 1] > 9 {
-                        new_visit.insert((r + 1, c - 1));
-                    }
-                }
-
-                // bottom right
-                if r < rows - 1 && c < cols - 1 && !flashed[r + 1][c + 1] {
-                    grid[r + 1][c + 1] += 1;
-                    if grid[r + 1][c + 1] > 9 {
-                        new_visit.insert((r + 1, c + 1));
+                for (cond, (r, c)) in get_dirs(r, c, rows, cols) {
+                    if cond && !flashed[r][c] {
+                        grid[r][c] += 1;
+                        if grid[r][c] > 9 {
+                            new_visit.insert((r, c));
+                        }
                     }
                 }
             }
@@ -259,6 +148,37 @@ where
     <T as std::str::FromStr>::Err: Debug,
 {
     *vec.iter().min().unwrap()
+}
+
+#[allow(dead_code)]
+fn get_dirs(r: usize, c: usize, rows: usize, cols: usize) -> [(bool, (usize, usize)); 8] {
+    [
+        // left
+        (c > 0, (r, if c > 0 { c - 1 } else { 0 })),
+        // right
+        (c < cols - 1, (r, c + 1)),
+        // top
+        (r > 0, (if r > 0 { r - 1 } else { 0 }, c)),
+        // bottom
+        (r < rows - 1, (r + 1, c)),
+        // top left
+        (
+            r > 0 && c > 0,
+            (if r > 0 { r - 1 } else { 0 }, if c > 0 { c - 1 } else { 0 }),
+        ),
+        // top right
+        (
+            r > 0 && c < cols - 1,
+            (if r > 0 { r - 1 } else { 0 }, c + 1),
+        ),
+        // bottom left
+        (
+            r < rows - 1 && c > 0,
+            (r + 1, if c > 0 { c - 1 } else { 0 }),
+        ),
+        // bottom right
+        (r < rows - 1 && c < cols - 1, (r + 1, c + 1)),
+    ]
 }
 
 #[cfg(test)]

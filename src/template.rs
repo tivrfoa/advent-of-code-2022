@@ -55,6 +55,28 @@ where
     *vec.iter().min().unwrap()
 }
 
+#[allow(dead_code)]
+fn get_dirs(r: usize, c: usize, rows: usize, cols: usize) -> [(bool, (usize, usize)); 8] {
+    [
+        // left
+        (c > 0, (r, if c > 0 { c - 1 } else { 0 })),
+        // right
+        (c < cols - 1, (r, c + 1)),
+        // top
+        (r > 0, (if r > 0 { r - 1 } else { 0 }, c)),
+        // bottom
+        (r < rows - 1, (r + 1, c)),
+        // top left
+        (r > 0 && c > 0, (if r > 0 { r - 1} else { 0 }, if c > 0 { c - 1 } else { 0 })),
+        // top right
+        (r > 0 && c < cols - 1, (if r > 0 { r - 1} else { 0 }, c + 1)),
+        // bottom left
+        (r < rows - 1 && c > 0, (r + 1, if c > 0 { c - 1 } else { 0 })),
+        // bottom right
+        (r < rows - 1 && c < cols - 1, (r + 1, c + 1)),
+    ]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
