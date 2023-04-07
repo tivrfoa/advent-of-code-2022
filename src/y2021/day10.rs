@@ -13,10 +13,18 @@ fn is_open(c: char) -> bool {
 }
 
 fn part1(input: String) -> String {
-    let p_cost = 3;
-    let sq_cost = 57;
-    let b_cost = 1197;
-    let g_cost = 25137;
+    let cost_map = HashMap::from([
+        (')', 3),
+        (']', 57),
+        ('}', 1197),
+        ('>', 25137),
+    ]);
+    let open_close_map = HashMap::from([
+        ('(', ')'),
+        ('[', ']'),
+        ('{', '}'),
+        ('<', '>'),
+    ]);
 
     let mut ans = 0;
     'l: for line in input.lines() {
@@ -26,56 +34,13 @@ fn part1(input: String) -> String {
                 stack.push(c);
             } else {
                 if stack.is_empty() {
-                    match c {
-                        ')' => {
-                            ans += p_cost;
-                            continue 'l;
-                        }
-                        ']' => {
-                            ans += sq_cost;
-                            continue 'l;
-                            continue;
-                        }
-                        '}' => {
-                            ans += b_cost;
-                            continue 'l;
-                            continue;
-                        }
-                        '>' => {
-                            ans += g_cost;
-                            continue 'l;
-                            continue;
-                        }
-                        _ => panic!("invalid close char: {c}"),
-                    }
+                    ans += cost_map.get(&c).unwrap();
+                    continue 'l;
                 } else {
                     let last = stack.pop().unwrap();
-                    match c {
-                        ')' => {
-                            if last != '(' {
-                                ans += p_cost;
-                                continue 'l;
-                            }
-                        }
-                        ']' => {
-                            if last != '[' {
-                                ans += sq_cost;
-                                continue 'l;
-                            }
-                        }
-                        '}' => {
-                            if last != '{' {
-                                ans += b_cost;
-                                continue 'l;
-                            }
-                        }
-                        '>' => {
-                            if last != '<' {
-                                ans += g_cost;
-                                continue 'l;
-                            }
-                        }
-                        _ => panic!("invalid close char: {c}"),
+                    if *open_close_map.get(&last).unwrap() != c {
+                        ans += cost_map.get(&c).unwrap();
+                        continue 'l;
                     }
                 }
             }
@@ -86,10 +51,12 @@ fn part1(input: String) -> String {
 }
 
 fn part2(input: String) -> String {
-    let p_cost = 3;
-    let sq_cost = 57;
-    let b_cost = 1197;
-    let g_cost = 25137;
+    let open_close_map = HashMap::from([
+        ('(', ')'),
+        ('[', ']'),
+        ('{', '}'),
+        ('<', '>'),
+    ]);
 
     let mut incomplete_lines = vec![];
     'l: for line in input.lines() {
@@ -98,46 +65,10 @@ fn part2(input: String) -> String {
             if is_open(c) {
                 stack.push(c);
             } else {
-                if stack.is_empty() {
-                    match c {
-                        ')' => {
-                            continue 'l;
-                        }
-                        ']' => {
-                            continue 'l;
-                        }
-                        '}' => {
-                            continue 'l;
-                        }
-                        '>' => {
-                            continue 'l;
-                        }
-                        _ => panic!("invalid close char: {c}"),
-                    }
-                } else {
+                if !stack.is_empty() {
                     let last = stack.pop().unwrap();
-                    match c {
-                        ')' => {
-                            if last != '(' {
-                                continue 'l;
-                            }
-                        }
-                        ']' => {
-                            if last != '[' {
-                                continue 'l;
-                            }
-                        }
-                        '}' => {
-                            if last != '{' {
-                                continue 'l;
-                            }
-                        }
-                        '>' => {
-                            if last != '<' {
-                                continue 'l;
-                            }
-                        }
-                        _ => panic!("invalid close char: {c}"),
+                    if *open_close_map.get(&last).unwrap() != c {
+                        continue 'l;
                     }
                 }
             }
@@ -145,11 +76,12 @@ fn part2(input: String) -> String {
         incomplete_lines.push(line);
     }
 
-    let mut map = HashMap::new();
-    map.insert('(', 1);
-    map.insert('[', 2);
-    map.insert('{', 3);
-    map.insert('<', 4);
+    let mut map = HashMap::from([
+        ('(', 1),
+        ('[', 2),
+        ('{', 3),
+        ('<', 4),
+    ]);
 
     let mut scores: Vec<u64> = vec![];
     for line in incomplete_lines {
