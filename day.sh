@@ -3,7 +3,7 @@
 # $1 day
 # $2 year
 
-echo "mod day${1};" > "src/y${2}/mod.rs"
+echo "mod day${1};" > "src/y${2}.rs"
 
 touch inputs/$2/day$1.txt inputs/$2/day$1-sample.txt
 
