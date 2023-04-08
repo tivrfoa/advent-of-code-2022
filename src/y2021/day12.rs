@@ -52,24 +52,15 @@ fn visit<'a>(caves: &HashMap<&'a str, Cave<'a>>, key: &str, prev: &str,
 }
 
 fn visit2<'a>(caves: &HashMap<&'a str, Cave<'a>>, key: &str, prev: &str,
-        visited: &mut HashMap<&'a str, u8>, has_two: bool, paths: &mut HashSet<String>,
-        curr_path: &String) -> u32 {
+        visited: &mut HashMap<&'a str, u8>, has_two: bool, curr_path: &String) -> u32 {
     let cave = caves.get(key).unwrap();
-    //println!("Curr path: {curr_path}");
-    //if paths.len() > 50 {
-    //    panic!("too much");
-    //}
-    //if curr_path == "startAcAb" {
-    //    println!("debug here");
-    //}
-
-    let mut new_path: String = curr_path.clone();
+    let mut new_path = curr_path.clone();
     new_path.push_str(key);
+    println!("New path: {}", new_path);
 
-    if paths.contains(&new_path) {
-        return 0;
+    if new_path == "startbd" {
+        println!("..");
     }
-    paths.insert(new_path.clone());
 
     let mut qt_paths = 0;
     for conn in &cave.connections {
@@ -93,11 +84,13 @@ fn visit2<'a>(caves: &HashMap<&'a str, Cave<'a>>, key: &str, prev: &str,
         if is_conn_small {
             match visited.get_mut(conn) {
                 Some(qt) => {
-                    if *qt != 0 && next_two {
+                    if *qt > 0 && next_two {
                         continue;
                     }
                     *qt += 1;
-                    next_two = true;
+                    if *qt == 2 {
+                        next_two = true;
+                    }
                 }
                 None => {
                     visited.insert(conn, 1);
@@ -105,7 +98,7 @@ fn visit2<'a>(caves: &HashMap<&'a str, Cave<'a>>, key: &str, prev: &str,
             }
         }
 
-        qt_paths += visit2(caves, conn, key, visited, next_two, paths, &new_path);
+        qt_paths += visit2(caves, conn, key, visited, next_two, &new_path);
         if let Some(qt) = visited.get_mut(conn) {
             *qt -= 1;
         }
@@ -154,7 +147,7 @@ fn part2(input: String) -> String {
         right.add_conn(tmp.0);
     }
 
-    visit2(&caves, "start", "start", &mut HashMap::new(), false, &mut HashSet::new(), &String::new()).to_string()
+    visit2(&caves, "start", "start", &mut HashMap::new(), false, &String::new()).to_string()
 }
 
 #[allow(dead_code)]
@@ -263,12 +256,12 @@ mod tests {
     #[test]
     fn p2s() {
         let input = util::read_file("inputs/2021/day12-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("36", part2(input));
     }
 
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2021/day12.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("117095", part2(input));
     }
 }
