@@ -105,25 +105,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn part1_sample() {
+    fn p1s() {
         let input = util::read_file("inputs/dayX-sample.txt");
         assert_eq!("", part1(input));
     }
 
     #[test]
-    fn part1_input() {
+    fn p1() {
         let input = util::read_file("inputs/dayX.txt");
         assert_eq!("", part1(input));
     }
 
     #[test]
-    fn part2_sample() {
+    fn p2s() {
         let input = util::read_file("inputs/dayX-sample.txt");
         assert_eq!("", part2(input));
     }
 
     #[test]
-    fn part2_input() {
+    fn p2() {
         let input = util::read_file("inputs/dayX.txt");
         assert_eq!("", part2(input));
     }
