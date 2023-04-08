@@ -52,15 +52,8 @@ fn visit<'a>(caves: &HashMap<&'a str, Cave<'a>>, key: &str, prev: &str,
 }
 
 fn visit2<'a>(caves: &HashMap<&'a str, Cave<'a>>, key: &str, prev: &str,
-        visited: &mut HashMap<&'a str, u8>, has_two: bool, curr_path: &String) -> u32 {
+        visited: &mut HashMap<&'a str, u8>, has_two: bool) -> u32 {
     let cave = caves.get(key).unwrap();
-    let mut new_path = curr_path.clone();
-    new_path.push_str(key);
-    println!("New path: {}", new_path);
-
-    if new_path == "startbd" {
-        println!("..");
-    }
 
     let mut qt_paths = 0;
     for conn in &cave.connections {
@@ -98,7 +91,7 @@ fn visit2<'a>(caves: &HashMap<&'a str, Cave<'a>>, key: &str, prev: &str,
             }
         }
 
-        qt_paths += visit2(caves, conn, key, visited, next_two, &new_path);
+        qt_paths += visit2(caves, conn, key, visited, next_two);
         if let Some(qt) = visited.get_mut(conn) {
             *qt -= 1;
         }
@@ -147,7 +140,7 @@ fn part2(input: String) -> String {
         right.add_conn(tmp.0);
     }
 
-    visit2(&caves, "start", "start", &mut HashMap::new(), false, &String::new()).to_string()
+    visit2(&caves, "start", "start", &mut HashMap::new(), false).to_string()
 }
 
 #[allow(dead_code)]
