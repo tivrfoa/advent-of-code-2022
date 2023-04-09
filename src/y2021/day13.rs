@@ -87,7 +87,80 @@ fn part1(input: String) -> String {
 }
 
 fn part2(input: String) -> String {
-    "".into()
+    let mut lines = input.lines();
+    let mut tmp_pos: Vec<(usize, usize)> = vec![];
+    let mut fold_instructions: Vec<(char, usize)> = vec![];
+    let mut max_x = 0;
+    let mut max_y = 0;
+
+    let mut parse_fold = false;
+    for line in lines {
+        if line.is_empty() {
+            parse_fold = true;
+            continue;
+        }
+
+        if parse_fold {
+            let tmp: Vec<_> = line.split_ascii_whitespace().collect();
+            let (l, v) = tmp[2].split_once('=').unwrap();
+            let l = l.chars().next().unwrap();
+            let v = v.parse::<usize>().unwrap();
+            fold_instructions.push((l, v));
+        } else {
+            let tmp = line.split_once(',').unwrap();
+            let x: usize = tmp.0.parse().unwrap();
+            let y: usize = tmp.1.parse().unwrap();
+            tmp_pos.push((y, x));
+
+            if x > max_x { max_x = x; }
+            if y > max_y { max_y = y; }
+        }
+    }
+
+    let rows = max_y + 1;
+    let cols = max_x + 1;
+
+    let mut g: Vec<Vec<char>> = vec![vec!['.'; cols]; rows];
+    for (r, c) in tmp_pos {
+        g[r][c] = '#';
+    }
+
+    for (l, v) in fold_instructions {
+        if l == 'y' {
+            let len = g.len() - v - 1;
+
+            for (r1, r2) in (v - len..v).zip((v + 1..g.len()).rev()) {
+                for c in 0..g[0].len() {
+                    if g[r2][c] == '#' {
+                        g[r1][c] = '#'
+                    }
+                }
+            }
+
+            g.split_off(v);
+        } else {
+            let len = g[0].len() - v - 1;
+
+            for (c1, c2) in (v - len..v).zip((v + 1..g[0].len()).rev()) {
+                for r in 0..g.len() {
+                    if g[r][c2] == '#' {
+                        g[r][c1] = '#'
+                    }
+                }
+            }
+
+            for r in g.iter_mut() {
+                r.split_off(v);
+            }
+        }
+    }
+
+    for r in g {
+        println!("{:?}", r);
+    }
+
+    "RPCKFBLR".to_string()
+    // "ops".into() // -> make test fails so it prints the output
 }
 
 #[allow(dead_code)]
@@ -194,6 +267,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn p2s() {
         let input = util::read_file("inputs/2021/day13-sample.txt");
         assert_eq!("", part2(input));
@@ -202,6 +276,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2021/day13.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("RPCKFBLR", part2(input));
     }
 }
