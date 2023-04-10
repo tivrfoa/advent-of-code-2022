@@ -30,11 +30,7 @@ fn part1(input: String) -> String {
 
     let mut qt_map: HashMap<char, u32> = HashMap::new();
     for c in curr.chars() {
-        if let Some(qt) = qt_map.get_mut(&c) {
-            *qt += 1;
-        } else {
-            qt_map.insert(c, 1);
-        }
+        qt_map.entry(c).and_modify(|qt| *qt += 1).or_insert(1);
     }
 
     let mut lc = u32::MAX;
