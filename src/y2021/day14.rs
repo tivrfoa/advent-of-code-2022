@@ -48,7 +48,45 @@ fn part1(input: String) -> String {
 }
 
 fn part2(input: String) -> String {
-    "".into()
+    let polymer_template = input.lines().next().unwrap();
+    let mut map: HashMap<&str, &str> = HashMap::new();
+
+    for line in input.lines().skip(2) {
+        let tmp = line.split_once(" -> ").unwrap();
+        map.insert(tmp.0, tmp.1);
+    }
+
+    let mut curr: String = polymer_template.into();
+
+    // println!("Template: {}", curr);
+    for i in 1..=40 {
+        let mut new_str = String::with_capacity(curr.len() * 2);
+        for i in 0..curr.len() - 1 {
+            new_str.push_str(&curr[i..i+1]);
+            new_str.push_str(map.get(&curr[i..i+2]).unwrap());
+        }
+        new_str.push_str(&curr[curr.len()-1..]);
+        curr = new_str;
+        // println!("After step {}: {}", i, curr);
+    }
+
+    let mut qt_map: HashMap<char, u64> = HashMap::new();
+    for c in curr.chars() {
+        qt_map.entry(c).and_modify(|qt| *qt += 1).or_insert(1);
+    }
+
+    let mut lc = u64::MAX;
+    let mut mc = 0;
+    for (_, v) in qt_map {
+        if v < lc {
+            lc = v;
+        }
+        if v > mc {
+            mc = v;
+        }
+    }
+
+    (mc - lc).to_string()
 }
 
 #[allow(dead_code)]
