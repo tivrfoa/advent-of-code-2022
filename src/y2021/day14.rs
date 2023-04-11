@@ -3,6 +3,7 @@ use crate::util;
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
+use std::hash::Hash;
 use std::iter::zip;
 
 fn part1(input: String) -> String {
@@ -82,11 +83,11 @@ fn part2(input: String) -> String {
         char_qt = HashMap::new();
         for (k, v) in pair_qt {
             let pattern = *map.get(&k).unwrap();
-            new_pair_qt.entry((k.0, pattern)).and_modify(|qt| *qt += v).or_insert(v);
-            new_pair_qt.entry((pattern, k.1)).and_modify(|qt| *qt += v).or_insert(v);
+            new_pair_qt.add_or_insert((k.0, pattern), v);
+            new_pair_qt.add_or_insert((pattern, k.1), v);
 
-            char_qt.entry(k.0).and_modify(|qt| *qt += v).or_insert(v);
-            char_qt.entry(pattern).and_modify(|qt| *qt += v).or_insert(v);
+            char_qt.add_or_insert(k.0, v);
+            char_qt.add_or_insert(pattern, v);
         }
         pair_qt = new_pair_qt;
     }
@@ -103,6 +104,18 @@ fn part2(input: String) -> String {
     }
 
     (mc - lc).to_string()
+}
+
+#[allow(dead_code)]
+trait MapAddOrInsert<K, V> {
+    fn add_or_insert(&mut self, k: K, v: V);
+}
+
+#[allow(dead_code)]
+impl<K: Eq + Hash, V: std::ops::AddAssign + Copy> MapAddOrInsert<K, V> for HashMap<K, V> {
+    fn add_or_insert(&mut self, k: K, v: V) {
+        self.entry(k).and_modify(|qt| *qt += v).or_insert(v);
+    }
 }
 
 #[allow(dead_code)]

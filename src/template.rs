@@ -56,6 +56,23 @@ where
 }
 
 #[allow(dead_code)]
+fn str_to_char_tuple(s: &str) -> (char, char) {
+    (s[0..1].chars().next().unwrap(), s[1..2].chars().next().unwrap())
+}
+
+#[allow(dead_code)]
+trait MapAddOrInsert<K, V> {
+    fn add_or_insert(&mut self, k: K, v: V);
+}
+
+#[allow(dead_code)]
+impl<K: Eq + Hash, V: std::ops::AddAssign + Copy> MapAddOrInsert<K, V> for HashMap<K, V> {
+    fn add_or_insert(&mut self, k: K, v: V) {
+        self.entry(k).and_modify(|qt| *qt += v).or_insert(v);
+    }
+}
+
+#[allow(dead_code)]
 fn get_dirs(r: usize, c: usize, rows: usize, cols: usize) -> [(bool, (usize, usize)); 4] {
     [
         // left
