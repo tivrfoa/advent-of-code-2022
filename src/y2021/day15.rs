@@ -16,11 +16,9 @@ fn part1(input: String) -> String {
     let len = grid.len();
 
     let mut dp: Vec<Vec<u32>> = vec![vec![0; len + 1]; len + 1];
-    for r in 0..len {
-        dp[r][len] = u32::MAX;
-    }
-    for c in 0..len {
-        dp[len][c] = u32::MAX;
+    for i in 0..len {
+        dp[i][len] = u32::MAX;
+        dp[len][i] = u32::MAX;
     }
     dp[len][len - 1] = 0;
     dp[len - 1][len] = 0;
@@ -37,8 +35,63 @@ fn part1(input: String) -> String {
     dp[0][0].to_string()
 }
 
+fn increase_grid(grid: &mut Vec<Vec<u32>>) {
+    let rows = grid.len();
+    let cols = grid[0].len();
+    // replicate 4 for times to the right, then do the same for rows
+    for i in 1..=4 {
+        for r in 0..rows {
+            for c in 0..cols {
+                let v = grid[r][c] + i;
+                grid[r].push(if v > 9 { v % 9 } else { v });
+            }
+        }
+    }
+
+    let cols = cols * 5;
+
+    for i in 1..=4 {
+        for r in 0..rows {
+            let mut row = vec![];
+            for c in 0..cols {
+                let v = grid[r][c] + i;
+                row.push(if v > 9 { v % 9 } else { v });
+            }
+            grid.push(row);
+        }
+    }
+}
+
 fn part2(input: String) -> String {
-    "".into()
+    let mut grid: Vec<Vec<u32>> = vec![];
+
+    for line in input.lines() {
+        grid.push(line.chars().map(|c| c.to_digit(10).unwrap()).collect());
+    }
+
+    increase_grid(&mut grid);
+    dbg_grid(&grid);
+
+    let len = grid.len();
+
+    let mut dp: Vec<Vec<u32>> = vec![vec![0; len + 1]; len + 1];
+    for i in 0..len {
+        dp[i][len] = u32::MAX;
+        dp[len][i] = u32::MAX;
+    }
+    dp[len][len - 1] = 0;
+    dp[len - 1][len] = 0;
+
+    // do bottom up approach
+    for r in (0..len).rev() {
+        for c in (0..len). rev() {
+            dp[r][c] = dp[r + 1][c].min(dp[r][c + 1]) + grid[r][c];
+        }
+    }
+
+    dp[0][0] -= grid[0][0];
+
+    dp[0][0].to_string()
 }
 
 #[allow(dead_code)]
@@ -164,7 +217,7 @@ mod tests {
     #[test]
     fn p2s() {
         let input = util::read_file("inputs/2021/day15-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("315", part2(input));
     }
 
     #[test]
