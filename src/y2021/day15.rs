@@ -7,7 +7,34 @@ use std::hash::Hash;
 use std::iter::zip;
 
 fn part1(input: String) -> String {
-    "".into()
+    let mut grid: Vec<Vec<u32>> = vec![];
+
+    for line in input.lines() {
+        grid.push(line.chars().map(|c| c.to_digit(10).unwrap()).collect());
+    }
+
+    let len = grid.len();
+
+    let mut dp: Vec<Vec<u32>> = vec![vec![0; len + 1]; len + 1];
+    for r in 0..len {
+        dp[r][len] = u32::MAX;
+    }
+    for c in 0..len {
+        dp[len][c] = u32::MAX;
+    }
+    dp[len][len - 1] = 0;
+    dp[len - 1][len] = 0;
+
+    // do bottom up approach
+    for r in (0..len).rev() {
+        for c in (0..len). rev() {
+            dp[r][c] = dp[r + 1][c].min(dp[r][c + 1]) + grid[r][c];
+        }
+    }
+
+    dp[0][0] -= grid[0][0];
+
+    dp[0][0].to_string()
 }
 
 fn part2(input: String) -> String {
@@ -125,13 +152,13 @@ mod tests {
     #[test]
     fn p1s() {
         let input = util::read_file("inputs/2021/day15-sample.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("40", part1(input));
     }
 
     #[test]
     fn p1() {
         let input = util::read_file("inputs/2021/day15.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("373", part1(input));
     }
 
     #[test]
