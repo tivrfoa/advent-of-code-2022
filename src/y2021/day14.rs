@@ -47,6 +47,10 @@ fn part1(input: String) -> String {
     (mc - lc).to_string()
 }
 
+fn str_to_char_tuple(s: &str) -> (char, char) {
+    (s[0..1].chars().next().unwrap(), s[1..2].chars().next().unwrap())
+}
+
 /*
 
 For part2, I copied the solution from here:
@@ -56,39 +60,32 @@ https://www.youtube.com/watch?v=TIL1JwLtIzw
 */
 fn part2(input: String) -> String {
     let polymer_template = input.lines().next().unwrap();
-    let mut map: HashMap<&str, char> = HashMap::new();
+    let mut map: HashMap<(char, char), char> = HashMap::new();
 
     for line in input.lines().skip(2) {
         let tmp = line.split_once(" -> ").unwrap();
-        map.insert(tmp.0, tmp.1.chars().next().unwrap());
+        map.insert(str_to_char_tuple(tmp.0), tmp.1.chars().next().unwrap());
     }
-    dbg!(&map);
 
-    let mut pair_qt: HashMap<String, u64> = HashMap::new();
+    let mut pair_qt: HashMap<(char, char), u64> = HashMap::new();
     for i in 0..polymer_template.len() - 1 {
         pair_qt
-            .entry(polymer_template[i..=i + 1].into())
+            .entry(str_to_char_tuple(&polymer_template[i..i+2]))
             .and_modify(|qt| *qt += 1)
             .or_insert(1);
     }
-    dbg!(&pair_qt);
 
     let mut char_qt: HashMap<char, u64> = HashMap::new();
 
     for _i in 1..=40 {
-        let mut new_pair_qt: HashMap<String, u64> = HashMap::with_capacity(pair_qt.len());
+        let mut new_pair_qt: HashMap<(char, char), u64> = HashMap::with_capacity(pair_qt.len());
         char_qt = HashMap::new();
         for (k, v) in pair_qt {
-            let pattern = *map.get(&k[..]).unwrap();
-            let mut chars = k.chars();
-            let l = chars.next().unwrap();
-            let r = chars.next().unwrap();
-            let pair_key = format!("{}{}", l, pattern);
-            new_pair_qt.entry(pair_key).and_modify(|qt| *qt += v).or_insert(v);
-            let pair_key = format!("{}{}", pattern, r);
-            new_pair_qt.entry(pair_key).and_modify(|qt| *qt += v).or_insert(v);
+            let pattern = *map.get(&k).unwrap();
+            new_pair_qt.entry((k.0, pattern)).and_modify(|qt| *qt += v).or_insert(v);
+            new_pair_qt.entry((pattern, k.1)).and_modify(|qt| *qt += v).or_insert(v);
 
-            char_qt.entry(l).and_modify(|qt| *qt += v).or_insert(v);
+            char_qt.entry(k.0).and_modify(|qt| *qt += v).or_insert(v);
             char_qt.entry(pattern).and_modify(|qt| *qt += v).or_insert(v);
         }
         pair_qt = new_pair_qt;
