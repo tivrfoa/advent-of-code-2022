@@ -1,7 +1,7 @@
 use crate::util;
 
 use std::cmp::Ordering;
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::iter::zip;
@@ -62,44 +62,23 @@ fn increase_grid(grid: &mut Vec<Vec<u32>>) {
     }
 }
 
-fn solve_p2(
-    mem_min: &mut Vec<Vec<u32>>,
-    grid: &Vec<Vec<u32>>,
-    visited: &mut Vec<Vec<bool>>,
-    curr_cost: u32,
-    r: usize,
-    c: usize,
-) -> Option<u32> {
-    if curr_cost + grid[r][c] >= mem_min[r][c] {
-        return None;
+#[derive(Clone, Eq, PartialEq)]
+struct State {
+    visited: Vec<Vec<bool>>,
+    cost: u32,
+    position: (usize, usize),
+}
+
+impl Ord for State {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.cost.cmp(&self.cost)
+            .then_with(|| self.position.cmp(&other.position))
     }
-    mem_min[r][c] = curr_cost + grid[r][c];
+}
 
-    let rows = grid.len();
-    let cols = rows;
-
-    if r == rows - 1 && c == cols - 1 {
-        return Some(mem_min[r][c]);
-    }
-
-    let mut min = u32::MAX;
-
-    for (cond, (row, col)) in get_dirs(r, c, rows, cols) {
-        if cond && !visited[row][col] {
-            visited[row][col] = true;
-            if let Some(v) = solve_p2(mem_min, grid, visited, mem_min[r][c], row, col) {
-                if v < min {
-                    min = v;
-                }
-            }
-            visited[row][col] = false;
-        }
-    }
-
-    if min == u32::MAX {
-        None
-    } else {
-        Some(min)
+impl PartialOrd for State {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
@@ -117,17 +96,46 @@ fn part2(input: String) -> String {
     increase_grid(&mut grid);
 
     let len = grid.len();
+    let rows = len;
+    let cols = len;
 
-    let mut mem_min: Vec<Vec<u32>> = vec![vec![u32::MAX; len]; len];
+    let mut memo: Vec<Vec<u32>> = vec![vec![u32::MAX; len]; len];
     let mut visited: Vec<Vec<bool>> = vec![vec![false; len]; len];
     visited[0][0] = true;
 
-    let min = solve_p2(&mut mem_min, &grid, &mut visited, 0, 0, 0)
-        .unwrap();
+    let mut heap: BinaryHeap<State> = BinaryHeap::new();
+    let start = State {
+        visited,
+        cost: 0,
+        position: (0, 0),
+    };
+    heap.push(start);
+    let mut min = u32::MAX;
 
-    dbg!(mem_min[len - 1][len - 1]);
+    while let Some(state) = heap.pop() {
+        let (r, c) = state.position;
+        if r == rows - 1 && c == cols - 1 {
+            if memo[r][c] < min {
+                min = memo[r][c];
+            }
+            continue;
+        }
 
-    (min - grid[0][0]).to_string()
+        for (cond, (row, col)) in get_dirs(r, c, rows, cols) {
+            if cond && !state.visited[row][col] && state.cost + grid[row][col] < memo[row][col]  {
+                memo[row][col] = state.cost + grid[row][col];
+                let mut new_state = state.clone();
+                new_state.visited[row][col] = true;
+                new_state.cost = memo[row][col];
+                new_state.position = (row, col);
+                heap.push(new_state);
+            }
+        }
+    }
+
+    dbg!(memo[len - 1][len - 1]);
+
+    min.to_string()
 }
 
 #[allow(dead_code)]
@@ -267,6 +275,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2021/day15.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("2868", part2(input));
     }
 }
