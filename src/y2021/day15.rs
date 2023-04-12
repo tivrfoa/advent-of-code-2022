@@ -38,7 +38,7 @@ fn part1(input: String) -> String {
 fn increase_grid(grid: &mut Vec<Vec<u32>>) {
     let rows = grid.len();
     let cols = grid[0].len();
-    // replicate 4 for times to the right, then do the same for rows
+    // replicate 4 times to the right, then do the same for rows
     for i in 1..=4 {
         for r in 0..rows {
             for c in 0..cols {
@@ -64,7 +64,6 @@ fn increase_grid(grid: &mut Vec<Vec<u32>>) {
 
 #[derive(Clone, Eq, PartialEq)]
 struct State {
-    visited: Vec<Vec<bool>>,
     cost: u32,
     position: (usize, usize),
 }
@@ -100,12 +99,9 @@ fn part2(input: String) -> String {
     let cols = len;
 
     let mut memo: Vec<Vec<u32>> = vec![vec![u32::MAX; len]; len];
-    let mut visited: Vec<Vec<bool>> = vec![vec![false; len]; len];
-    visited[0][0] = true;
 
     let mut heap: BinaryHeap<State> = BinaryHeap::new();
     let start = State {
-        visited,
         cost: 0,
         position: (0, 0),
     };
@@ -122,10 +118,9 @@ fn part2(input: String) -> String {
         }
 
         for (cond, (row, col)) in get_dirs(r, c, rows, cols) {
-            if cond && !state.visited[row][col] && state.cost + grid[row][col] < memo[row][col]  {
+            if cond && state.cost + grid[row][col] < memo[row][col]  {
                 memo[row][col] = state.cost + grid[row][col];
                 let mut new_state = state.clone();
-                new_state.visited[row][col] = true;
                 new_state.cost = memo[row][col];
                 new_state.position = (row, col);
                 heap.push(new_state);
