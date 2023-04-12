@@ -35,33 +35,6 @@ fn part1(input: String) -> String {
     dp[0][0].to_string()
 }
 
-fn increase_grid(grid: &mut Vec<Vec<u32>>) {
-    let rows = grid.len();
-    let cols = grid[0].len();
-    // replicate 4 times to the right, then do the same for rows
-    for i in 1..=4 {
-        for r in 0..rows {
-            for c in 0..cols {
-                let v = grid[r][c] + i;
-                grid[r].push(if v > 9 { v % 9 } else { v });
-            }
-        }
-    }
-
-    let cols = cols * 5;
-
-    for i in 1..=4 {
-        for r in 0..rows {
-            let mut row = vec![];
-            for c in 0..cols {
-                let v = grid[r][c] + i;
-                row.push(if v > 9 { v % 9 } else { v });
-            }
-            grid.push(row);
-        }
-    }
-}
-
 #[derive(Clone, Eq, PartialEq)]
 struct State {
     cost: u32,
@@ -92,13 +65,11 @@ fn part2(input: String) -> String {
         );
     }
 
-    increase_grid(&mut grid);
-
     let len = grid.len();
-    let rows = len;
-    let cols = len;
+    let rows = len * 5;
+    let cols = len * 5;
 
-    let mut memo: Vec<Vec<u32>> = vec![vec![u32::MAX; len]; len];
+    let mut memo: Vec<Vec<u32>> = vec![vec![u32::MAX; cols]; rows];
 
     let mut heap: BinaryHeap<State> = BinaryHeap::new();
     let start = State {
@@ -118,8 +89,12 @@ fn part2(input: String) -> String {
         }
 
         for (cond, (row, col)) in get_dirs(r, c, rows, cols) {
-            if cond && state.cost + grid[row][col] < memo[row][col]  {
-                memo[row][col] = state.cost + grid[row][col];
+            let mut v = grid[row % len][col % len] + (row / len + col / len) as u32;
+            while v > 9 {
+                v -= 9;
+            }
+            if cond && state.cost + v < memo[row][col]  {
+                memo[row][col] = state.cost + v;
                 let mut new_state = state.clone();
                 new_state.cost = memo[row][col];
                 new_state.position = (row, col);
@@ -243,6 +218,34 @@ fn get_dirs_with_diagonals(
         // bottom right
         (r < rows - 1 && c < cols - 1, (r + 1, c + 1)),
     ]
+}
+
+#[allow(dead_code)]
+fn increase_grid(grid: &mut Vec<Vec<u32>>) {
+    let rows = grid.len();
+    let cols = grid[0].len();
+    // replicate 4 times to the right, then do the same for rows
+    for i in 1..=4 {
+        for r in 0..rows {
+            for c in 0..cols {
+                let v = grid[r][c] + i;
+                grid[r].push(if v > 9 { v % 9 } else { v });
+            }
+        }
+    }
+
+    let cols = cols * 5;
+
+    for i in 1..=4 {
+        for r in 0..rows {
+            let mut row = vec![];
+            for c in 0..cols {
+                let v = grid[r][c] + i;
+                row.push(if v > 9 { v % 9 } else { v });
+            }
+            grid.push(row);
+        }
+    }
 }
 
 #[cfg(test)]
