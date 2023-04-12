@@ -1,7 +1,7 @@
 use crate::util;
 
-use std::collections::{HashMap, HashSet, VecDeque};
 use std::cmp::Ordering;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::iter::zip;
@@ -25,7 +25,7 @@ fn part1(input: String) -> String {
 
     // do bottom up approach
     for r in (0..len).rev() {
-        for c in (0..len). rev() {
+        for c in (0..len).rev() {
             dp[r][c] = dp[r + 1][c].min(dp[r][c + 1]) + grid[r][c];
         }
     }
@@ -62,36 +62,72 @@ fn increase_grid(grid: &mut Vec<Vec<u32>>) {
     }
 }
 
+fn solve_p2(
+    mem_min: &mut Vec<Vec<u32>>,
+    grid: &Vec<Vec<u32>>,
+    visited: &mut Vec<Vec<bool>>,
+    curr_cost: u32,
+    r: usize,
+    c: usize,
+) -> Option<u32> {
+    if curr_cost + grid[r][c] >= mem_min[r][c] {
+        return None;
+    }
+    mem_min[r][c] = curr_cost + grid[r][c];
+
+    let rows = grid.len();
+    let cols = rows;
+
+    if r == rows - 1 && c == cols - 1 {
+        return Some(mem_min[r][c]);
+    }
+
+    let mut min = u32::MAX;
+
+    for (cond, (row, col)) in get_dirs(r, c, rows, cols) {
+        if cond && !visited[row][col] {
+            visited[row][col] = true;
+            if let Some(v) = solve_p2(mem_min, grid, visited, mem_min[r][c], row, col) {
+                if v < min {
+                    min = v;
+                }
+            }
+            visited[row][col] = false;
+        }
+    }
+
+    if min == u32::MAX {
+        None
+    } else {
+        Some(min)
+    }
+}
+
 fn part2(input: String) -> String {
     let mut grid: Vec<Vec<u32>> = vec![];
 
     for line in input.lines() {
-        grid.push(line.chars().map(|c| c.to_digit(10).unwrap()).collect());
+        grid.push(
+            line.chars()
+                .map(|c| c.to_digit(10).unwrap() as u32)
+                .collect(),
+        );
     }
 
     increase_grid(&mut grid);
-    dbg_grid(&grid);
 
     let len = grid.len();
 
-    let mut dp: Vec<Vec<u32>> = vec![vec![0; len + 1]; len + 1];
-    for i in 0..len {
-        dp[i][len] = u32::MAX;
-        dp[len][i] = u32::MAX;
-    }
-    dp[len][len - 1] = 0;
-    dp[len - 1][len] = 0;
+    let mut mem_min: Vec<Vec<u32>> = vec![vec![u32::MAX; len]; len];
+    let mut visited: Vec<Vec<bool>> = vec![vec![false; len]; len];
+    visited[0][0] = true;
 
-    // do bottom up approach
-    for r in (0..len).rev() {
-        for c in (0..len). rev() {
-            dp[r][c] = dp[r + 1][c].min(dp[r][c + 1]) + grid[r][c];
-        }
-    }
+    let min = solve_p2(&mut mem_min, &grid, &mut visited, 0, 0, 0)
+        .unwrap();
 
-    dp[0][0] -= grid[0][0];
+    dbg!(mem_min[len - 1][len - 1]);
 
-    dp[0][0].to_string()
+    (min - grid[0][0]).to_string()
 }
 
 #[allow(dead_code)]
@@ -138,7 +174,10 @@ where
 
 #[allow(dead_code)]
 fn str_to_char_tuple(s: &str) -> (char, char) {
-    (s[0..1].chars().next().unwrap(), s[1..2].chars().next().unwrap())
+    (
+        s[0..1].chars().next().unwrap(),
+        s[1..2].chars().next().unwrap(),
+    )
 }
 
 #[allow(dead_code)]
@@ -168,7 +207,12 @@ fn get_dirs(r: usize, c: usize, rows: usize, cols: usize) -> [(bool, (usize, usi
 }
 
 #[allow(dead_code)]
-fn get_dirs_with_diagonals(r: usize, c: usize, rows: usize, cols: usize) -> [(bool, (usize, usize)); 8] {
+fn get_dirs_with_diagonals(
+    r: usize,
+    c: usize,
+    rows: usize,
+    cols: usize,
+) -> [(bool, (usize, usize)); 8] {
     [
         // left
         (c > 0, (r, if c > 0 { c - 1 } else { 0 })),
