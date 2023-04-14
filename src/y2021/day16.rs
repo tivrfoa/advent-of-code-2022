@@ -113,6 +113,16 @@ fn part2(input: &str) -> String {
     process_packet(&binary, &mut 0).to_string()
 }
 
+trait StrFromBase2ToNumber {
+    fn base2_to_usize(&self) -> usize;
+}
+
+impl StrFromBase2ToNumber for &str {
+    fn base2_to_usize(&self) -> usize {
+        usize::from_str_radix(self, 2).unwrap()
+    }
+}
+
 fn process_packet(binary: &str, pos: &mut usize) -> u64 {
     println!("Processing packet at pos: {}", *pos);
     let packet_version = to_u32(&binary[*pos..*pos+3]);
@@ -138,7 +148,7 @@ fn process_packet(binary: &str, pos: &mut usize) -> u64 {
         let mut sub_values = vec![];
         if length_type_id == "0" {
             // 15-bit number representing the number of bits in the sub-packets.
-            let subpackets_len = to_u32(&binary[*pos..*pos+15]) as usize;
+            let subpackets_len = (&binary[*pos..*pos+15]).base2_to_usize();
             *pos += 15;
             let start_pos = *pos;
             while *pos < subpackets_len + start_pos {
@@ -321,6 +331,11 @@ fn to_u32(s: &str) -> u32 {
 #[allow(dead_code)]
 fn to_u64(s: &str) -> u64 {
     u64::from_str_radix(s, 2).unwrap()
+}
+
+#[allow(dead_code)]
+fn to_usize(s: &str) -> usize {
+    usize::from_str_radix(s, 2).unwrap()
 }
 
 #[cfg(test)]
