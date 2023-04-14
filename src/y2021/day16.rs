@@ -83,8 +83,100 @@ fn part1(input: String) -> String {
     ans.to_string()
 }
 
-fn part2(input: String) -> String {
-    "".into()
+fn part2(input: &str) -> String {
+    let map: HashMap<char, &str> = HashMap::from_iter([
+    ('0', "0000"),
+    ('1', "0001"),
+    ('2', "0010"),
+    ('3', "0011"),
+    ('4', "0100"),
+    ('5', "0101"),
+    ('6', "0110"),
+    ('7', "0111"),
+    ('8', "1000"),
+    ('9', "1001"),
+    ('A', "1010"),
+    ('B', "1011"),
+    ('C', "1100"),
+    ('D', "1101"),
+    ('E', "1110"),
+    ('F', "1111"),
+    ]);
+
+    let mut binary = String::new();
+    for line in input.lines() {
+        for c in line.chars() {
+            binary.push_str(map[&c]);
+        }
+    }
+
+    process_packet(&binary, &mut 0).to_string()
+}
+
+fn process_packet(binary: &str, pos: &mut usize) -> u64 {
+    println!("Processing packet at pos: {}", *pos);
+    let packet_version = to_u32(&binary[*pos..*pos+3]);
+    *pos += 3;
+    let type_id = to_u8(&binary[*pos..*pos+3]);
+    *pos += 3;
+
+    if type_id == 4 {
+        let mut number = String::new();
+        loop {
+            number.push_str(&binary[*pos+1..*pos+5]);
+            if &binary[*pos..*pos+1] == "0" {
+                *pos += 5;
+                break;
+            }
+            *pos += 5;
+        }
+        return to_u64(&number);
+    } else {
+        let length_type_id = &binary[*pos..*pos+1];
+        *pos += 1;
+
+        let mut sub_values = vec![];
+        if length_type_id == "0" {
+            // 15-bit number representing the number of bits in the sub-packets.
+            let subpackets_len = to_u32(&binary[*pos..*pos+15]) as usize;
+            *pos += 15;
+            let start_pos = *pos;
+            while *pos < subpackets_len + start_pos {
+                sub_values.push(process_packet(binary, pos));
+            }
+        } else {
+            let qt_subpackets = to_u32(&binary[*pos..*pos+11]);
+            *pos += 11;
+            for _ in 0..qt_subpackets {
+                sub_values.push(process_packet(binary, pos));
+            }
+        }
+
+        match type_id {
+            0 => {
+                return sub_values.into_iter().sum();
+            }
+            1 => {
+                return sub_values.into_iter().product();
+            }
+            2 => {
+                return sub_values.into_iter().min().unwrap();
+            }
+            3 => {
+                return sub_values.into_iter().max().unwrap();
+            }
+            5 => {
+                return if sub_values[0] > sub_values[1] { 1 } else { 0 };
+            }
+            6 => {
+                return if sub_values[0] < sub_values[1] { 1 } else { 0 };
+            }
+            7 => {
+                return if sub_values[0] == sub_values[1] { 1 } else { 0 };
+            }
+            _ => panic!("type_id = {}", length_type_id),
+        }
+    }
 }
 
 #[allow(dead_code)]
@@ -249,13 +341,19 @@ mod tests {
 
     #[test]
     fn p2s() {
-        let input = util::read_file("inputs/2021/day16-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("3", part2("C200B40A82"));
+        assert_eq!("54", part2("04005AC33890"));
+        assert_eq!("7", part2("880086C3E88112"));
+        assert_eq!("9", part2("CE00C43D881120"));
+        assert_eq!("1", part2("D8005AC2A8F0"));
+        assert_eq!("0", part2("F600BC2D8F"));
+        assert_eq!("0", part2("9C005AC2F8F0"));
+        assert_eq!("1", part2("9C0141080250320F1802104A08"));
     }
 
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2021/day16.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("2536453523344", part2(&input));
     }
 }
