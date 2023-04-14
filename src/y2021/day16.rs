@@ -6,27 +6,7 @@ use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::iter::zip;
 
-fn to_u8(s: &str) -> u8 {
-    u8::from_str_radix(s, 2).unwrap()
-}
-
-fn to_u16(s: &str) -> u16 {
-    u16::from_str_radix(s, 2).unwrap()
-}
-
-fn to_u32(s: &str) -> u32 {
-    u32::from_str_radix(s, 2).unwrap()
-}
-
-fn to_u64(s: &str) -> u64 {
-    u64::from_str_radix(s, 2).unwrap()
-}
-
 fn part1(input: String) -> String {
-    //let test1 = "";
-    //let test2 = "38006F45291200";
-    //let test3 = "EE00D40C823060";
-    //let input = test2;
     let map: HashMap<char, &str> = HashMap::from_iter([
     ('0', "0000"),
     ('1', "0001"),
@@ -53,22 +33,28 @@ fn part1(input: String) -> String {
             binary.push_str(map[&c]);
         }
     }
-    // dbg!(binary);
+
+    // check where zero starts at the end
+    let zeros_start_pos = {
+        let mut qt = 0;
+        for c in binary.chars().rev() {
+            if c != '0' { break; }
+            qt += 1;
+        }
+        binary.len() - qt
+    };
 
     let len = binary.len();
     let mut pos = 0;
-
     let mut ans = 0;
+
     'outer:
-    while pos < len {
-        if  pos + 3 >= len { break; }
+    while pos < zeros_start_pos {
         let packet_version = to_u32(&binary[pos..pos+3]);
         ans += packet_version;
         pos += 3;
-        if  pos + 3 >= len { break; }
         let packet_id = to_u8(&binary[pos..pos+3]);
         pos += 3;
-        dbg!(packet_version, packet_id);
 
         if packet_id == 4 {
             let mut number = String::new();
@@ -80,21 +66,15 @@ fn part1(input: String) -> String {
                 }
                 pos += 5;
             }
-            dbg!(&number);
-            dbg!(to_u64(&number));
         } else {
-            if  pos + 1 >= len { break 'outer; }
             let type_id = &binary[pos..pos+1];
             pos += 1;
             if type_id == "0" {
-                if  pos + 15 >= len { break 'outer; }
                 // 15-bit number representing the number of bits in the sub-packets.
                 let subpackets_len = to_u32(&binary[pos..pos+15]);
-                dbg!(subpackets_len);
                 pos += 15;
             } else {
                 let qt_subpackets = to_u32(&binary[pos..pos+11]);
-                dbg!(qt_subpackets);
                 pos += 11;
             }
         }
@@ -229,6 +209,26 @@ impl PartialOrd for State {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
+}
+
+#[allow(dead_code)]
+fn to_u8(s: &str) -> u8 {
+    u8::from_str_radix(s, 2).unwrap()
+}
+
+#[allow(dead_code)]
+fn to_u16(s: &str) -> u16 {
+    u16::from_str_radix(s, 2).unwrap()
+}
+
+#[allow(dead_code)]
+fn to_u32(s: &str) -> u32 {
+    u32::from_str_radix(s, 2).unwrap()
+}
+
+#[allow(dead_code)]
+fn to_u64(s: &str) -> u64 {
+    u64::from_str_radix(s, 2).unwrap()
 }
 
 #[cfg(test)]
