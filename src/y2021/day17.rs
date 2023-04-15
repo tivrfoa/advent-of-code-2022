@@ -44,6 +44,10 @@ fn simulate(target: &Target, mut vx: i64, mut vy: i64) -> i64 {
             return max_y;
         }
 
+        if x > target.x.1 || y < target.y.0 {
+            return -1;
+        }
+
         vx -= if vx == 0 { 0 } else { 1 };
         vy -= 1;
     }
@@ -59,7 +63,7 @@ fn part1(min_x: i64, max_x: i64, min_y: i64, max_y: i64) -> String {
 
     let mut best = 0;
 
-    for vx in -1200..=1200 {
+    for vx in 0..=1200 {
         for vy in -1200..=1200 {
             let sim = simulate(&target, vx, vy);
             best = best.max(sim);
@@ -77,7 +81,7 @@ fn part2(min_x: i64, max_x: i64, min_y: i64, max_y: i64) -> String {
 
     let mut count = 0;
 
-    for vx in -1200..=1200 {
+    for vx in 0..=1200 {
         for vy in -1200..=1200 {
             let sim = simulate(&target, vx, vy);
             count += if sim >= 0 { 1 } else { 0 };
