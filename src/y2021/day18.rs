@@ -41,7 +41,6 @@ fn find_close(s: &str) -> usize {
 }
 
 impl Pair {
-    
     fn parse(s: &str) -> Pair {
         assert!(&s[0..1] == "[");
         Pair::parse_helper(&s[1..])
@@ -151,18 +150,145 @@ use Pair::*;
 
 fn part1(input: String) -> String {
 
-    let np = NumberPair(1, Box::new(NumberNumber(1, 2)));
-    dbg!(np);
+    //let np = NumberPair(1, Box::new(NumberNumber(1, 2)));
+    //dbg!(np);
 
-    dbg!(Pair::parse("[4,5]")); // ok
-    dbg!(Pair::parse("[3,[4,5]]")); // ok
-    dbg!(Pair::parse("[[3,4],5]")); // ok
-    dbg!(Pair::parse("[[3,4],[4,5]]")); // ok
-    dbg!(Pair::parse("[[[9,[3,8]],[[0,9],6]],[[[3,7],[4,9]],3]]")); // ok
-    dbg!(Pair::parse("[[[[1,3],[5,3]],[[1,3],[8,7]]],[[[4,9],[6,9]],[[8,2],[7,3]]]]")); // ok
+    //dbg!(Pair::parse("[4,5]")); // ok
+    //dbg!(Pair::parse("[3,[4,5]]")); // ok
+    //dbg!(Pair::parse("[[3,4],5]")); // ok
+    //dbg!(Pair::parse("[[3,4],[4,5]]")); // ok
+    //dbg!(Pair::parse("[[[9,[3,8]],[[0,9],6]],[[[3,7],[4,9]],3]]")); // ok
+    //dbg!(Pair::parse("[[[[1,3],[5,3]],[[1,3],[8,7]]],[[[4,9],[6,9]],[[8,2],[7,3]]]]")); // ok
 
+    // I guess the current Pair enum is really hard to work with
+    // Maybe it's simple to just work on the strings!
+
+    let mut lines: Vec<String> = input.lines().map(|l| l.to_string()).collect();
+
+    while lines.len() > 1 {
+        let mut new_line = add_lines(&lines[0], &lines[1]);
+        loop {
+            let tmp = explode(&new_line);
+            if tmp != new_line {
+                new_line = tmp;
+                continue;
+            }
+            let tmp = split(&new_line);
+            if tmp == new_line {
+                break;
+            }
+            new_line = tmp;
+        }
+
+        lines.remove(1);
+        lines[0] = new_line;
+    }
+
+    dbg!(&lines[0]);
 
     "1".into()
+}
+
+fn add_lines(s1: &str, s2: &str) -> String {
+    let mut ret = String::new();
+    ret.push('[');
+    ret.push_str(s1);
+    ret.push(',');
+    ret.push_str(s2);
+    ret.push(']');
+
+    ret
+}
+
+fn split(s: &str) -> String {
+    todo!()
+}
+
+fn explode(s: &str) -> String {
+    eprintln!("input to explode: {}", s);
+    let mut qt = 0;
+    let mut ret = String::new();
+
+    for (i, c) in s.chars().enumerate() {
+        if c == '[' {
+            if qt == 4 {
+                let mut close = find_close(&s[i..]);
+                let left_num: u32 = (&s[i+1..i+2]).parse().unwrap();
+                let right_num: u32 = (&s[i+3..i+4]).parse().unwrap();
+
+                // TODO: add numbers
+
+                ret.push_str(&s[0..i]);
+                ret.push('0');
+                ret.push_str(&s[i+close+1..]);
+
+                //panic!("{}", ret);
+                eprintln!("exploded........: {}", ret);
+
+                let chars: Vec<char> = ret.chars().collect();
+
+                // adding left
+                // find last number before i, if any
+                let mut vl = 0;
+                for l in (0..i).rev() {
+                    let c = chars[l];
+                    if c >= '0' && c <= '9' {
+                        if chars[l+1].is_digit(10) {
+                            vl = c.to_digit(10).unwrap() * 10;
+                            vl += chars[l+1].to_digit(10).unwrap();
+                            vl += left_num;
+                        } else {
+                            vl = c.to_digit(10).unwrap() + left_num;
+                        }
+                        let mut tmp = String::new();
+                        tmp.push_str(&ret[0..l]);
+                        tmp.push_str(&vl.to_string());
+                        tmp.push_str(&ret[l+1..]);
+                        ret = tmp;
+                        break;
+                    }
+                }
+
+                if vl > 9 {
+                    close += 1;
+                }
+
+                // adding right
+                // find first number after close, if any
+                for l in i+close..ret.len() {
+                    let c = chars[l];
+                    if c >= '0' && c <= '9' {
+                        if chars[l+1].is_digit(10) {
+                            vl = c.to_digit(10).unwrap() * 10;
+                            vl += chars[l+1].to_digit(10).unwrap();
+                            vl += right_num;
+                        } else {
+                            vl = c.to_digit(10).unwrap() + right_num;
+                        }
+                        let mut tmp = String::new();
+                        tmp.push_str(&ret[0..l]);
+                        tmp.push_str(&vl.to_string());
+                        tmp.push_str(&ret[l+1..]);
+                        ret = tmp;
+                        break;
+                    }
+                }
+
+                eprintln!("after adding....: {}", ret);
+
+                break;
+            }
+            qt += 1;
+        } else if c == ']' {
+            qt -= 1;
+        }
+    }
+
+    if !ret.is_empty() {
+        ret
+    } else {
+        s.into()
+    }
 }
 
 fn part2(input: String) -> String {
@@ -300,7 +426,7 @@ mod tests {
     #[test]
     fn p1s() {
         let input = util::read_file("inputs/2021/day18-sample.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("4140", part1(input));
     }
 
     #[test]
