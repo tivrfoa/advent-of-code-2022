@@ -8,107 +8,83 @@ use std::iter::zip;
 
 /*
 
+Solution copied from Neal Wu:
+https://www.youtube.com/watch?v=iXt1hRdQrHE
 
-probe with any integer velocity in the x (forward) and
-y (upward, or downward if negative)
-
-(x, y)
-
-target area: x=20..30, y=-10..-5
-
-1) 7, 2
-
-x postion after each step:
-
-7 + 6 + 5 + 4 = 22
-
-y position after each step:
-
-2 + 1 + 0 + -1 = 2
-
-2 + 1 + 0 + -1 + -2 + -3 = -3
-
-2 + 1 + 0 + -1 + -2 + -3 + -4 = -7 -> you need 7 steps
-
-2 + 1 + 0 + -1 + -2 + -3 + -4 + -5 = -12 -> outside target area
-
-for y, we just need to make sure that it goes down on time.
-
-Why can't y be huge value? Because it would pass through the target area.
-
-Maybe one approach:
-  1. find x velocities range that reach the target, and store at which step
-  that's going to happen.
-  2. check highest y possible after that many steps.
-
-I can do binary search to find an x that goes into the target area
-
-
-1) 6, 2
-
-6 + 5 + 4 + 3 + 2 + 1 = 21 in 6 steps
-
-y:
-0 -> 2 -> 3 -> 3 -> 2 -> 0 -> -3 -> -7
 */
 
-fn calc_y_pos_after_n_steps(mut y: i32, steps: u32) -> i32 {
-    let mut dest = 0;
-    for _ in 0..steps {
-        dest += y;
-        y -= 1;
+/// @return -1 or 0 or 1
+fn sign(x: i64) -> i64 {
+    if x > 0 {
+        1
+    } else if x < 0 {
+        -1
+    } else {
+        0
     }
-    dest
 }
 
-fn part1(min_x: u32, max_x: u32, min_y: i32, max_y: i32) -> String {
-    let mut lo = 1;
-    let mut hi = max_x;
-    while util::sum_of_consecutive_numbers(1, lo) < min_x {
-        lo += 1;
-    }
-    while util::sum_of_consecutive_numbers(1, hi) > max_x {
-        hi -= 1;
-    }
-    dbg!(lo, hi);
+const STEPS: u16 = 1_000;
 
-    let mut steps = lo;
-    let mut y = 300;
-    let mut ans = 0;
-
-    loop {
-        let y_dest = calc_y_pos_after_n_steps(y, steps);
-        println!("y {} after {} steps -> {}", y, steps, y_dest);
-        if y_dest >= min_y && y_dest <= max_y {
-            println!("It found an possible answer: {}", y);
-            if y > ans {
-                ans = y;
-            }
-            y = 100;
-            steps += 1;
-            continue;
-        } else {
-            if y_dest < min_y {
-                steps += 1;
-                y = 100;
-                continue;
-            }
-        }
-        y -= 1;
-        if y == 0 {
-            steps += 1;
-            y = 100;
-        }
-        if steps > hi {
-            break;
-        }
-    }
-
-    ans.to_string()
+struct Target {
+    x: (i64, i64),
+    y: (i64, i64),
 }
 
-fn part2(input: String) -> String {
-    "".into()
+fn simulate(target: &Target, mut vx: i64, mut vy: i64) -> i64 {
+    let (mut x, mut y) = (0, 0);
+    let mut max_y = 0;
+
+    for _ in 0..STEPS {
+        x += vx;
+        y += vy;
+        max_y = max_y.max(y);
+
+        if target.x.0 <= x && x <= target.x.1 && target.y.0 <= y && y <= target.y.1 {
+            return max_y;
+        }
+
+        vx -= if vx == 0 { 0 } else { 1 };
+        vy -= 1;
+    }
+
+    -1
+}
+
+fn part1(min_x: i64, max_x: i64, min_y: i64, max_y: i64) -> String {
+    let target = Target {
+        x: (min_x, max_x),
+        y: (min_y, max_y),
+    };
+
+    let mut best = 0;
+
+    for vx in -1200..=1200 {
+        for vy in -1200..=1200 {
+            let sim = simulate(&target, vx, vy);
+            best = best.max(sim);
+        }
+    }
+
+    best.to_string()
+}
+
+fn part2(min_x: i64, max_x: i64, min_y: i64, max_y: i64) -> String {
+    let target = Target {
+        x: (min_x, max_x),
+        y: (min_y, max_y),
+    };
+
+    let mut count = 0;
+
+    for vx in -1200..=1200 {
+        for vy in -1200..=1200 {
+            let sim = simulate(&target, vx, vy);
+            count += if sim >= 0 { 1 } else { 0 };
+        }
+    }
+
+    count.to_string()
 }
 
 #[allow(dead_code)]
@@ -155,7 +131,10 @@ where
 
 #[allow(dead_code)]
 fn str_to_char_tuple(s: &str) -> (char, char) {
-    (s[0..1].chars().next().unwrap(), s[1..2].chars().next().unwrap())
+    (
+        s[0..1].chars().next().unwrap(),
+        s[1..2].chars().next().unwrap(),
+    )
 }
 
 #[allow(dead_code)]
@@ -185,7 +164,12 @@ fn get_dirs(r: usize, c: usize, rows: usize, cols: usize) -> [(bool, (usize, usi
 }
 
 #[allow(dead_code)]
-fn get_dirs_with_diagonals(r: usize, c: usize, rows: usize, cols: usize) -> [(bool, (usize, usize)); 8] {
+fn get_dirs_with_diagonals(
+    r: usize,
+    c: usize,
+    rows: usize,
+    cols: usize,
+) -> [(bool, (usize, usize)); 8] {
     [
         // left
         (c > 0, (r, if c > 0 { c - 1 } else { 0 })),
@@ -224,7 +208,9 @@ struct State {
 
 impl Ord for State {
     fn cmp(&self, other: &Self) -> Ordering {
-        other.cost.cmp(&self.cost)
+        other
+            .cost
+            .cmp(&self.cost)
             .then_with(|| self.position.cmp(&other.position))
     }
 }
@@ -241,25 +227,21 @@ mod tests {
 
     #[test]
     fn p1s() {
-        // let input = util::read_file("inputs/2021/day17-sample.txt");
-        assert_eq!("9", part1(20, 30, -10, -5));
+        assert_eq!("45", part1(20, 30, -10, -5));
     }
 
     #[test]
     fn p1() {
-        // let input = util::read_file("inputs/2021/day17.txt");
-        assert_eq!("", part1(119, 176, -141, -84));
+        assert_eq!("9870", part1(119, 176, -141, -84));
     }
 
     #[test]
     fn p2s() {
-        let input = util::read_file("inputs/2021/day17-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("112", part2(20, 30, -10, -5));
     }
 
     #[test]
     fn p2() {
-        let input = util::read_file("inputs/2021/day17.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("5523", part2(119, 176, -141, -84));
     }
 }
