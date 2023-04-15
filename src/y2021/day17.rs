@@ -13,19 +13,6 @@ https://www.youtube.com/watch?v=iXt1hRdQrHE
 
 */
 
-/// @return -1 or 0 or 1
-fn sign(x: i64) -> i64 {
-    if x > 0 {
-        1
-    } else if x < 0 {
-        -1
-    } else {
-        0
-    }
-}
-
-const STEPS: u16 = 1_000;
-
 struct Target {
     x: (i64, i64),
     y: (i64, i64),
@@ -35,17 +22,13 @@ fn simulate(target: &Target, mut vx: i64, mut vy: i64) -> i64 {
     let (mut x, mut y) = (0, 0);
     let mut max_y = 0;
 
-    for _ in 0..STEPS {
+    while x <= target.x.1 && y >= target.y.0 {
         x += vx;
         y += vy;
         max_y = max_y.max(y);
 
         if target.x.0 <= x && x <= target.x.1 && target.y.0 <= y && y <= target.y.1 {
             return max_y;
-        }
-
-        if x > target.x.1 || y < target.y.0 {
-            return -1;
         }
 
         vx -= if vx == 0 { 0 } else { 1 };
@@ -222,6 +205,18 @@ impl Ord for State {
 impl PartialOrd for State {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+#[allow(dead_code)]
+/// @return -1 or 0 or 1
+fn sign(x: i64) -> i64 {
+    if x > 0 {
+        1
+    } else if x < 0 {
+        -1
+    } else {
+        0
     }
 }
 
