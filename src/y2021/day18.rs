@@ -185,8 +185,44 @@ fn part1(input: String) -> String {
     }
 
     dbg!(&lines[0]);
+    let ans = reduce(&lines[0]);
+    ans.to_string()
+}
 
-    "1".into()
+fn reduce(s: &str) -> u32 {
+    let mut ret = s.to_string();
+    while ret.chars().filter(|c| *c == ',').count() > 1 {
+        ret = reduce_helper(&ret);
+    }
+    let ans = (&ret[1..ret.len() - 1]).split_once(',').unwrap();
+    let left: u32 = ans.0.parse().unwrap();
+    let right: u32 = ans.1.parse().unwrap();
+
+    left * 3 + right * 2
+}
+
+fn reduce_helper(s: &str) -> String {
+    let chars: Vec<char> = s.chars().collect();
+    for i in 0..chars.len() {
+        if chars[i] == ']' {
+            let mut j = i - 1;
+            while chars[j] != '[' {
+                j -= 1;
+            }
+            let left_right = (&s[j+1..i]).split_once(',').unwrap();
+            let left: u32 = left_right.0.parse().unwrap();
+            let right: u32 = left_right.1.parse().unwrap();
+            let v = left * 3 + right * 2;
+
+            let mut ret = String::new();
+            ret.push_str(&s[0..j]);
+            ret.push_str(&v.to_string());
+            ret.push_str(&s[i+1..]);
+
+            return ret;
+        }
+    }
+    panic!("not able to reduce it");
 }
 
 fn add_lines(s1: &str, s2: &str) -> String {
@@ -201,29 +237,69 @@ fn add_lines(s1: &str, s2: &str) -> String {
 }
 
 fn split(s: &str) -> String {
-    todo!()
+    eprintln!("input to split: {}", s);
+    let chars: Vec<char> = s.chars().collect();
+    let mut ret = String::new();
+
+    for i in 0..s.len() {
+        if chars[i].is_digit(10) && chars[i+1].is_digit(10) {
+            let mut vl = chars[i].to_digit(10).unwrap() * 10;
+            vl += chars[i+1].to_digit(10).unwrap();
+            let mut n_digits = 2;
+            let mut j = i+2;
+            while chars[j].is_digit(10) {
+                vl += chars[j].to_digit(10).unwrap();
+                n_digits += 1;
+                j += 1;
+            }
+            let l = vl / 2;
+            let r = vl / 2 + if vl % 2 == 0 { 0 } else { 1 };
+
+            ret.push_str(&s[0..i]);
+            ret.push('[');
+            ret.push_str(&l.to_string());
+            ret.push(',');
+            ret.push_str(&r.to_string());
+            ret.push(']');
+            ret.push_str(&s[i+n_digits..]);
+            
+            eprintln!("after split...: {}", ret);
+
+            break;
+        }
+    }
+
+    if !ret.is_empty() {
+        ret
+    } else {
+        s.into()
+    }
 }
 
 fn explode(s: &str) -> String {
-    eprintln!("input to explode: {}", s);
+    // eprintln!("input to explode: {}", s);
     let mut qt = 0;
     let mut ret = String::new();
 
     for (i, c) in s.chars().enumerate() {
         if c == '[' {
             if qt == 4 {
-                let mut close = find_close(&s[i..]);
-                let left_num: u32 = (&s[i+1..i+2]).parse().unwrap();
-                let right_num: u32 = (&s[i+3..i+4]).parse().unwrap();
-
-                // TODO: add numbers
+                let close = find_close(&s[i..]);
+                let left_right = (&s[i+1..i+close]).split_once(',').unwrap();
+                let left_num: u32 = left_right.0.parse().unwrap();
+                let right_num: u32 = left_right.1.parse().unwrap();
 
                 ret.push_str(&s[0..i]);
                 ret.push('0');
                 ret.push_str(&s[i+close+1..]);
 
+                // with explosion, five chars become one
+                // eg [9,7] -> 0
+                // I can just use i for right adding
+
                 //panic!("{}", ret);
-                eprintln!("exploded........: {}", ret);
+                // eprintln!("exploded........: {}", ret);
+                // eprintln!("adding..........: {} {}", left_num, right_num);
 
                 let chars: Vec<char> = ret.chars().collect();
 
@@ -233,15 +309,17 @@ fn explode(s: &str) -> String {
                 for l in (0..i).rev() {
                     let c = chars[l];
                     if c >= '0' && c <= '9' {
-                        if chars[l+1].is_digit(10) {
-                            vl = c.to_digit(10).unwrap() * 10;
-                            vl += chars[l+1].to_digit(10).unwrap();
-                            vl += left_num;
-                        } else {
-                            vl = c.to_digit(10).unwrap() + left_num;
+                        vl = c.to_digit(10).unwrap();
+                        let mut j = l;
+                        while chars[j - 1].is_digit(10) {
+                            j -= 1;
+                            let d = chars[j].to_digit(10).unwrap() * 10;
+                            vl += d;
                         }
+                        vl += left_num;
+
                         let mut tmp = String::new();
-                        tmp.push_str(&ret[0..l]);
+                        tmp.push_str(&ret[0..j]);
                         tmp.push_str(&vl.to_string());
                         tmp.push_str(&ret[l+1..]);
                         ret = tmp;
@@ -249,32 +327,34 @@ fn explode(s: &str) -> String {
                     }
                 }
 
-                if vl > 9 {
-                    close += 1;
-                }
+                let start = vl.to_string().len() + i;
+
+                let chars: Vec<char> = ret.chars().collect();
 
                 // adding right
                 // find first number after close, if any
-                for l in i+close..ret.len() {
+                for l in start..ret.len() {
                     let c = chars[l];
                     if c >= '0' && c <= '9' {
-                        if chars[l+1].is_digit(10) {
-                            vl = c.to_digit(10).unwrap() * 10;
-                            vl += chars[l+1].to_digit(10).unwrap();
-                            vl += right_num;
-                        } else {
-                            vl = c.to_digit(10).unwrap() + right_num;
+                        vl = c.to_digit(10).unwrap();
+                        let mut j = l + 1;
+                        while chars[j].is_digit(10) {
+                            vl *= 10;
+                            vl += chars[j].to_digit(10).unwrap();
+                            j += 1;
                         }
+                        vl += right_num;
+
                         let mut tmp = String::new();
                         tmp.push_str(&ret[0..l]);
                         tmp.push_str(&vl.to_string());
-                        tmp.push_str(&ret[l+1..]);
+                        tmp.push_str(&ret[j..]);
                         ret = tmp;
                         break;
                     }
                 }
 
-                eprintln!("after adding....: {}", ret);
+                // eprintln!("after adding....: {}", ret);
 
                 break;
             }
@@ -424,6 +504,33 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_split() {
+        assert_eq!(split("[[[[0,7],4],[15,[0,13]]],[1,1]]"),
+                "[[[[0,7],4],[[7,8],[0,13]]],[1,1]]".to_string());
+        assert_eq!(split("[[[[0,7],4],[[7,8],[0,13]]],[1,1]]"),
+                "[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]".to_string());
+    }
+
+    #[test]
+    fn test_explode() {
+        assert_eq!(explode("[[[[[9,8],1],2],3],4]"), "[[[[0,9],2],3],4]".to_string());
+        assert_eq!(explode("[7,[6,[5,[4,[3,2]]]]]"), "[7,[6,[5,[7,0]]]]".to_string());
+        assert_eq!(explode("[[6,[5,[4,[3,2]]]],1]"), "[[6,[5,[7,0]]],3]".to_string());
+        assert_eq!(explode("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]"),
+                "[[3,[2,[8,0]]],[9,[5,[7,0]]]]".to_string());
+        assert_eq!(explode("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]"),
+                "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]".to_string());
+    }
+
+    #[test]
+    fn test_reduce() {
+        assert_eq!(reduce("[[1,2],[[3,4],5]]"), 143);
+        assert_eq!(reduce("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"), 1384);
+        assert_eq!(reduce("[[[[1,1],[2,2]],[3,3]],[4,4]]"), 445);
+        assert_eq!(reduce("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]"), 3488);
+    }
+
+    #[test]
     fn p1s() {
         let input = util::read_file("inputs/2021/day18-sample.txt");
         assert_eq!("4140", part1(input));
@@ -432,7 +539,7 @@ mod tests {
     #[test]
     fn p1() {
         let input = util::read_file("inputs/2021/day18.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("4469", part1(input));
     }
 
     #[test]

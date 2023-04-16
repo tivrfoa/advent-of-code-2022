@@ -1,0 +1,51 @@
+
+running 1 test
+test y2021::day18::tests::p1s ... FAILED
+
+failures:
+
+---- y2021::day18::tests::p1s stdout ----
+In file inputs/2021/day18-sample.txt
+input to explode: [[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]],[[[5,[2,8]],4],[5,[[9,9],0]]]]
+exploded........: [[[[0,0],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]],[[[5,[2,8]],4],[5,[[9,9],0]]]]
+adding..........: 5 8
+after adding....: [[[[5,0],[[9,7],[9,6]]],[[4,[1,2]],[[1,4],2]]],[[[5,[2,8]],4],[5,[[9,9],0]]]]
+input to explode: [[[[5,0],[[9,7],[9,6]]],[[4,[1,2]],[[1,4],2]]],[[[5,[2,8]],4],[5,[[9,9],0]]]]
+exploded........: [[[[5,0],[0,[9,6]]],[[4,[1,2]],[[1,4],2]]],[[[5,[2,8]],4],[5,[[9,9],0]]]]
+adding..........: 9 7
+after adding....: [[[[5,9],[0,[9,13]],[[4,[1,2]],[[1,4],2]]],[[[5,[2,8]],4],[5,[[9,9],0]]]]
+input to explode: [[[[5,9],[0,[9,13]],[[4,[1,2]],[[1,4],2]]],[[[5,[2,8]],4],[5,[[9,9],0]]]]
+exploded........: [[[[5,9],[0,0],[[4,[1,2]],[[1,4],2]]],[[[5,[2,8]],4],[5,[[9,9],0]]]]
+adding..........: 9 13
+after adding....: [[[[5,9],[9,0],[[4,[142]],[[1,4],2]]],[[[5,[2,8]],4],[5,[[9,9],0]]]]
+input to explode: [[[[5,9],[9,0],[[4,[142]],[[1,4],2]]],[[[5,[2,8]],4],[5,[[9,9],0]]]]
+thread 'y2021::day18::tests::p1s' panicked at 'called `Result::unwrap()` on an `Err` value: ParseIntError { kind: InvalidDigit }', src/y2021/day18.rs:248:59
+stack backtrace:
+   0: rust_begin_unwind
+             at /rustc/b569c9dc57ee22b6ff94563af856909763dfa24b/library/std/src/panicking.rs:575:5
+   1: core::panicking::panic_fmt
+             at /rustc/b569c9dc57ee22b6ff94563af856909763dfa24b/library/core/src/panicking.rs:64:14
+   2: core::result::unwrap_failed
+             at /rustc/b569c9dc57ee22b6ff94563af856909763dfa24b/library/core/src/result.rs:1790:5
+   3: core::result::Result<T,E>::unwrap
+             at /rustc/b569c9dc57ee22b6ff94563af856909763dfa24b/library/core/src/result.rs:1112:23
+   4: day1::y2021::day18::explode
+             at ./src/y2021/day18.rs:248:38
+   5: day1::y2021::day18::part1
+             at ./src/y2021/day18.rs:171:23
+   6: day1::y2021::day18::tests::p1s
+             at ./src/y2021/day18.rs:463:28
+   7: day1::y2021::day18::tests::p1s::{{closure}}
+             at ./src/y2021/day18.rs:461:14
+   8: core::ops::function::FnOnce::call_once
+             at /rustc/b569c9dc57ee22b6ff94563af856909763dfa24b/library/core/src/ops/function.rs:507:5
+   9: core::ops::function::FnOnce::call_once
+             at /rustc/b569c9dc57ee22b6ff94563af856909763dfa24b/library/core/src/ops/function.rs:507:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    y2021::day18::tests::p1s
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.02s
+
