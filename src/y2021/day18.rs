@@ -237,7 +237,6 @@ fn add_lines(s1: &str, s2: &str) -> String {
 }
 
 fn split(s: &str) -> String {
-    eprintln!("input to split: {}", s);
     let chars: Vec<char> = s.chars().collect();
     let mut ret = String::new();
 
@@ -262,8 +261,6 @@ fn split(s: &str) -> String {
             ret.push_str(&r.to_string());
             ret.push(']');
             ret.push_str(&s[i+n_digits..]);
-            
-            eprintln!("after split...: {}", ret);
 
             break;
         }
@@ -277,7 +274,6 @@ fn split(s: &str) -> String {
 }
 
 fn explode(s: &str) -> String {
-    // eprintln!("input to explode: {}", s);
     let mut qt = 0;
     let mut ret = String::new();
 
@@ -292,14 +288,6 @@ fn explode(s: &str) -> String {
                 ret.push_str(&s[0..i]);
                 ret.push('0');
                 ret.push_str(&s[i+close+1..]);
-
-                // with explosion, five chars become one
-                // eg [9,7] -> 0
-                // I can just use i for right adding
-
-                //panic!("{}", ret);
-                // eprintln!("exploded........: {}", ret);
-                // eprintln!("adding..........: {} {}", left_num, right_num);
 
                 let chars: Vec<char> = ret.chars().collect();
 
@@ -354,8 +342,6 @@ fn explode(s: &str) -> String {
                     }
                 }
 
-                // eprintln!("after adding....: {}", ret);
-
                 break;
             }
             qt += 1;
@@ -372,7 +358,22 @@ fn explode(s: &str) -> String {
 }
 
 fn part2(input: String) -> String {
-    "".into()
+
+    let mut best = 0;
+    for l in input.lines() {
+        for r in input.lines() {
+            if l == r { continue; }
+            let mut param = String::new();
+            param.push_str(l);
+            param.push('\n');
+            param.push_str(r);
+
+            let tmp: u32 = part1(param).parse().unwrap();
+            best = best.max(tmp);
+        }
+    }
+
+    best.to_string()
 }
 
 #[allow(dead_code)]
@@ -545,12 +546,12 @@ mod tests {
     #[test]
     fn p2s() {
         let input = util::read_file("inputs/2021/day18-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("3993", part2(input));
     }
 
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2021/day18.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("4770", part2(input));
     }
 }
