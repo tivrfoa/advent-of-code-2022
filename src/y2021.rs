@@ -1,1 +1,1 @@
-mod day18;
+mod day18_elizarov;

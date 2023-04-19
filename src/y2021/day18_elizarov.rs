@@ -7,6 +7,7 @@ https://github.com/elizarov/AdventOfCode2021/blob/main/src/Day18.kt
 
 use crate::util;
 
+use std::cell::Cell;
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
@@ -28,12 +29,24 @@ impl StrLetterAt for &str {
     }
 }
 
-trait SNum {
-    fn parse(s: &str) -> Box<dyn SNum> where Self: Sized {
+#[derive(Debug)]
+enum SNum {
+    Reg {x: Cell<u32> },
+    Pair(Box<SNum>, Box<SNum>),
+}
+
+use SNum::*;
+
+//impl SNum::Reg {
+//    fn set_x(&mut self
+//}
+
+impl SNum {
+    fn parse(s: &str) -> Box<SNum> {
         Self::parse_helper(s, &mut 0)
     }
 
-    fn parse_helper(s: &str, i: &mut usize) -> Box<dyn SNum> where Self: Sized {
+    fn parse_helper(s: &str, i: &mut usize) -> Box<SNum> {
         if s.char_at(*i) == '[' {
             *i += 1;
             let l = Self::parse_helper(s, i);
@@ -42,79 +55,181 @@ trait SNum {
             let r = Self::parse_helper(s, i);
             assert!(s.char_at(*i) == ']');
             *i += 1;
-            return Box::new(Pair::new(l, r));
+            return Box::new(Pair(l, r));
         }
         let start = *i;
         while s.char_at(*i).is_digit(10) {
             *i += 1;
         }
+        Self::new_boxed_reg(s[start..*i].parse::<u32>().unwrap())
+    }
+
+    fn new_reg(x: u32) -> SNum {
+        Reg {
+            x: Cell::new(x),
+        }
+    }
+
+    fn new_boxed_reg(x: u32) -> Box<SNum> {
         Box::new(Reg {
-            x: s[start..*i].parse::<u32>().unwrap()
+            x: Cell::new(x)
         })
     }
 
-    // TODO: should return a copy? should consume self?
-    fn findPair(&self, n: u32) -> Option<Pair> {
-        // if n == 0
-        todo!()
-    }
-}
-
-impl Debug for dyn SNum {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> Result {
-        write!(f, 
-    }
-}
-
-#[derive(Debug)]
-struct Reg {
-    x: u32
-}
-
-impl SNum for Reg {
-}
-
-#[derive(Debug)]
-struct Pair {
-    l: Box<dyn SNum>,
-    r: Box<dyn SNum>,
-}
-
-impl SNum for Pair {
-}
-
-impl Pair {
-    fn new(l: Box<dyn SNum>, r: Box<dyn SNum>) -> Self {
-        Self {
-            l, r
-        }
-    }
-}
-
-/// first index is open [ [
-fn find_close(s: &str) -> usize {
-    let mut qt = 1;
-
-    for (i, c) in s.chars().enumerate().skip(1) {
-        if c == '[' {
-            qt += 1;
-        } else if c == ']' {
-            qt -= 1;
-            if qt == 0 {
-                return i;
+    /// This method returns a &mut reference to the
+    /// parent of the pair, if found
+    fn find_pair(&mut self, n: u32) -> Option<(&mut SNum, char)> {
+        if n == 1 {
+            match self {
+                Pair(l, r) => {
+                    if l.is_pair() {
+                        return Some((self, 'l'));
+                    }
+                    if r.is_pair() {
+                        return Some((self, 'r'));
+                    }
+                }
+                _ => return None,
             }
-        } else {
-            continue;
+        }
+        if let Pair(l, r) = self {
+            let p = l.find_pair(n - 1);
+            if p.is_some() { return p; }
+            let p = r.find_pair(n - 1);
+            if p.is_some() { return p; }
+        }
+        None
+    }
+
+    fn get_x(&self) -> u32 {
+        match self {
+            Reg { x } => x.get(),
+            _ => panic!("self not reg: {:?}", self),
         }
     }
-    panic!("did not find close ]");
+
+    fn get_old_values(&self) -> (u32, u32) {
+        match self {
+            Pair(l, r) => (l.get_x(), r.get_x()),
+            _ => panic!("self not Pair: {:?}", self),
+        }
+    }
+
+    fn traverse<'a>(&'a self, keep: &'a SNum) -> Vec<&'a SNum> {
+        match keep {
+            Reg { x } => vec![keep],
+            Pair(l, r) => {
+                if self as *const _ == keep as *const _ {
+                    return vec![self];
+                }
+                let mut ret = l.traverse(keep);
+                ret.append(&mut r.traverse(keep));
+                return ret;
+            }
+        }
+    }
+
+    fn explode(&mut self) -> bool {
+        let mut n = self.find_pair(4);
+        // dbg!(&n);
+        if let Some((Pair(l, r), side)) = n {
+            match side {
+                'l' => {
+                    let (old_left, old_right) = l.get_old_values();
+                    *l = Self::new_boxed_reg(0);
+                    drop(n);
+
+                    let list = self.traverse(&l);
+                    let i = list
+                        .iter()
+                        .position(|&p| p as *const _ == (&**l) as *const _)
+                        .unwrap();
+
+                }
+                'r' => {
+                    *r = Self::new_boxed_reg(0);
+                }
+                _ => panic!("{side}"),
+            }
+            true
+        } else {
+            false
+        }
+    }
+
+    /// This method is called from the outer pair
+    fn split(&mut self) -> bool {
+        match self {
+            _ => (),
+            Pair(l, r) => {
+                match &**l {
+                    Reg { x } => {
+                        let x = x.get();
+                        if x >= 10 {
+                            *l = Box::new(Pair(
+                                Self::new_boxed_reg(x / 2),
+                                Self::new_boxed_reg(
+                                    x / 2 + if x % 2 == 0 { 0 } else { 1 }
+                                ),
+                            ));
+                            return true;
+                        }
+                    }
+                    _ => {
+                        if l.split() {
+                            return true;
+                        }
+                    },
+                }
+                match &**r {
+                    Reg { x } => {
+                        let x = x.get();
+                        if x >= 10 {
+                            *r = Box::new(Pair(
+                                Self::new_boxed_reg(x / 2),
+                                Self::new_boxed_reg(
+                                    x / 2 + if x % 2 == 0 { 0 } else { 1 }
+                                ),
+                            ));
+                            return true;
+                        }
+                    }
+                    _ => {
+                        if r.split() {
+                            return true;
+                        }
+                    },
+                }
+            }
+        }
+        false
+    }
+
+    fn is_pair(&self) -> bool {
+        matches!(*self, Pair(_, _))
+    }
 }
 
 fn part1(input: String) -> String {
     // cannot call associated function of trait
     // let a = SNum::parse(&input);
-    let a = <Pair as SNum>::parse(&input);
-    dbg!(a);
+
+    let lines: Vec<&str> = input.lines().collect();
+    let mut a = SNum::parse(lines[0]);
+    dbg!(&a);
+    a.explode();
+
+    let mut b = SNum::parse(lines[1]);
+
+    let mut ab = Pair(a, b);
+    dbg!(&ab);
+    loop {
+        while ab.explode() {};
+        if !ab.split() {
+            break;
+        }
+    }
+    dbg!(&ab);
     todo!()
 }
 
