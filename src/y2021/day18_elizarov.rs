@@ -132,54 +132,31 @@ impl SNum {
     fn explode(root: RcPair) -> bool {
         eprintln!("exploding");
         let mut n = SNum::find_pair(root.clone(), 4);
-        // eprintln!("root after find_pair {:#?}", root);
         if let Some(rcPair) = n {
             let list = SNum::traverse(root.clone(), rcPair.clone());
-            // eprintln!("root after traverse {:#?}", root);
-            // eprintln!("{:?}", list);
             let i = list
                .iter()
-               .position(|p| *p == rcPair)
+               .position(|p| Rc::ptr_eq(p, &rcPair))
                .unwrap();
 
             let (old_left, old_right) = rcPair.borrow().get_old_values();
-            dbg!(old_left, old_right);
-            // eprintln!("root after get_old_values {:#?}", root);
-            // eprintln!("{:?}", list);
 
             // update left
             if i > 0 {
-                eprintln!("list before borrow_mut: {:#?}", list);
                 match &*list[i - 1].borrow_mut() {
-                    Reg { x } => {
-                        eprintln!("list after borrow_mut{:#?}", list);
-                        let new_value = x.get() + old_left;
-                        dbg!("left", new_value);
-                        x.set(new_value);
-                    },
+                    Reg { x } => x.set(x.get() + old_left),
                     Pair(_, _) => panic!("it should have been reg: {:?}", list[i - 1]),
                 }
             }
 
-            eprintln!("root after updating left {:#?}", root);
-            eprintln!("{:?}", list);
-
             // update right
             if i + 1 < list.len() {
                 match &*list[i + 1].borrow_mut() {
-                    Reg { x } => {
-                        let new_value = x.get() + old_right;
-                        dbg!("right", new_value);
-                        x.set(new_value);
-                    },
+                    Reg { x } => x.set(x.get() + old_right),
                     Pair(_, _) => {
-                        dbg!(&list);
                         panic!("it should have been reg: {:?}", list[i + 1]);
                     }
                 }
-            } else {
-                eprintln!("no right value");
-                dbg!(list);
             }
 
             // set exploded to zero
@@ -197,7 +174,6 @@ impl SNum {
     fn split(root: RcPair) -> bool {
         eprintln!("spliting");
         match &*root.borrow() {
-            _ => (),
             Pair(l, r) => {
                 match &*l.borrow() {
                     Reg { x } => {
@@ -238,6 +214,7 @@ impl SNum {
                     },
                 }
             }
+            _ => (),
         }
         false
     }
@@ -253,13 +230,12 @@ fn part1(input: String) -> String {
 
     for line in lines.iter().skip(1) {
         eprintln!(">>>>>>>>>>>>>>>>>>>> joining pairs");
-        dbg!(line);
         let mut b = SNum::parse(line);
         a = Rc::new(RefCell::new(Pair(a, b)));
         SNum::explode(a.clone());
         loop {
             while SNum::explode(a.clone()) {
-                dbg!(&a);
+                // dbg!(&a);
             }
             
             if !SNum::split(a.clone()) {
