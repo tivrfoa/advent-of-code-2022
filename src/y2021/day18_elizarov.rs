@@ -129,9 +129,17 @@ impl SNum {
         (left, right)
     }
 
+    fn magnitude(self) -> u32 {
+        match self {
+            Reg { x } => x.get(),
+            Pair(l, r) => 3 * Rc::try_unwrap(l).unwrap().into_inner().magnitude() +
+                2 * Rc::try_unwrap(r).unwrap().into_inner().magnitude(),
+        }
+    }
+
     fn explode(root: RcPair) -> bool {
         eprintln!("exploding");
-        let mut n = SNum::find_pair(root.clone(), 4);
+        let n = SNum::find_pair(root.clone(), 4);
         if let Some(rcPair) = n {
             let list = SNum::traverse(root.clone(), rcPair.clone());
             let i = list
@@ -173,19 +181,19 @@ impl SNum {
     /// This method is called from the outer pair (root)
     fn split(root: RcPair) -> bool {
         eprintln!("spliting");
+        let mut new_pair = None;
         match &*root.borrow() {
             Pair(l, r) => {
                 match &*l.borrow() {
                     Reg { x } => {
                         let x = x.get();
                         if x >= 10 {
-                            *l.borrow_mut() = Pair(
+                            new_pair = Some(Pair(
                                 Self::new_rc_reg(x / 2),
                                 Self::new_rc_reg(
                                     x / 2 + if x % 2 == 0 { 0 } else { 1 }
                                 ),
-                            );
-                            return true;
+                            ));
                         }
                     }
                     _ => {
@@ -194,17 +202,22 @@ impl SNum {
                         }
                     },
                 }
+
+                if let Some(p) = new_pair {
+                    *l.borrow_mut() = p;
+                    return true;
+                }
+
                 match &*r.borrow() {
                     Reg { x } => {
                         let x = x.get();
                         if x >= 10 {
-                            *r.borrow_mut() = Pair(
+                            new_pair = Some(Pair(
                                 Self::new_rc_reg(x / 2),
                                 Self::new_rc_reg(
                                     x / 2 + if x % 2 == 0 { 0 } else { 1 }
                                 ),
-                            );
-                            return true;
+                            ));
                         }
                     }
                     _ => {
@@ -212,6 +225,11 @@ impl SNum {
                             return true;
                         }
                     },
+                }
+
+                if let Some(p) = new_pair {
+                    *r.borrow_mut() = p;
+                    return true;
                 }
             }
             _ => (),
@@ -230,26 +248,46 @@ fn part1(input: String) -> String {
 
     for line in lines.iter().skip(1) {
         eprintln!(">>>>>>>>>>>>>>>>>>>> joining pairs");
-        let mut b = SNum::parse(line);
+        let b = SNum::parse(line);
         a = Rc::new(RefCell::new(Pair(a, b)));
         SNum::explode(a.clone());
         loop {
             while SNum::explode(a.clone()) {
                 // dbg!(&a);
             }
-            
             if !SNum::split(a.clone()) {
                 break;
             }
         }
     }
-    dbg!(a);
-    
-    todo!()
+    // dbg!(&a);
+
+    Rc::try_unwrap(a).unwrap().into_inner().magnitude().to_string()
 }
 
 fn part2(input: String) -> String {
-    todo!()
+    let lines: Vec<&str> = input.lines().collect();
+
+    let mut best = 0;
+    for a in input.lines() {
+        for b in input.lines() {
+            if a == b { continue; }
+            let mut a = SNum::parse(a);
+            let b = SNum::parse(b);
+            a = Rc::new(RefCell::new(Pair(a, b)));
+            SNum::explode(a.clone());
+            loop {
+                while SNum::explode(a.clone()) {}
+                if !SNum::split(a.clone()) {
+                    break;
+                }
+            }
+            let tmp = Rc::try_unwrap(a).unwrap().into_inner().magnitude();
+            best = best.max(tmp);
+        }
+    }
+
+    best.to_string()
 }
 
 #[allow(dead_code)]
@@ -379,18 +417,6 @@ impl PartialOrd for State {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_split() {
-    }
-
-    #[test]
-    fn test_explode() {
-    }
-
-    #[test]
-    fn test_reduce() {
-    }
 
     #[test]
     fn p1s() {
