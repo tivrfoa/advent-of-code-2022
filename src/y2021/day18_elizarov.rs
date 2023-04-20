@@ -5,14 +5,15 @@ https://github.com/elizarov/AdventOfCode2021/blob/main/src/Day18.kt
 
 */
 
-use crate::util;
+use crate::util::{self, dbg};
 
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::iter::zip;
+use std::rc::Rc;
 
 #[allow(dead_code)]
 fn is_digit(s: &str) -> bool {
@@ -29,24 +30,23 @@ impl StrLetterAt for &str {
     }
 }
 
-#[derive(Debug)]
+type RcPair = Rc<RefCell<SNum>>;
+
+#[derive(Debug, PartialEq)]
 enum SNum {
     Reg {x: Cell<u32> },
-    Pair(Box<SNum>, Box<SNum>),
+    Pair(Rc<RefCell<SNum>>, Rc<RefCell<SNum>>),
 }
 
 use SNum::*;
 
-//impl SNum::Reg {
-//    fn set_x(&mut self
-//}
 
 impl SNum {
-    fn parse(s: &str) -> Box<SNum> {
+    fn parse(s: &str) -> Rc<RefCell<SNum>> {
         Self::parse_helper(s, &mut 0)
     }
 
-    fn parse_helper(s: &str, i: &mut usize) -> Box<SNum> {
+    fn parse_helper(s: &str, i: &mut usize) -> Rc<RefCell<SNum>> {
         if s.char_at(*i) == '[' {
             *i += 1;
             let l = Self::parse_helper(s, i);
@@ -55,13 +55,13 @@ impl SNum {
             let r = Self::parse_helper(s, i);
             assert!(s.char_at(*i) == ']');
             *i += 1;
-            return Box::new(Pair(l, r));
+            return Rc::new(RefCell::new(Pair(l, r)));
         }
         let start = *i;
         while s.char_at(*i).is_digit(10) {
             *i += 1;
         }
-        Self::new_boxed_reg(s[start..*i].parse::<u32>().unwrap())
+        Rc::new(RefCell::new(Self::new_reg(s[start..*i].parse::<u32>().unwrap())))
     }
 
     fn new_reg(x: u32) -> SNum {
@@ -76,81 +76,96 @@ impl SNum {
         })
     }
 
-    /// This method returns a &mut reference to the
-    /// parent of the pair, if found
-    fn find_pair(&mut self, n: u32) -> Option<(&mut SNum, char)> {
-        if n == 1 {
-            match self {
-                Pair(l, r) => {
-                    if l.is_pair() {
-                        return Some((self, 'l'));
-                    }
-                    if r.is_pair() {
-                        return Some((self, 'r'));
-                    }
-                }
-                _ => return None,
+    fn find_pair(snum: RcPair, n: u32) -> Option<RcPair> {
+        if n == 0 {
+            dbg!(&snum);
+            if snum.borrow().is_pair() {
+                return Some(snum.clone());
+            } else {
+                return None;
             }
         }
-        if let Pair(l, r) = self {
-            let p = l.find_pair(n - 1);
+        if let Pair(l, r) = &*snum.borrow() {
+            let p = SNum::find_pair(l.clone(), n - 1);
             if p.is_some() { return p; }
-            let p = r.find_pair(n - 1);
+            let p = SNum::find_pair(r.clone(), n - 1);
             if p.is_some() { return p; }
         }
         None
     }
 
-    fn get_x(&self) -> u32 {
-        match self {
-            Reg { x } => x.get(),
-            _ => panic!("self not reg: {:?}", self),
-        }
-    }
-
-    fn get_old_values(&self) -> (u32, u32) {
-        match self {
-            Pair(l, r) => (l.get_x(), r.get_x()),
-            _ => panic!("self not Pair: {:?}", self),
-        }
-    }
-
-    fn traverse<'a>(&'a self, keep: &'a SNum) -> Vec<&'a SNum> {
-        match keep {
-            Reg { x } => vec![keep],
+    fn traverse(curr: RcPair, keep: RcPair) -> Vec<RcPair> {
+        match &*curr.borrow() {
+            Reg { x } => vec![curr.clone()],
             Pair(l, r) => {
-                if self as *const _ == keep as *const _ {
-                    return vec![self];
+                println!("{}", curr == keep);
+                if curr == keep {
+                    return vec![curr.clone()];
                 }
-                let mut ret = l.traverse(keep);
-                ret.append(&mut r.traverse(keep));
+                let mut ret = SNum::traverse(l.clone(), keep.clone());
+                ret.append(&mut SNum::traverse(r.clone(), keep.clone()));
                 return ret;
             }
         }
     }
 
-    fn explode(&mut self) -> bool {
-        let mut n = self.find_pair(4);
-        // dbg!(&n);
-        if let Some((Pair(l, r), side)) = n {
-            match side {
-                'l' => {
-                    let (old_left, old_right) = l.get_old_values();
-                    *l = Self::new_boxed_reg(0);
-                    drop(n);
+    fn get_old_values(&self) -> (u32, u32) {
+        let mut left = 0;
+        let mut right = 0;
 
-                    let list = self.traverse(&l);
-                    let i = list
-                        .iter()
-                        .position(|&p| p as *const _ == (&**l) as *const _)
-                        .unwrap();
-
-                }
-                'r' => {
-                    *r = Self::new_boxed_reg(0);
-                }
-                _ => panic!("{side}"),
+        if let Pair(l, r) = self {
+            if let Reg { x } = &*l.borrow() {
+                left = x.get();
+            } else {
+                panic!("not a reg")
             }
+            if let Reg { x } = &*r.borrow() {
+                right = x.get();
+            } else {
+                panic!("not a reg")
+            }
+        } else {
+            panic!("not a pair");
+        }
+
+        (left, right)
+    }
+
+    fn explode(root: RcPair) -> bool {
+        let mut n = SNum::find_pair(root.clone(), 4);
+        if let Some(rcPair) = n {
+            let list = SNum::traverse(root.clone(), rcPair.clone());
+            let i = list
+               .iter()
+               .position(|p| *p == rcPair)
+               .unwrap();
+
+            let (old_left, old_right) = rcPair.borrow().get_old_values();
+            dbg!(old_left, old_right);
+            *rcPair.borrow_mut() = Reg {
+                x: Cell::new(0),
+            };
+
+            // update left
+            if i > 0 {
+                match &*list[i - 1].borrow_mut() {
+                    Reg { x } => {
+                        x.set(x.get() + old_left);
+                    },
+                    Pair(_, _) => panic!("it should have been reg: {:?}", list[i - 1]),
+                }
+            }
+
+            // update right
+            if i < list.len() - 1 {
+                match &*list[i + 1].borrow_mut() {
+                    Reg { x } => {
+                        x.set(x.get() + old_right);
+                    },
+                    Pair(_, _) => panic!("it should have been reg: {:?}", list[i + 1]),
+                }
+            }
+
             true
         } else {
             false
@@ -158,52 +173,52 @@ impl SNum {
     }
 
     /// This method is called from the outer pair
-    fn split(&mut self) -> bool {
-        match self {
-            _ => (),
-            Pair(l, r) => {
-                match &**l {
-                    Reg { x } => {
-                        let x = x.get();
-                        if x >= 10 {
-                            *l = Box::new(Pair(
-                                Self::new_boxed_reg(x / 2),
-                                Self::new_boxed_reg(
-                                    x / 2 + if x % 2 == 0 { 0 } else { 1 }
-                                ),
-                            ));
-                            return true;
-                        }
-                    }
-                    _ => {
-                        if l.split() {
-                            return true;
-                        }
-                    },
-                }
-                match &**r {
-                    Reg { x } => {
-                        let x = x.get();
-                        if x >= 10 {
-                            *r = Box::new(Pair(
-                                Self::new_boxed_reg(x / 2),
-                                Self::new_boxed_reg(
-                                    x / 2 + if x % 2 == 0 { 0 } else { 1 }
-                                ),
-                            ));
-                            return true;
-                        }
-                    }
-                    _ => {
-                        if r.split() {
-                            return true;
-                        }
-                    },
-                }
-            }
-        }
-        false
-    }
+    // fn split(&mut self) -> bool {
+    //     match self {
+    //         _ => (),
+    //         Pair(l, r) => {
+    //             match &**l {
+    //                 Reg { x } => {
+    //                     let x = x.get();
+    //                     if x >= 10 {
+    //                         *l = Box::new(Pair(
+    //                             Self::new_boxed_reg(x / 2),
+    //                             Self::new_boxed_reg(
+    //                                 x / 2 + if x % 2 == 0 { 0 } else { 1 }
+    //                             ),
+    //                         ));
+    //                         return true;
+    //                     }
+    //                 }
+    //                 _ => {
+    //                     if l.split() {
+    //                         return true;
+    //                     }
+    //                 },
+    //             }
+    //             match &**r {
+    //                 Reg { x } => {
+    //                     let x = x.get();
+    //                     if x >= 10 {
+    //                         *r = Box::new(Pair(
+    //                             Self::new_boxed_reg(x / 2),
+    //                             Self::new_boxed_reg(
+    //                                 x / 2 + if x % 2 == 0 { 0 } else { 1 }
+    //                             ),
+    //                         ));
+    //                         return true;
+    //                     }
+    //                 }
+    //                 _ => {
+    //                     if r.split() {
+    //                         return true;
+    //                     }
+    //                 },
+    //             }
+    //         }
+    //     }
+    //     false
+    // }
 
     fn is_pair(&self) -> bool {
         matches!(*self, Pair(_, _))
@@ -216,20 +231,20 @@ fn part1(input: String) -> String {
 
     let lines: Vec<&str> = input.lines().collect();
     let mut a = SNum::parse(lines[0]);
-    dbg!(&a);
-    a.explode();
 
     let mut b = SNum::parse(lines[1]);
 
-    let mut ab = Pair(a, b);
+    let mut ab = Rc::new(RefCell::new(Pair(a, b)));
     dbg!(&ab);
-    loop {
-        while ab.explode() {};
-        if !ab.split() {
-            break;
-        }
-    }
+    SNum::explode(ab.clone());
     dbg!(&ab);
+    // loop {
+    //     while ab.explode() {};
+    //     // if !ab.split() {
+    //     //     break;
+    //     // }
+    // }
+    // dbg!(&ab);
     todo!()
 }
 
