@@ -70,15 +70,14 @@ impl SNum {
         }
     }
 
-    fn new_boxed_reg(x: u32) -> Box<SNum> {
-        Box::new(Reg {
+    fn new_rc_reg(x: u32) -> RcPair {
+        Rc::new(RefCell::new(Reg {
             x: Cell::new(x)
-        })
+        }))
     }
 
     fn find_pair(snum: RcPair, n: u32) -> Option<RcPair> {
         if n == 0 {
-            dbg!(&snum);
             if snum.borrow().is_pair() {
                 return Some(snum.clone());
             } else {
@@ -98,8 +97,7 @@ impl SNum {
         match &*curr.borrow() {
             Reg { x } => vec![curr.clone()],
             Pair(l, r) => {
-                println!("{}", curr == keep);
-                if curr == keep {
+                if Rc::ptr_eq(&curr, &keep) {
                     return vec![curr.clone()];
                 }
                 let mut ret = SNum::traverse(l.clone(), keep.clone());
@@ -132,9 +130,13 @@ impl SNum {
     }
 
     fn explode(root: RcPair) -> bool {
+        eprintln!("exploding");
         let mut n = SNum::find_pair(root.clone(), 4);
+        // eprintln!("root after find_pair {:#?}", root);
         if let Some(rcPair) = n {
             let list = SNum::traverse(root.clone(), rcPair.clone());
+            // eprintln!("root after traverse {:#?}", root);
+            // eprintln!("{:?}", list);
             let i = list
                .iter()
                .position(|p| *p == rcPair)
@@ -142,29 +144,48 @@ impl SNum {
 
             let (old_left, old_right) = rcPair.borrow().get_old_values();
             dbg!(old_left, old_right);
-            *rcPair.borrow_mut() = Reg {
-                x: Cell::new(0),
-            };
+            // eprintln!("root after get_old_values {:#?}", root);
+            // eprintln!("{:?}", list);
 
             // update left
             if i > 0 {
+                eprintln!("list before borrow_mut: {:#?}", list);
                 match &*list[i - 1].borrow_mut() {
                     Reg { x } => {
-                        x.set(x.get() + old_left);
+                        eprintln!("list after borrow_mut{:#?}", list);
+                        let new_value = x.get() + old_left;
+                        dbg!("left", new_value);
+                        x.set(new_value);
                     },
                     Pair(_, _) => panic!("it should have been reg: {:?}", list[i - 1]),
                 }
             }
 
+            eprintln!("root after updating left {:#?}", root);
+            eprintln!("{:?}", list);
+
             // update right
-            if i < list.len() - 1 {
+            if i + 1 < list.len() {
                 match &*list[i + 1].borrow_mut() {
                     Reg { x } => {
-                        x.set(x.get() + old_right);
+                        let new_value = x.get() + old_right;
+                        dbg!("right", new_value);
+                        x.set(new_value);
                     },
-                    Pair(_, _) => panic!("it should have been reg: {:?}", list[i + 1]),
+                    Pair(_, _) => {
+                        dbg!(&list);
+                        panic!("it should have been reg: {:?}", list[i + 1]);
+                    }
                 }
+            } else {
+                eprintln!("no right value");
+                dbg!(list);
             }
+
+            // set exploded to zero
+            *rcPair.borrow_mut() = Reg {
+                x: Cell::new(0),
+            };
 
             true
         } else {
@@ -172,53 +193,54 @@ impl SNum {
         }
     }
 
-    /// This method is called from the outer pair
-    // fn split(&mut self) -> bool {
-    //     match self {
-    //         _ => (),
-    //         Pair(l, r) => {
-    //             match &**l {
-    //                 Reg { x } => {
-    //                     let x = x.get();
-    //                     if x >= 10 {
-    //                         *l = Box::new(Pair(
-    //                             Self::new_boxed_reg(x / 2),
-    //                             Self::new_boxed_reg(
-    //                                 x / 2 + if x % 2 == 0 { 0 } else { 1 }
-    //                             ),
-    //                         ));
-    //                         return true;
-    //                     }
-    //                 }
-    //                 _ => {
-    //                     if l.split() {
-    //                         return true;
-    //                     }
-    //                 },
-    //             }
-    //             match &**r {
-    //                 Reg { x } => {
-    //                     let x = x.get();
-    //                     if x >= 10 {
-    //                         *r = Box::new(Pair(
-    //                             Self::new_boxed_reg(x / 2),
-    //                             Self::new_boxed_reg(
-    //                                 x / 2 + if x % 2 == 0 { 0 } else { 1 }
-    //                             ),
-    //                         ));
-    //                         return true;
-    //                     }
-    //                 }
-    //                 _ => {
-    //                     if r.split() {
-    //                         return true;
-    //                     }
-    //                 },
-    //             }
-    //         }
-    //     }
-    //     false
-    // }
+    /// This method is called from the outer pair (root)
+    fn split(root: RcPair) -> bool {
+        eprintln!("spliting");
+        match &*root.borrow() {
+            _ => (),
+            Pair(l, r) => {
+                match &*l.borrow() {
+                    Reg { x } => {
+                        let x = x.get();
+                        if x >= 10 {
+                            *l.borrow_mut() = Pair(
+                                Self::new_rc_reg(x / 2),
+                                Self::new_rc_reg(
+                                    x / 2 + if x % 2 == 0 { 0 } else { 1 }
+                                ),
+                            );
+                            return true;
+                        }
+                    }
+                    _ => {
+                        if SNum::split(l.clone()) {
+                            return true;
+                        }
+                    },
+                }
+                match &*r.borrow() {
+                    Reg { x } => {
+                        let x = x.get();
+                        if x >= 10 {
+                            *r.borrow_mut() = Pair(
+                                Self::new_rc_reg(x / 2),
+                                Self::new_rc_reg(
+                                    x / 2 + if x % 2 == 0 { 0 } else { 1 }
+                                ),
+                            );
+                            return true;
+                        }
+                    }
+                    _ => {
+                        if SNum::split(r.clone()) {
+                            return true;
+                        }
+                    },
+                }
+            }
+        }
+        false
+    }
 
     fn is_pair(&self) -> bool {
         matches!(*self, Pair(_, _))
@@ -226,25 +248,27 @@ impl SNum {
 }
 
 fn part1(input: String) -> String {
-    // cannot call associated function of trait
-    // let a = SNum::parse(&input);
-
     let lines: Vec<&str> = input.lines().collect();
     let mut a = SNum::parse(lines[0]);
 
-    let mut b = SNum::parse(lines[1]);
-
-    let mut ab = Rc::new(RefCell::new(Pair(a, b)));
-    dbg!(&ab);
-    SNum::explode(ab.clone());
-    dbg!(&ab);
-    // loop {
-    //     while ab.explode() {};
-    //     // if !ab.split() {
-    //     //     break;
-    //     // }
-    // }
-    // dbg!(&ab);
+    for line in lines.iter().skip(1) {
+        eprintln!(">>>>>>>>>>>>>>>>>>>> joining pairs");
+        dbg!(line);
+        let mut b = SNum::parse(line);
+        a = Rc::new(RefCell::new(Pair(a, b)));
+        SNum::explode(a.clone());
+        loop {
+            while SNum::explode(a.clone()) {
+                dbg!(&a);
+            }
+            
+            if !SNum::split(a.clone()) {
+                break;
+            }
+        }
+    }
+    dbg!(a);
+    
     todo!()
 }
 
