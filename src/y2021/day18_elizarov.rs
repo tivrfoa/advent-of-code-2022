@@ -72,11 +72,11 @@ impl SNum {
 
     fn find_pair(snum: &RcPair, n: u32) -> Option<RcPair> {
         if n == 0 {
-            if snum.borrow().is_pair() {
-                return Some(snum.clone());
+            return if snum.borrow().is_pair() {
+                Some(snum.clone())
             } else {
-                return None;
-            }
+                None
+            };
         }
         if let Pair(l, r) = &*snum.borrow() {
             return SNum::find_pair(&l, n - 1)
