@@ -225,20 +225,15 @@ fn part1(input: String) -> String {
     let mut a = SNum::parse(lines[0]);
 
     for line in lines.iter().skip(1) {
-        eprintln!(">>>>>>>>>>>>>>>>>>>> joining pairs");
         let b = SNum::parse(line);
         a = Rc::new(RefCell::new(Pair(a, b)));
-        SNum::explode(a.clone());
         loop {
-            while SNum::explode(a.clone()) {
-                // dbg!(&a);
-            }
+            while SNum::explode(a.clone()) {}
             if !SNum::split(a.clone()) {
                 break;
             }
         }
     }
-    // dbg!(&a);
 
     Rc::try_unwrap(a).unwrap().into_inner().magnitude().to_string()
 }
@@ -253,7 +248,6 @@ fn part2(input: String) -> String {
             let mut a = SNum::parse(a);
             let b = SNum::parse(b);
             a = Rc::new(RefCell::new(Pair(a, b)));
-            SNum::explode(a.clone());
             loop {
                 while SNum::explode(a.clone()) {}
                 if !SNum::split(a.clone()) {
