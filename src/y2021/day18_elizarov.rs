@@ -172,57 +172,41 @@ impl SNum {
         }
     }
 
+    fn split_x(pair: RcPair) -> bool {
+        let mut new_pair = None;
+        match &*pair.borrow() {
+            Reg { x } => {
+                let x = *x;
+                if x >= 10 {
+                    new_pair = Some(Pair(
+                        Self::new_rc_reg(x / 2),
+                        Self::new_rc_reg(
+                            x / 2 + if x % 2 == 0 { 0 } else { 1 }
+                        ),
+                    ));
+                }
+            }
+            _ => {
+                if SNum::split(pair.clone()) {
+                    return true;
+                }
+            },
+        }
+
+        if let Some(p) = new_pair {
+            *pair.borrow_mut() = p;
+            true
+        } else {
+            false
+        }
+    }
+
     /// This method is called from the outer pair (root)
     fn split(root: RcPair) -> bool {
         eprintln!("spliting");
-        let mut new_pair = None;
         match &*root.borrow() {
             Pair(l, r) => {
-                match &*l.borrow() {
-                    Reg { x } => {
-                        let x = *x;
-                        if x >= 10 {
-                            new_pair = Some(Pair(
-                                Self::new_rc_reg(x / 2),
-                                Self::new_rc_reg(
-                                    x / 2 + if x % 2 == 0 { 0 } else { 1 }
-                                ),
-                            ));
-                        }
-                    }
-                    _ => {
-                        if SNum::split(l.clone()) {
-                            return true;
-                        }
-                    },
-                }
-
-                if let Some(p) = new_pair {
-                    *l.borrow_mut() = p;
-                    return true;
-                }
-
-                match &*r.borrow() {
-                    Reg { x } => {
-                        let x = *x;
-                        if x >= 10 {
-                            new_pair = Some(Pair(
-                                Self::new_rc_reg(x / 2),
-                                Self::new_rc_reg(
-                                    x / 2 + if x % 2 == 0 { 0 } else { 1 }
-                                ),
-                            ));
-                        }
-                    }
-                    _ => {
-                        if SNum::split(r.clone()) {
-                            return true;
-                        }
-                    },
-                }
-
-                if let Some(p) = new_pair {
-                    *r.borrow_mut() = p;
+                if SNum::split_x(l.clone()) || SNum::split_x(r.clone()) {
                     return true;
                 }
             }
