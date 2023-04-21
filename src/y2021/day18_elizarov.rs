@@ -34,7 +34,7 @@ type RcPair = Rc<RefCell<SNum>>;
 
 #[derive(Debug)]
 enum SNum {
-    Reg {x: Cell<u32> },
+    Reg {x: u32 },
     Pair(RcPair, RcPair),
 }
 
@@ -66,7 +66,7 @@ impl SNum {
 
     fn new_rc_reg(x: u32) -> RcPair {
         Rc::new(RefCell::new(Reg {
-            x: Cell::new(x)
+            x,
         }))
     }
 
@@ -109,12 +109,12 @@ impl SNum {
 
         if let Pair(l, r) = self {
             if let Reg { x } = &*l.borrow() {
-                left = x.get();
+                left = *x;
             } else {
                 panic!("not a reg")
             }
             if let Reg { x } = &*r.borrow() {
-                right = x.get();
+                right = *x;
             } else {
                 panic!("not a reg")
             }
@@ -127,7 +127,7 @@ impl SNum {
 
     fn magnitude(self) -> u32 {
         match self {
-            Reg { x } => x.get(),
+            Reg { x } => x,
             Pair(l, r) => 3 * Rc::try_unwrap(l).unwrap().into_inner().magnitude() +
                 2 * Rc::try_unwrap(r).unwrap().into_inner().magnitude(),
         }
@@ -147,23 +147,23 @@ impl SNum {
 
             // update left
             if i > 0 {
-                match &*list[i - 1].borrow_mut() {
-                    Reg { x } => x.set(x.get() + old_left),
+                match &mut *list[i - 1].borrow_mut() {
+                    Reg { x } => *x += old_left,
                     Pair(_, _) => panic!("it should have been reg: {:?}", list[i - 1]),
                 }
             }
 
             // update right
             if i + 1 < list.len() {
-                match &*list[i + 1].borrow_mut() {
-                    Reg { x } => x.set(x.get() + old_right),
+                match &mut *list[i + 1].borrow_mut() {
+                    Reg { x } => *x += old_right,
                     Pair(_, _) => panic!("it should have been reg: {:?}", list[i + 1]),
                 }
             }
 
             // set exploded to zero
             *rcPair.borrow_mut() = Reg {
-                x: Cell::new(0),
+                x: 0,
             };
 
             true
@@ -180,7 +180,7 @@ impl SNum {
             Pair(l, r) => {
                 match &*l.borrow() {
                     Reg { x } => {
-                        let x = x.get();
+                        let x = *x;
                         if x >= 10 {
                             new_pair = Some(Pair(
                                 Self::new_rc_reg(x / 2),
@@ -204,7 +204,7 @@ impl SNum {
 
                 match &*r.borrow() {
                     Reg { x } => {
-                        let x = x.get();
+                        let x = *x;
                         if x >= 10 {
                             new_pair = Some(Pair(
                                 Self::new_rc_reg(x / 2),
