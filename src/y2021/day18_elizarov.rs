@@ -79,12 +79,8 @@ impl SNum {
             }
         }
         if let Pair(l, r) = &*snum.borrow() {
-            if let Some(p) = SNum::find_pair(&l, n - 1) {
-                return Some(p);
-            }
-            if let Some(p) = SNum::find_pair(&r, n - 1) {
-                return Some(p);
-            }
+            return SNum::find_pair(&l, n - 1)
+                .map_or_else(|| SNum::find_pair(&r, n - 1), |v| Some(v));
         }
         None
     }
