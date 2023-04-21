@@ -32,7 +32,7 @@ impl StrLetterAt for &str {
 
 type RcPair = Rc<RefCell<SNum>>;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 enum SNum {
     Reg {x: Cell<u32> },
     Pair(RcPair, RcPair),
