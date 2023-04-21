@@ -35,18 +35,18 @@ type RcPair = Rc<RefCell<SNum>>;
 #[derive(Debug, PartialEq)]
 enum SNum {
     Reg {x: Cell<u32> },
-    Pair(Rc<RefCell<SNum>>, Rc<RefCell<SNum>>),
+    Pair(RcPair, RcPair),
 }
 
 use SNum::*;
 
 
 impl SNum {
-    fn parse(s: &str) -> Rc<RefCell<SNum>> {
+    fn parse(s: &str) -> RcPair {
         Self::parse_helper(s, &mut 0)
     }
 
-    fn parse_helper(s: &str, i: &mut usize) -> Rc<RefCell<SNum>> {
+    fn parse_helper(s: &str, i: &mut usize) -> RcPair {
         if s.char_at(*i) == '[' {
             *i += 1;
             let l = Self::parse_helper(s, i);
@@ -61,13 +61,7 @@ impl SNum {
         while s.char_at(*i).is_digit(10) {
             *i += 1;
         }
-        Rc::new(RefCell::new(Self::new_reg(s[start..*i].parse::<u32>().unwrap())))
-    }
-
-    fn new_reg(x: u32) -> SNum {
-        Reg {
-            x: Cell::new(x),
-        }
+        Self::new_rc_reg(s[start..*i].parse::<u32>().unwrap())
     }
 
     fn new_rc_reg(x: u32) -> RcPair {
@@ -85,10 +79,12 @@ impl SNum {
             }
         }
         if let Pair(l, r) = &*snum.borrow() {
-            let p = SNum::find_pair(l.clone(), n - 1);
-            if p.is_some() { return p; }
-            let p = SNum::find_pair(r.clone(), n - 1);
-            if p.is_some() { return p; }
+            if let Some(p) = SNum::find_pair(l.clone(), n - 1) {
+                return Some(p);
+            }
+            if let Some(p) = SNum::find_pair(r.clone(), n - 1) {
+                return Some(p);
+            }
         }
         None
     }
@@ -161,9 +157,7 @@ impl SNum {
             if i + 1 < list.len() {
                 match &*list[i + 1].borrow_mut() {
                     Reg { x } => x.set(x.get() + old_right),
-                    Pair(_, _) => {
-                        panic!("it should have been reg: {:?}", list[i + 1]);
-                    }
+                    Pair(_, _) => panic!("it should have been reg: {:?}", list[i + 1]),
                 }
             }
 
