@@ -89,15 +89,15 @@ impl SNum {
         None
     }
 
-    fn traverse(curr: RcPair, keep: RcPair) -> Vec<RcPair> {
+    fn traverse(curr: &RcPair, keep: &RcPair) -> Vec<RcPair> {
         match &*curr.borrow() {
             Reg { x } => vec![curr.clone()],
             Pair(l, r) => {
-                if Rc::ptr_eq(&curr, &keep) {
+                if Rc::ptr_eq(curr, keep) {
                     return vec![curr.clone()];
                 }
-                let mut ret = SNum::traverse(l.clone(), keep.clone());
-                ret.append(&mut SNum::traverse(r.clone(), keep.clone()));
+                let mut ret = SNum::traverse(&l, keep);
+                ret.append(&mut SNum::traverse(&r, keep));
                 return ret;
             }
         }
@@ -137,7 +137,7 @@ impl SNum {
         eprintln!("exploding");
         let n = SNum::find_pair(&root, 4);
         if let Some(rcPair) = n {
-            let list = SNum::traverse(root.clone(), rcPair.clone());
+            let list = SNum::traverse(&root, &rcPair);
             let i = list
                .iter()
                .position(|p| Rc::ptr_eq(p, &rcPair))
