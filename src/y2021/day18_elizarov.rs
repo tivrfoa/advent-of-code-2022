@@ -70,7 +70,7 @@ impl SNum {
         }))
     }
 
-    fn find_pair(snum: RcPair, n: u32) -> Option<RcPair> {
+    fn find_pair(snum: &RcPair, n: u32) -> Option<RcPair> {
         if n == 0 {
             if snum.borrow().is_pair() {
                 return Some(snum.clone());
@@ -79,10 +79,10 @@ impl SNum {
             }
         }
         if let Pair(l, r) = &*snum.borrow() {
-            if let Some(p) = SNum::find_pair(l.clone(), n - 1) {
+            if let Some(p) = SNum::find_pair(&l, n - 1) {
                 return Some(p);
             }
-            if let Some(p) = SNum::find_pair(r.clone(), n - 1) {
+            if let Some(p) = SNum::find_pair(&r, n - 1) {
                 return Some(p);
             }
         }
@@ -135,7 +135,7 @@ impl SNum {
 
     fn explode(root: RcPair) -> bool {
         eprintln!("exploding");
-        let n = SNum::find_pair(root.clone(), 4);
+        let n = SNum::find_pair(&root, 4);
         if let Some(rcPair) = n {
             let list = SNum::traverse(root.clone(), rcPair.clone());
             let i = list
