@@ -114,7 +114,7 @@ fn yz_edges_from(src: &Scanner, x_edges: &HashMap<u8, AxisInfo>, scanners_by_id:
 	(y_edges, z_edges)
 }
 
-fn compute(input: String) -> String {
+fn part1(input: String) -> String {
 	let scanners: Vec<Scanner> = input
 		.split("\n\n")
 		.map(|s| Scanner::from_str(s))
@@ -168,13 +168,69 @@ fn compute(input: String) -> String {
 	all_points.len().to_string()
 }
 
-fn part1(input: String) -> String {
-	//let points: Vec<(i32, i32, i32)> = parse(input);
-	compute(input)
-}
-
 fn part2(input: String) -> String {
-    "".into()
+	let scanners: Vec<Scanner> = input
+		.split("\n\n")
+		.map(|s| Scanner::from_str(s))
+		.collect();
+
+	let mut scanners_by_id = HashMap::<u8, Scanner>::with_capacity(scanners.len());
+	for s in scanners {
+		scanners_by_id.insert(s.sid, s);
+	}
+
+	let mut all_points: HashSet<[i32; 3]> = HashSet::new();
+	for point in &scanners_by_id.get(&0).unwrap().points {
+		all_points.insert(point.clone());
+	}
+
+	let mut scanner_positions = HashMap::<u8, (i32, i32, i32)>::new();
+	scanner_positions.insert(0, (0, 0, 0));
+	let mut todo: Vec<Scanner> = vec![scanners_by_id.remove(&0).unwrap()];
+
+	while let Some(src) = todo.pop() {
+		let x_edges = x_edges_from(&src, &scanners_by_id);
+		let (y_edges, z_edges) = yz_edges_from(&src, &x_edges, &scanners_by_id);
+
+		for k in x_edges.keys() {
+			let x_edge = x_edges.get(k).unwrap();
+			let y_edge = y_edges.get(k).unwrap();
+			let z_edge = z_edges.get(k).unwrap();
+			let dst_x = x_edge.diff;
+			let dst_y = y_edge.diff;
+			let dst_z = z_edge.diff;
+
+			scanner_positions.insert(*k, (dst_x, dst_y, dst_z));
+
+			let mut next_scanner = scanners_by_id.remove(k).unwrap();
+			next_scanner.points = {
+				let mut tmp = vec![];
+				for pt in next_scanner.points {
+					tmp.push([
+						dst_x + x_edge.sign * pt[x_edge.axis],
+						dst_y + y_edge.sign * pt[y_edge.axis],
+						dst_z + z_edge.sign * pt[z_edge.axis],
+					]);
+				}
+				tmp
+			};
+
+			for point in &next_scanner.points {
+				all_points.insert(point.clone());
+			}
+
+			todo.push(next_scanner);
+		}
+	}
+
+	let mut max_dist = 0;
+	for (i, (x1, y1, z1)) in scanner_positions.values().enumerate() {
+		for (x2, y2, z2) in scanner_positions.values().skip(i + 1) {
+			max_dist = max_dist.max((x2 - x1).abs() + (y2 - y1).abs() + (z2 - z1).abs());
+		}
+	}
+
+	max_dist.to_string()
 }
 
 #[allow(dead_code)]
@@ -357,12 +413,12 @@ mod tests {
     #[test]
     fn p2s() {
         let input = util::read_file("inputs/2021/day19-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("3621", part2(input));
     }
 
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2021/day19.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("14804", part2(input));
     }
 }
