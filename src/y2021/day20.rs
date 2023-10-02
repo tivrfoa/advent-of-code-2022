@@ -7,8 +7,99 @@ use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::iter::zip;
 
+fn get_algo(s: &str) -> Vec<char> {
+	s.lines().next().unwrap().chars().collect()
+}
+
+const space: usize = 200;
+
+fn get_input(s: &str) -> Vec<Vec<char>> {
+	let rows = s.lines().skip(2).count() + space * 2;
+	let cols = s.lines().skip(2).next().unwrap().len() + space * 2;
+	let mut ret = vec![vec!['.'; cols]; rows];
+
+	let mut row = space;
+	for line in s.lines().skip(2) {
+		let mut col = space;
+		for c in line.chars() {
+			ret[row][col] = c;
+			col += 1;
+		}
+		row += 1;
+	}
+
+	ret
+}
+
 fn part1(input: String) -> String {
-    "".into()
+	let algo: Vec<char> = get_algo(&input);
+	let mut input: Vec<Vec<char>> = get_input(&input);
+	// for r in 0..input.len() {
+	// 	for c in 0..input[0].len() {
+	// 		print!("{} ", input[r][c]);
+	// 	}
+	// 	println!();
+	// }
+	let rows = input.len();
+	let cols = input[0].len();
+	dbg!(rows); dbg!(cols);
+	let mut output: Vec<Vec<char>> = vec![vec!['.'; cols]; rows];
+
+	const pos: [[(i16, i16); 3]; 3] = [
+		[
+			(-1, -1),
+			(-1, 0),
+			(-1, 1),
+		],
+		[
+			(0, -1),
+			(0, 0),
+			(0, 1),
+		],
+		[
+			(1, -1),
+			(1, 0),
+			(1, 1),
+		]
+	];
+
+	for t in 1..=2 {
+		let q = space - 2 * t;
+		for r in q..rows - q {
+			for c in q..cols - q {
+				let mut num = String::new();
+				for nn in pos {
+					let mut n = String::new();
+					for (r1, c1) in nn {
+						let c = input[rc(r, r1)][rc(c, c1)];
+						n.push(if c == '#' { '1' } else { '0'});
+					}
+					num.push_str(&mut n);
+				}
+				// println!("{num}");
+				let idx: usize = usize::from_str_radix(&num, 2).unwrap();
+				// println!("{num} -> {idx} -> {}", algo[idx]);
+				output[r][c] = algo[idx];
+			}
+		}
+		input = output.clone();
+	}
+	for r in 0..input.len() {
+		for c in 0..input[0].len() {
+			print!("{} ", input[r][c]);
+		}
+		println!();
+	}
+
+	let mut lits = 0;
+	for row in output {
+		lits += row.into_iter().filter(|&c| c == '#').count();
+	}
+	lits.to_string()
+}
+
+fn rc(p: usize, p1: i16) -> usize {
+	(p as i16 + p1) as usize
 }
 
 fn part2(input: String) -> String {
@@ -146,7 +237,7 @@ mod tests {
     #[test]
     fn p1s() {
         let input = util::read_file("inputs/2021/day20-sample.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("35", part1(input));
     }
 
     #[test]
