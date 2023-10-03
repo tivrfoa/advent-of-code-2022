@@ -24,7 +24,7 @@ fn part1(input: String) -> String {
 	solve(input, 2)
 }
 
-fn solve(input: String, times: u8) -> String {
+fn solve(input: String, times: usize) -> String {
     let algo: Vec<char> = get_algo(&input);
     let mut input: Vec<Vec<char>> = get_input(&input);
     let on = algo[0] == '#';
@@ -35,34 +35,23 @@ fn solve(input: String, times: u8) -> String {
         let mut output: Vec<Vec<char>> = vec![vec!['.'; cols + 2]; rows + 2];
         let rows = rows as i16;
         let cols = cols as i16;
-        let bg = if on {
-            if t % 2 == 0 {
-                '0'
-            } else {
-                '1'
-            }
-        } else {
-            '0'
-        };
+        let bg = if on { t % 2 } else { 0 };
         for r in 0..rows + 2 {
             for c in 0..cols + 2 {
-                let mut num = String::new();
+                let mut n = 0;
                 for r1 in -1..=1 {
-                    let mut n = String::new();
                     for c1 in -1..=1 {
                         let row = r + r1 - 1;
                         let col = c + c1 - 1;
                         if row < 0 || row >= rows || col < 0 || col >= cols {
-                            n.push(bg);
+							n = (n << 1) + bg;
                         } else {
                             let c = input[row as usize][col as usize];
-                            n.push(if c == '#' { '1' } else { '0' });
+							n = (n << 1) + if c == '#' { 1 } else { 0 };
                         }
                     }
-                    num.push_str(&mut n);
                 }
-                let idx: usize = usize::from_str_radix(&num, 2).unwrap();
-                output[r as usize][c as usize] = algo[idx];
+                output[r as usize][c as usize] = algo[n];
             }
         }
         input = output.clone();
