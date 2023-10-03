@@ -11,21 +11,10 @@ fn get_algo(s: &str) -> Vec<char> {
 	s.lines().next().unwrap().chars().collect()
 }
 
-const space: usize = 200;
-
 fn get_input(s: &str) -> Vec<Vec<char>> {
-	let rows = s.lines().skip(2).count() + space * 2;
-	let cols = s.lines().skip(2).next().unwrap().len() + space * 2;
-	let mut ret = vec![vec!['.'; cols]; rows];
-
-	let mut row = space;
+	let mut ret = vec![];
 	for line in s.lines().skip(2) {
-		let mut col = space;
-		for c in line.chars() {
-			ret[row][col] = c;
-			col += 1;
-		}
-		row += 1;
+		ret.push(line.chars().collect());
 	}
 
 	ret
@@ -34,52 +23,34 @@ fn get_input(s: &str) -> Vec<Vec<char>> {
 fn part1(input: String) -> String {
 	let algo: Vec<char> = get_algo(&input);
 	let mut input: Vec<Vec<char>> = get_input(&input);
-	// for r in 0..input.len() {
-	// 	for c in 0..input[0].len() {
-	// 		print!("{} ", input[r][c]);
-	// 	}
-	// 	println!();
-	// }
-	let rows = input.len();
-	let cols = input[0].len();
-	dbg!(rows); dbg!(cols);
-	let mut output: Vec<Vec<char>> = vec![vec!['.'; cols]; rows];
+	let on = algo[0] == '#';
 
-	const pos: [[(i16, i16); 3]; 3] = [
-		[
-			(-1, -1),
-			(-1, 0),
-			(-1, 1),
-		],
-		[
-			(0, -1),
-			(0, 0),
-			(0, 1),
-		],
-		[
-			(1, -1),
-			(1, 0),
-			(1, 1),
-		]
-	];
-
-	for t in 1..=2 {
-		let q = space - 2 * t;
-		for r in q..rows - q {
-			for c in q..cols - q {
+	for t in '0'..='1' {
+		let rows = input.len();
+		let cols = input[0].len();
+		let mut output: Vec<Vec<char>> = vec![vec!['.'; cols + 2]; rows + 2];
+		let rows = rows as i16;
+		let cols = cols as i16;
+		let bg = if on { t } else { '0' };
+		for r in 0..rows + 2 {
+			for c in 0..cols + 2 {
 				let mut num = String::new();
-				for nn in pos {
+				for r1 in -1..=1 {
 					let mut n = String::new();
-					for (r1, c1) in nn {
-						let c = input[rc(r, r1)][rc(c, c1)];
-						n.push(if c == '#' { '1' } else { '0'});
+					for c1 in -1..=1 {
+						let row = r + r1 - 1;
+						let col = c + c1 - 1;
+						if row < 0 || row >= rows || col < 0 || col >= cols {
+							n.push(bg);
+						} else {
+							let c = input[row as usize][col as usize];
+							n.push(if c == '#' { '1' } else { '0'});
+						}
 					}
 					num.push_str(&mut n);
 				}
-				// println!("{num}");
 				let idx: usize = usize::from_str_radix(&num, 2).unwrap();
-				// println!("{num} -> {idx} -> {}", algo[idx]);
-				output[r][c] = algo[idx];
+				output[r as usize][c as usize] = algo[idx];
 			}
 		}
 		input = output.clone();
@@ -92,7 +63,7 @@ fn part1(input: String) -> String {
 	}
 
 	let mut lits = 0;
-	for row in output {
+	for row in input {
 		lits += row.into_iter().filter(|&c| c == '#').count();
 	}
 	lits.to_string()
@@ -241,6 +212,7 @@ mod tests {
     }
 
     #[test]
+//#[ignore]
     fn p1() {
         let input = util::read_file("inputs/2021/day20.txt");
         assert_eq!("", part1(input));
