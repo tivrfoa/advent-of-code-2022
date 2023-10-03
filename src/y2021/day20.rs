@@ -8,73 +8,85 @@ use std::hash::Hash;
 use std::iter::zip;
 
 fn get_algo(s: &str) -> Vec<char> {
-	s.lines().next().unwrap().chars().collect()
+    s.lines().next().unwrap().chars().collect()
 }
 
 fn get_input(s: &str) -> Vec<Vec<char>> {
-	let mut ret = vec![];
-	for line in s.lines().skip(2) {
-		ret.push(line.chars().collect());
-	}
+    let mut ret = vec![];
+    for line in s.lines().skip(2) {
+        ret.push(line.chars().collect());
+    }
 
-	ret
+    ret
 }
 
 fn part1(input: String) -> String {
-	let algo: Vec<char> = get_algo(&input);
-	let mut input: Vec<Vec<char>> = get_input(&input);
-	let on = algo[0] == '#';
+	solve(input, 2)
+}
 
-	for t in '0'..='1' {
-		let rows = input.len();
-		let cols = input[0].len();
-		let mut output: Vec<Vec<char>> = vec![vec!['.'; cols + 2]; rows + 2];
-		let rows = rows as i16;
-		let cols = cols as i16;
-		let bg = if on { t } else { '0' };
-		for r in 0..rows + 2 {
-			for c in 0..cols + 2 {
-				let mut num = String::new();
-				for r1 in -1..=1 {
-					let mut n = String::new();
-					for c1 in -1..=1 {
-						let row = r + r1 - 1;
-						let col = c + c1 - 1;
-						if row < 0 || row >= rows || col < 0 || col >= cols {
-							n.push(bg);
-						} else {
-							let c = input[row as usize][col as usize];
-							n.push(if c == '#' { '1' } else { '0'});
-						}
-					}
-					num.push_str(&mut n);
-				}
-				let idx: usize = usize::from_str_radix(&num, 2).unwrap();
-				output[r as usize][c as usize] = algo[idx];
-			}
-		}
-		input = output.clone();
-	}
-	for r in 0..input.len() {
-		for c in 0..input[0].len() {
-			print!("{} ", input[r][c]);
-		}
-		println!();
-	}
+fn solve(input: String, times: u8) -> String {
+    let algo: Vec<char> = get_algo(&input);
+    let mut input: Vec<Vec<char>> = get_input(&input);
+    let on = algo[0] == '#';
 
-	let mut lits = 0;
-	for row in input {
-		lits += row.into_iter().filter(|&c| c == '#').count();
-	}
-	lits.to_string()
+    for t in 0..times {
+        let rows = input.len();
+        let cols = input[0].len();
+        let mut output: Vec<Vec<char>> = vec![vec!['.'; cols + 2]; rows + 2];
+        let rows = rows as i16;
+        let cols = cols as i16;
+        let bg = if on {
+            if t % 2 == 0 {
+                '0'
+            } else {
+                '1'
+            }
+        } else {
+            '0'
+        };
+        for r in 0..rows + 2 {
+            for c in 0..cols + 2 {
+                let mut num = String::new();
+                for r1 in -1..=1 {
+                    let mut n = String::new();
+                    for c1 in -1..=1 {
+                        let row = r + r1 - 1;
+                        let col = c + c1 - 1;
+                        if row < 0 || row >= rows || col < 0 || col >= cols {
+                            n.push(bg);
+                        } else {
+                            let c = input[row as usize][col as usize];
+                            n.push(if c == '#' { '1' } else { '0' });
+                        }
+                    }
+                    num.push_str(&mut n);
+                }
+                let idx: usize = usize::from_str_radix(&num, 2).unwrap();
+                output[r as usize][c as usize] = algo[idx];
+            }
+        }
+        input = output.clone();
+    }
+    for r in 0..input.len() {
+        for c in 0..input[0].len() {
+            print!("{} ", input[r][c]);
+        }
+        println!();
+    }
+
+    let mut lits = 0;
+    for row in input {
+        lits += row.into_iter().filter(|&c| c == '#').count();
+    }
+    lits.to_string()
 }
 
 fn rc(p: usize, p1: i16) -> usize {
-	(p as i16 + p1) as usize
+    (p as i16 + p1) as usize
 }
 
 fn part2(input: String) -> String {
-    "".into()
+	solve(input, 50)
 }
 
 #[allow(dead_code)]
@@ -121,7 +133,10 @@ where
 
 #[allow(dead_code)]
 fn str_to_char_tuple(s: &str) -> (char, char) {
-    (s[0..1].chars().next().unwrap(), s[1..2].chars().next().unwrap())
+    (
+        s[0..1].chars().next().unwrap(),
+        s[1..2].chars().next().unwrap(),
+    )
 }
 
 #[allow(dead_code)]
@@ -151,7 +166,12 @@ fn get_dirs(r: usize, c: usize, rows: usize, cols: usize) -> [(bool, (usize, usi
 }
 
 #[allow(dead_code)]
-fn get_dirs_with_diagonals(r: usize, c: usize, rows: usize, cols: usize) -> [(bool, (usize, usize)); 8] {
+fn get_dirs_with_diagonals(
+    r: usize,
+    c: usize,
+    rows: usize,
+    cols: usize,
+) -> [(bool, (usize, usize)); 8] {
     [
         // left
         (c > 0, (r, if c > 0 { c - 1 } else { 0 })),
@@ -190,7 +210,9 @@ struct State {
 
 impl Ord for State {
     fn cmp(&self, other: &Self) -> Ordering {
-        other.cost.cmp(&self.cost)
+        other
+            .cost
+            .cmp(&self.cost)
             .then_with(|| self.position.cmp(&other.position))
     }
 }
@@ -212,21 +234,20 @@ mod tests {
     }
 
     #[test]
-//#[ignore]
     fn p1() {
         let input = util::read_file("inputs/2021/day20.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("5498", part1(input));
     }
 
     #[test]
     fn p2s() {
         let input = util::read_file("inputs/2021/day20-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("3351", part2(input));
     }
 
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2021/day20.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("16014", part2(input));
     }
 }
