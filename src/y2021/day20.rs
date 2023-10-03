@@ -1,3 +1,5 @@
+extern crate test;
+
 use crate::util;
 
 use std::cell::Cell;
@@ -52,6 +54,57 @@ fn solve(input: String, times: usize) -> String {
                     }
                 }
                 output[r as usize][c as usize] = algo[n];
+            }
+        }
+        input = output.clone();
+    }
+
+    let mut lits = 0;
+    for row in input {
+        lits += row.into_iter().filter(|&c| c == '#').count();
+    }
+    lits.to_string()
+}
+
+fn solve_string(input: String, times: u8) -> String {
+    let algo: Vec<char> = get_algo(&input);
+    let mut input: Vec<Vec<char>> = get_input(&input);
+    let on = algo[0] == '#';
+
+    for t in 0..times {
+        let rows = input.len();
+        let cols = input[0].len();
+        let mut output: Vec<Vec<char>> = vec![vec!['.'; cols + 2]; rows + 2];
+        let rows = rows as i16;
+        let cols = cols as i16;
+        let bg = if on {
+            if t % 2 == 0 {
+                '0'
+            } else {
+                '1'
+            }
+        } else {
+            '0'
+        };
+        for r in 0..rows + 2 {
+            for c in 0..cols + 2 {
+                let mut num = String::new();
+                for r1 in -1..=1 {
+                    let mut n = String::new();
+                    for c1 in -1..=1 {
+                        let row = r + r1 - 1;
+                        let col = c + c1 - 1;
+                        if row < 0 || row >= rows || col < 0 || col >= cols {
+                            n.push(bg);
+                        } else {
+                            let c = input[row as usize][col as usize];
+                            n.push(if c == '#' { '1' } else { '0' });
+                        }
+                    }
+                    num.push_str(&mut n);
+                }
+                let idx: usize = usize::from_str_radix(&num, 2).unwrap();
+                output[r as usize][c as usize] = algo[idx];
             }
         }
         input = output.clone();
@@ -212,9 +265,11 @@ impl PartialOrd for State {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;
+	use test::Bencher;
 
     #[test]
     fn p1s() {
@@ -234,9 +289,19 @@ mod tests {
         assert_eq!("3351", part2(input));
     }
 
-    #[test]
-    fn p2() {
-        let input = util::read_file("inputs/2021/day20.txt");
-        assert_eq!("16014", part2(input));
+	#[bench]
+    fn p2(b: &mut Bencher) {
+		b.iter(|| {
+			let input = util::read_file("inputs/2021/day20.txt");
+			assert_eq!("16014", part2(input));
+		});
+    }
+
+	#[bench]
+    fn p2_string(b: &mut Bencher) {
+		b.iter(|| {
+			let input = util::read_file("inputs/2021/day20.txt");
+			assert_eq!("16014", solve_string(input, 50));
+		});
     }
 }
