@@ -17,22 +17,28 @@ fn roll(mut dice: u32) -> u32 {
 	}
 }
 
+fn play_round(mut pos: u32, mut dice: u32) -> (u32, u32) {
+	let mut sum = 0;
+	for _ in 0..3 {
+		sum += dice;
+		dice = if 1 + dice <= 100 { 1 + dice } else { (1 + dice)  % 100 };
+	}
+	pos = pos + (sum % 10);
+	if pos > 10 {
+		(pos - 10, dice)
+	} else {
+		(pos, dice)
+	}
+}
+
 fn part1(mut pos1: u32, mut pos2: u32) -> String {
 	let mut dice = 1;
 	let mut p1 = 0;
 	let mut p2 = 0;
 	let mut times = 0;
 	loop {
-		let mut sum = 0;
-		for _ in 0..3 {
-			sum += dice;
-			// dice = roll(dice);
-			dice = (1 + dice) % 100;
-		}
+		(pos1, dice) = play_round(pos1, dice);
 		times += 3;
-        sum %= 10;
-		pos1 += sum;
-        if pos1 > 10 { pos1 -= 10; }
 		p1 += pos1;
 
 		if p1 >= 1000 {
@@ -40,17 +46,10 @@ fn part1(mut pos1: u32, mut pos2: u32) -> String {
 			return (p2 * times).to_string();
 		}
 
-		let mut sum = 0;
-		for _ in 0..3 {
-			sum += dice;
-			// dice = roll(dice);
-			dice = (1 + dice) % 100;
-		}
+		(pos2, dice) = play_round(pos2, dice);
 		times += 3;
-		sum %= 10;
-		pos2 += sum;
-        if pos2 > 10 { pos2 -= 10; }
 		p2 += pos2;
+
 		if p2 >= 1000 {
 			dbg!(p1, p2, times);
 			return (p1 * times).to_string();
