@@ -17,18 +17,14 @@ fn roll(mut dice: u32) -> u32 {
 	}
 }
 
+#[inline(always)]
 fn play_round(mut pos: u32, mut dice: u32) -> (u32, u32) {
 	let mut sum = 0;
 	for _ in 0..3 {
 		sum += dice;
 		dice = dice % 100 + 1;
 	}
-	pos = pos + (sum % 10);
-	if pos > 10 {
-		(pos - 10, dice)
-	} else {
-		(pos, dice)
-	}
+	((pos + sum - 1) % 10 + 1, dice)
 }
 
 fn part1(mut pos1: u32, mut pos2: u32) -> String {
