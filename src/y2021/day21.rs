@@ -18,7 +18,7 @@ fn roll(mut dice: u32) -> u32 {
 }
 
 #[inline(always)]
-fn play_round(mut pos: u32, mut dice: u32) -> (u32, u32) {
+fn play_round(mut pos: u64, mut dice: u64) -> (u64, u64) {
 	let mut sum = 0;
 	for _ in 0..3 {
 		sum += dice;
@@ -27,28 +27,23 @@ fn play_round(mut pos: u32, mut dice: u32) -> (u32, u32) {
 	((pos + sum - 1) % 10 + 1, dice)
 }
 
-fn part1(mut pos1: u32, mut pos2: u32) -> String {
+fn part1(mut pos1: u64, mut pos2: u64) -> String {
 	let mut dice = 1;
-	let mut p1 = 0;
-	let mut p2 = 0;
 	let mut times = 0;
+	let mut players: [Player; 2] = [
+		Player::new(pos1, 0),
+		Player::new(pos2, 0),
+	];
 	loop {
-		(pos1, dice) = play_round(pos1, dice);
-		times += 3;
-		p1 += pos1;
+		for i in 0..2 {
+			(players[i].pos, dice) = play_round(players[i].pos, dice);
+			times += 3;
+			players[i].score += players[i].pos;
 
-		if p1 >= 1000 {
-			dbg!(p1, p2, times);
-			return (p2 * times).to_string();
-		}
+			if players[i].score >= 1000 {
+				return (players[1 - i].score * times).to_string();
+			}
 
-		(pos2, dice) = play_round(pos2, dice);
-		times += 3;
-		p2 += pos2;
-
-		if p2 >= 1000 {
-			dbg!(p1, p2, times);
-			return (p1 * times).to_string();
 		}
 	}
 }
