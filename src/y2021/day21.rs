@@ -73,16 +73,16 @@ impl Player {
 }
 
 const GOAL: u64 = 21;
-const SUMS: [u64; 7] = [
-	3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-];
-// const SUMS: [u64; 27] = sums();
+// const SUMS: [u64; 7] = [
+// 	3,
+//     4,
+//     5,
+//     6,
+//     7,
+//     8,
+//     9,
+// ];
+const SUMS: [u64; 27] = sums();
 
 const fn sums() -> [u64; 27] {
 	let mut ret = [0; 27];
@@ -306,6 +306,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2021/day21.txt");
-        assert_eq!("", part2(4, 5));
+        assert_eq!("575111835924670", part2(4, 5));
     }
 }
