@@ -57,8 +57,104 @@ fn part1(mut pos1: u32, mut pos2: u32) -> String {
 	}
 }
 
-fn part2(input: String) -> String {
-    "".into()
+#[derive(Clone, Eq, Hash, PartialEq)]
+struct Player {
+	pos: u64,
+	score: u64,
+}
+
+impl Player {
+	fn new(pos: u64, score: u64) -> Self {
+		Self {
+			pos,
+			score,
+		}
+	}
+}
+
+const GOAL: u64 = 21;
+const SUMS: [u64; 7] = [
+	3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+];
+// const SUMS: [u64; 27] = sums();
+
+const fn sums() -> [u64; 27] {
+	let mut ret = [0; 27];
+	let mut idx = 0;
+	let mut a = 1;
+	let mut b = 1;
+	let mut c = 1;
+	while a < 4 {
+		while b < 4 {
+			while c < 4 {
+				let s = a + b + c;
+				ret[idx] = s;
+				idx += 1;
+				c += 1;
+			}
+			c = 1;
+			b += 1;
+		}
+		b = 1;
+		a += 1;
+	}
+	ret
+}
+
+fn solvep2(mem: &mut HashMap<(Player, Player), (u64, u64)>, p1: &Player, p2: &Player) -> (u64, u64) {
+	if let Some(qt) = mem.get(&(p1.clone(), p2.clone())) {
+		return *qt;
+	}
+	let mut p1_won: u64 = 0;
+	let mut p2_won: u64 = 0;
+	let mut p1s = vec![];
+
+	for s in SUMS {
+		let mut new_pos = p1.pos + s;
+		if new_pos > 10 {
+			new_pos -= 10;
+		}
+		if p1.score + new_pos >= GOAL {
+			p1_won += 1;
+		} else {
+			p1s.push(Player::new(new_pos, p1.score + new_pos));
+		}
+	}
+
+	for p in &p1s {
+		for s in SUMS {
+			let mut new_pos = p2.pos + s;
+			if new_pos > 10 {
+				new_pos -= 10;
+			}
+			if p2.score + new_pos >= GOAL {
+				p2_won += 1;
+			} else {
+				let new_p2 = Player::new(new_pos, p2.score + new_pos);
+				let (t1, t2) = solvep2(mem, p, &new_p2);
+				p1_won += t1;
+				p2_won += t2;
+			}
+		}
+	}
+
+	mem.insert((p1.clone(), p2.clone()), (p1_won, p2_won));
+	(p1_won, p2_won)
+}
+
+fn part2(mut pos1: u64, mut pos2: u64) -> String {
+	let mut mem: HashMap<(Player, Player), (u64, u64)> = HashMap::new();
+	let p1 = Player::new(pos1, 0);
+	let p2 = Player::new(pos2, 0);
+	let (p1_won, p2_won) = solvep2(&mut mem, &p1, &p2);
+
+	p1_won.max(p2_won).to_string()
 }
 
 #[allow(dead_code)]
@@ -204,12 +300,12 @@ mod tests {
     #[test]
     fn p2s() {
         let input = util::read_file("inputs/2021/day21-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("444356092776315", part2(4, 8));
     }
 
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2021/day21.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("", part2(4, 5));
     }
 }
