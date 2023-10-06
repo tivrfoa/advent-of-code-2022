@@ -21,7 +21,7 @@ fn play_round(mut pos: u32, mut dice: u32) -> (u32, u32) {
 	let mut sum = 0;
 	for _ in 0..3 {
 		sum += dice;
-		dice = if 1 + dice <= 100 { 1 + dice } else { (1 + dice)  % 100 };
+		dice = dice % 100 + 1;
 	}
 	pos = pos + (sum % 10);
 	if pos > 10 {
