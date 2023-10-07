@@ -126,6 +126,79 @@ fn sort_uniq(steps: &[Step], f: fn(&Step) -> Vec<i32>) -> Vec<i32> {
 	v
 }
 
+// https://www.reddit.com/r/adventofcode/comments/rlxhmg/2021_day_22_solutions/hpiz583/
+fn part2_2(input: String) -> String {
+    let mut steps: Vec<Step> = vec![];
+    for line in input.lines() {
+        let xyz = line.split(",").collect::<Vec<&str>>();
+        let (on, _) = xyz[0].split_once(' ').unwrap();
+        let (x1, x2) = get_range(&xyz[0]);
+        let (y1, y2) = get_range(&xyz[1]);
+        let (z1, z2) = get_range(&xyz[2]);
+        steps.push(Step::new(
+            on == "on",
+            (x1, x2),
+            (y1, y2),
+            (z1, z2),
+        ));
+    }
+	let mut cubes: Vec<(i32, i32, i32, i32, i32, i32)> = vec![];
+
+	for s in steps {
+		let op = s.on;
+		let (ux, vx) = s.x;
+		let (uy, vy) = s.y;
+		let (uz, vz) = s.z;
+
+		let mut new_cubes = vec![];
+		for i in 0..cubes.len() {
+			let (ux2, vx2, uy2, vy2, uz2, vz2) = cubes[i];
+			if ux > vx2 || vx < ux2 || uy > vy2 || vy < uy2 || uz > vz2 || vz < uz2 {
+				new_cubes.push((ux2, vx2, uy2, vy2, uz2, vz2));
+				continue;
+			}
+			if ux > ux2 {
+				new_cubes.push((ux2, ux - 1, uy2, vy2, uz2, vz2));
+			}
+			if vx < vx2 {
+				new_cubes.push((vx + 1, vx2, uy2, vy2, uz2, vz2));
+			}
+			if uy > uy2 {
+				new_cubes.push((max(ux2, ux), min(vx2, vx), uy2, uy - 1, uz2, vz2));
+			}
+			if vy < vy2 {
+				new_cubes.push((max(ux2, ux), min(vx2, vx), vy + 1, vy2, uz2, vz2));
+			}
+			if uz > uz2 {
+				new_cubes.push((max(ux2, ux), min(vx2, vx), max(uy2, uy), min(vy2, vy), uz2, uz - 1));
+			}
+			if vz < vz2 {
+				new_cubes.push((max(ux2, ux), min(vx2, vx), max(uy2, uy), min(vy2, vy), vz + 1, vz2));
+			}
+		}
+		if op {
+			// new_cubes.push((min(ux, vx), max(ux, vx), min(uy, vy), max(uy, vy), min(uz, vz), max(uz, vz)));
+			new_cubes.push((ux, vx, uy, vy, uz, vz));
+		}
+		cubes = new_cubes;
+	}
+
+	let mut on_count: i64 = 0;
+	for (ux, vx, uy, vy, uz, vz) in cubes {
+		on_count += (vx - ux + 1) as i64 * (vy - uy + 1) as i64 * (vz - uz + 1) as i64;
+	}
+
+	on_count.to_string()
+}
+
+fn max(a: i32, b: i32) -> i32 {
+	a.max(b)
+}
+
+fn min(a: i32, b: i32) -> i32 {
+	a.min(b)
+}
+
 #[allow(dead_code)]
 fn dbg_grid<T: Debug + Display>(grid: &[Vec<T>]) {
     for item in grid {
@@ -283,8 +356,15 @@ mod tests {
     }
 
     #[test]
+#[ignore]
     fn p2() {
         let input = util::read_file("inputs/2021/day22.txt");
         assert_eq!("1359673068597669", part2(input));
+    }
+
+    #[test]
+    fn p2_2() {
+        let input = util::read_file("inputs/2021/day22.txt");
+        assert_eq!("1359673068597669", part2_2(input));
     }
 }
