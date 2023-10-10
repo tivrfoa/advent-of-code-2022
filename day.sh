@@ -1,16 +1,19 @@
 #!/bin/bash
 
-# $1 day
-# $2 year
+# $1 year
+# $2 day
 
-echo "mod day${1};" > "src/y${2}.rs"
+year=$1
+day=$2
 
-touch inputs/$2/day$1.txt inputs/$2/day$1-sample.txt
+echo "mod day${day};" > "src/y${year}.rs"
 
-cp src/template.rs src/y$2/day$1.rs
+touch inputs/$year/day$day.txt inputs/$year/day$day-sample.txt
 
-sed -i "s/dayX/${2}\/day${1}/g" src/y$2/day$1.rs
-sed -i "s/DayX/Day${1}/g" src/y$2/day$1.rs
+cp src/template.rs src/y$year/day$day.rs
 
-vim src/y$2/day$1.rs
+sed -i "s/dayX/${year}\/day${day}/g" src/y$year/day$day.rs
+sed -i "s/DayX/Day${day}/g" src/y$year/day$day.rs
+
+vim src/y$year/day$day.rs
 
