@@ -211,19 +211,10 @@ impl State {
 		// left down
 		let mut c = col - 1;
 		while self.grid[row][c] == '.' {
-			// try left
-			if let Some(s) = self.moveto((row, col), (row, c)) {
-				add_if_lower(mem, &mut pq, s);
-			}
-
-			// try down on row
-			if let Some(s) = self.moveto((row, col), (row + 1, c)) {
-				add_if_lower(mem, &mut pq, s);
-			}
-
-			// try down two rows
-			if let Some(s) = self.moveto((row, col), (row + 2, c)) {
-				add_if_lower(mem, &mut pq, s);
+			for r in row..=self.grid.len() - 2 {
+				if let Some(s) = self.moveto((row, col), (r, c)) {
+					add_if_lower(mem, &mut pq, s);
+				}
 			}
 			c -= 1;
 		}
@@ -231,19 +222,10 @@ impl State {
 		// right down
 		let mut c = col + 1;
 		while self.grid[row][c] == '.' {
-			// try right
-			if let Some(s) = self.moveto((row, col), (row, c)) {
-				add_if_lower(mem, &mut pq, s);
-			}
-
-			// try down on row
-			if let Some(s) = self.moveto((row, col), (row + 1, c)) {
-				add_if_lower(mem, &mut pq, s);
-			}
-
-			// try down two rows
-			if let Some(s) = self.moveto((row, col), (row + 2, c)) {
-				add_if_lower(mem, &mut pq, s);
+			for r in row..=self.grid.len() - 2 {
+				if let Some(s) = self.moveto((row, col), (r, c)) {
+					add_if_lower(mem, &mut pq, s);
+				}
 			}
 			c += 1;
 		}
@@ -328,8 +310,11 @@ impl State {
 				if r2 == 1 {
 					return None;
 				}
-				if r2 == 2 && self.grid[r1][c1] != self.grid[3][c2] {
-					return None;
+				let rows = self.grid.len() - 2;
+				for r in r2+1..=rows {
+					if self.grid[r1][c1] != self.grid[r][c2] {
+						return None;
+					}
 				}
 			}
 			_ => ()
