@@ -126,22 +126,6 @@ impl State {
 		pq
 	}
 
-	fn check_vertical(&self, col: usize, r1: usize, r2: usize, cost: usize) -> Option<usize> {
-		if r1 < r2 {
-			// going down
-			if !is_free_y(&self.grid, col, r1+1, r2) {
-				return None;
-			}
-			Some((r2 - r1) * cost)
-		} else {
-			// going up
-			if !is_free_y(&self.grid, col, r2, r1-1) {
-				return None;
-			}
-			Some((r1 - r2) * cost)
-		}
-	}
-
 	fn check_horizontal(&self, row: usize, c1: usize, c2: usize, cost: usize) -> Option<usize> {
 		if c2 < c1 {
 			// going left
@@ -214,10 +198,12 @@ impl State {
 		if r1 > r2 {
 			// going up
 			// first move vertical
-			match self.check_vertical(c1, r1, r2, cost) {
-				Some(c) => new_cost += c,
-				None => return None,
+			for r in (r2..r1).rev() {
+				if self.grid[r][c1] != '.' {
+					return None;
+				}
 			}
+			new_cost += (r1 - r2) * cost;
 			match self.check_horizontal(r2, c1, c2, cost) {
 				Some(c) => new_cost += c,
 				None => return None,
@@ -229,10 +215,13 @@ impl State {
 				Some(c) => new_cost += c,
 				None => return None,
 			}
-			match self.check_vertical(c2, r1, r2, cost) {
-				Some(c) => new_cost += c,
-				None => return None,
+
+			for r in (r1+1..r2).rev() {
+				if self.grid[r][c2] != '.' {
+					return None;
+				}
 			}
+			new_cost += (r2 - r1) * cost;
 		}
 
 		Some(Self {
