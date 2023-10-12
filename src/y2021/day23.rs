@@ -41,7 +41,6 @@ fn part1(input: String) -> String {
 	let s = State {
 		cost: 0,
 		grid: parse_grid(&input),
-		prev: (0, 0),
 	};
 	
 	let mut mem: HashSet<Grid> = HashSet::new();
@@ -54,6 +53,9 @@ fn part1(input: String) -> String {
 		}
 		mem.insert(s.grid.clone());
 		if s.finished() {
+			for r in &s.grid {
+				println!("{:?}", r);
+			}
 			best = s.cost;
 		}
 		if s.cost > best {
@@ -82,7 +84,6 @@ fn part2(input: String) -> String {
 struct State {
     cost: usize,
 	grid: Grid,
-	prev: (usize, usize),
 }
 
 impl State {
@@ -233,7 +234,6 @@ impl State {
 		Some(Self {
 			cost: self.cost + new_cost,
 			grid: self.update_grid(from, to),
-			prev: to,
 		})
 	}
 
