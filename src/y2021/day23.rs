@@ -199,71 +199,15 @@ impl State {
 	fn find_moves(&self, mem: &mut HashSet<Grid>, row: usize, col: usize) -> BinaryHeap<State> {
 		let mut pq: BinaryHeap<State> = BinaryHeap::new();
 
-		/*let final_col = match self.grid[row][col] {
-			'A' => 3,
-			'B' => 5,
-			'C' => 7,
-			'D' => 9,
-			_ => panic!("{}", self.grid[row][col]),
-		};
-
-		for r in row..=self.grid.len() - 2 {
-			if let Some(s) = self.moveto((row, col), (r, final_col)) {
-				add_if_lower(mem, &mut pq, s);
-				if !pq.is_empty() {
-					return pq;
-				}
-			}
-		}*/
-
-		// left down
-		let mut c = col - 1;
-		while self.grid[row][c] == '.' {
-			for r in row..=self.grid.len() - 2 {
+		for r in 1..ROWS - 1 {
+			for c in 1..COLS - 1 {
+				if r == row && c == col { continue; }
 				if let Some(s) = self.moveto((row, col), (r, c)) {
 					if !mem.contains(&s.grid) {
 						pq.push(s);
 					}
 				}
 			}
-			c -= 1;
-		}
-
-		// right down
-		let mut c = col + 1;
-		while self.grid[row][c] == '.' {
-			for r in row..=self.grid.len() - 2 {
-				if let Some(s) = self.moveto((row, col), (r, c)) {
-					if !mem.contains(&s.grid) {
-						pq.push(s);
-					}
-				}
-			}
-			c += 1;
-		}
-
-		// up left
-		// up must go to row 1
-		let mut c = col - 1;
-		while self.grid[1][c] == '.' {
-			if let Some(s) = self.moveto((row, col), (1, c)) {
-				if !mem.contains(&s.grid) {
-					pq.push(s);
-				}
-			}
-			c -= 1;
-		}
-
-		// up right
-		// up must go to row 1
-		let mut c = col + 1;
-		while self.grid[1][c] == '.' {
-			if let Some(s) = self.moveto((row, col), (1, c)) {
-				if !mem.contains(&s.grid) {
-					pq.push(s);
-				}
-			}
-			c += 1;
 		}
 
 		pq
@@ -320,6 +264,8 @@ impl State {
 		let (r2, c2) = (to.0, to.1);
 		let mut new_cost = 0;
 		let cost = self.get_cost(r1, c1);
+
+		if r2 < r1 && r2 != 1 { return None; }
 
 		match c2 {
 			3 | 5 | 7 | 9 => {
