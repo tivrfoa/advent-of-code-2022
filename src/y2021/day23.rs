@@ -191,8 +191,7 @@ impl State {
 				if r2 == 1 {
 					return None;
 				}
-				let rows = self.grid.len() - 2;
-				for r in r2+1..=rows {
+				for r in r2+1..ROWS - 1 {
 					if self.grid[r1][c1] != self.grid[r][c2] {
 						return None;
 					}
