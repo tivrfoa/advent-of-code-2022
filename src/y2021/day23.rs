@@ -7,8 +7,14 @@ use std::fmt::{Debug, Display, Binary};
 use std::hash::Hash;
 use std::iter::zip;
 
+const ROWS: usize = 5;
+const COLS: usize = 13;
+
+type Grid = [[char; COLS]; ROWS];
+type Pos = (usize, usize);
+
 fn parse_grid(s: &str) -> Grid {
-	let mut g: Grid = [[' '; 13]; 5];
+	let mut g: Grid = [[' '; COLS]; ROWS];
 
 	let mut r = 0;
 	for line in s.lines() {
@@ -20,8 +26,6 @@ fn parse_grid(s: &str) -> Grid {
 	g
 }
 
-const COLS: usize = 13;
-
 fn part1(input: String) -> String {
 	let mut best = usize::MAX;
 	let s = State {
@@ -30,12 +34,15 @@ fn part1(input: String) -> String {
 		prev: (0, 0),
 	};
 	
-	let mut mem: HashMap<Grid, usize> = HashMap::new();
-	mem.insert(s.grid.clone(), 0);
+	let mut mem: HashSet<Grid> = HashSet::new();
 	let mut pq: BinaryHeap<State> = BinaryHeap::new();
 	pq.push(s);
 
 	while let Some(s) = pq.pop() {
+		if mem.contains(&s.grid) {
+			continue;
+		}
+		mem.insert(s.grid.clone());
 		if s.finished() {
 			best = s.cost;
 		}
@@ -170,30 +177,12 @@ fn get_dirs_with_diagonals(r: usize, c: usize, rows: usize, cols: usize) -> [(bo
     ]
 }
 
-type Grid = [[char; 13]; 5];
-type Pos = (usize, usize);
-
 #[allow(dead_code)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct State {
     cost: usize,
 	grid: Grid,
 	prev: (usize, usize),
-}
-
-fn add_if_lower(mem: &mut HashMap<Grid, usize>, pq: &mut BinaryHeap<State>, state: State) {
-	match mem.get_mut(&state.grid) {
-		Some(cost) => {
-			if state.cost < *cost {
-				*cost = state.cost;
-				pq.push(state);
-			}
-		}
-		None => {
-			mem.insert(state.grid.clone(), state.cost);
-			pq.push(state);
-		}
-	}
 }
 
 impl State {
@@ -207,15 +196,34 @@ impl State {
 		true
 	}
 
-	fn find_moves(&self, mem: &mut HashMap<Grid, usize>, row: usize, col: usize) -> BinaryHeap<State> {
+	fn find_moves(&self, mem: &mut HashSet<Grid>, row: usize, col: usize) -> BinaryHeap<State> {
 		let mut pq: BinaryHeap<State> = BinaryHeap::new();
+
+		/*let final_col = match self.grid[row][col] {
+			'A' => 3,
+			'B' => 5,
+			'C' => 7,
+			'D' => 9,
+			_ => panic!("{}", self.grid[row][col]),
+		};
+
+		for r in row..=self.grid.len() - 2 {
+			if let Some(s) = self.moveto((row, col), (r, final_col)) {
+				add_if_lower(mem, &mut pq, s);
+				if !pq.is_empty() {
+					return pq;
+				}
+			}
+		}*/
 
 		// left down
 		let mut c = col - 1;
 		while self.grid[row][c] == '.' {
 			for r in row..=self.grid.len() - 2 {
 				if let Some(s) = self.moveto((row, col), (r, c)) {
-					add_if_lower(mem, &mut pq, s);
+					if !mem.contains(&s.grid) {
+						pq.push(s);
+					}
 				}
 			}
 			c -= 1;
@@ -226,7 +234,9 @@ impl State {
 		while self.grid[row][c] == '.' {
 			for r in row..=self.grid.len() - 2 {
 				if let Some(s) = self.moveto((row, col), (r, c)) {
-					add_if_lower(mem, &mut pq, s);
+					if !mem.contains(&s.grid) {
+						pq.push(s);
+					}
 				}
 			}
 			c += 1;
@@ -237,7 +247,9 @@ impl State {
 		let mut c = col - 1;
 		while self.grid[1][c] == '.' {
 			if let Some(s) = self.moveto((row, col), (1, c)) {
-				add_if_lower(mem, &mut pq, s);
+				if !mem.contains(&s.grid) {
+					pq.push(s);
+				}
 			}
 			c -= 1;
 		}
@@ -247,7 +259,9 @@ impl State {
 		let mut c = col + 1;
 		while self.grid[1][c] == '.' {
 			if let Some(s) = self.moveto((row, col), (1, c)) {
-				add_if_lower(mem, &mut pq, s);
+				if !mem.contains(&s.grid) {
+					pq.push(s);
+				}
 			}
 			c += 1;
 		}
@@ -402,19 +416,20 @@ mod tests {
     use super::*;
 
     #[test]
+	//#[ignore]
     fn p1s() {
         let input = util::read_file("inputs/2021/day23-sample.txt");
         assert_eq!("12521", part1(input));
     }
 
     #[test]
+	//#[ignore]
     fn p1() {
         let input = util::read_file("inputs/2021/day23.txt");
         assert_eq!("16244", part1(input));
     }
 
     #[test]
-	#[ignore = "reason"]
     fn p2s() {
         let input = util::read_file("inputs/2021/day23-sample2.txt");
         assert_eq!("44169", part2(input));
