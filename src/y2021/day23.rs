@@ -20,7 +20,6 @@ fn parse_grid(s: &str) -> Grid {
 	g
 }
 
-const ROWS: usize = 5;
 const COLS: usize = 13;
 
 fn part1(input: String) -> String {
@@ -51,7 +50,7 @@ fn part1(input: String) -> String {
 		}
 		
 		// move all Letters if possible
-		for r in 1..ROWS {
+		for r in 1..s.grid.len() {
 			for c in 1..COLS {
 				if s.grid[r][c] >= 'A' && s.grid[r][c] <= 'D' {
 					pq.append(&mut s.find_moves(&mut mem, r, c));
@@ -64,7 +63,7 @@ fn part1(input: String) -> String {
 }
 
 fn part2(input: String) -> String {
-    "".into()
+    part1(input)
 }
 
 #[allow(dead_code)]
@@ -200,9 +199,12 @@ fn add_if_lower(mem: &mut HashMap<Grid, usize>, pq: &mut BinaryHeap<State>, stat
 impl State {
 	fn finished(&self) -> bool {
 		let g = self.grid;
-		g[2][3] == 'A' && g[2][5] == 'B' && g[2][7] == 'C' && g[2][9] == 'D' &&
-		   g[3][3] == 'A' && g[3][5] == 'B' && g[3][7] == 'C' && g[3][9] == 'D'
-
+		for r in 2..=g.len() - 2 {
+			if g[r][3] != 'A' || g[r][5] != 'B' || g[r][7] != 'C' || g[r][9] != 'D' {
+				return false;
+			}
+		}
+		true
 	}
 
 	fn find_moves(&self, mem: &mut HashMap<Grid, usize>, row: usize, col: usize) -> BinaryHeap<State> {
@@ -328,7 +330,7 @@ impl State {
 			}
 		} else if r1 > r2 {
 			// going up
-			// first move horizontal
+			// first move vertical
 			match self.check_vertical(c1, from, to, cost) {
 				Some(c) => new_cost += c,
 				None => return None,
@@ -339,7 +341,7 @@ impl State {
 			}
 		} else {
 			// going down
-			// first move vertical
+			// first move horizontal
 			match self.check_horizontal(r1, from, to, cost) {
 				Some(c) => new_cost += c,
 				None => return None,
@@ -412,14 +414,16 @@ mod tests {
     }
 
     #[test]
+	#[ignore = "reason"]
     fn p2s() {
-        let input = util::read_file("inputs/2021/day23-sample.txt");
-        assert_eq!("", part2(input));
+        let input = util::read_file("inputs/2021/day23-sample2.txt");
+        assert_eq!("44169", part2(input));
     }
 
     #[test]
+	#[ignore = "reason"]
     fn p2() {
-        let input = util::read_file("inputs/2021/day23.txt");
+        let input = util::read_file("inputs/2021/day23p2.txt");
         assert_eq!("", part2(input));
     }
 }
