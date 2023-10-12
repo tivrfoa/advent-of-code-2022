@@ -7,7 +7,7 @@ use std::fmt::{Debug, Display, Binary};
 use std::hash::Hash;
 use std::iter::zip;
 
-const ROWS: usize = 5;
+const ROWS: usize = 7;
 const COLS: usize = 13;
 
 type Grid = [[char; COLS]; ROWS];
@@ -238,9 +238,6 @@ impl State {
 	}
 
 	fn update_grid(&self, from: Pos, to: Pos) -> Grid {
-		if self.grid[to.0][to.1] != '.' {
-			panic!("cant place here! {}", self.grid[to.0][to.1]);
-		}
 		let mut grid = self.grid.clone();
 		grid[to.0][to.1] = self.grid[from.0][from.1];
 		grid[from.0][from.1] = '.';
@@ -285,6 +282,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2021/day23p2.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("43226", part2(input));
     }
 }
