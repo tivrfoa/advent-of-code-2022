@@ -161,11 +161,13 @@ impl State {
 	fn moveto(&self, from: Pos, to: Pos) -> Option<Self> {
 		let (r1, c1) = (from.0, from.1);
 		let (r2, c2) = (to.0, to.1);
+
+		// Only go up if it goes to the hallway
 		if r2 < r1 && r2 != 1 { return None; }
 
 		let final_col = get_final_room_col(self.grid[r1][c1]);
 
-		// It it's in hallway, only go down if it's its final room
+		// It it's in hallway, only go down if it is to its final room
 		if r2 > r1 && c2 != final_col {
 			return None;
 		}
@@ -182,14 +184,15 @@ impl State {
 			if filled { return None; }
 		}
 
-		let mut new_cost = 0;
-		let cost = get_cost(self.grid[r1][c1]);
-
 		match c2 {
 			3 | 5 | 7 | 9 => {
+				// cannot stay in room entrance
 				if r2 == 1 {
 					return None;
 				}
+
+				// can only go to a room if the others there are the same
+				// type
 				for r in r2+1..ROWS - 1 {
 					if self.grid[r1][c1] != self.grid[r][c2] {
 						return None;
@@ -199,12 +202,12 @@ impl State {
 			_ => ()
 		}
 
+		let mut new_cost = 0;
+		let cost = get_cost(self.grid[r1][c1]);
+
 		if r1 == r2 {
-			// same row
-			match self.check_horizontal(r1, from, to, cost) {
-				Some(c) => new_cost += c,
-				None => return None,
-			}
+			// from the hallway it can only go to its final room!
+			return None;
 		} else if r1 > r2 {
 			// going up
 			// first move vertical
