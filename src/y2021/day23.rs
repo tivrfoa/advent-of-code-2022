@@ -47,7 +47,6 @@ fn parse_grid(s: &str) -> Grid {
 }
 
 fn part1(input: String) -> String {
-	let mut best = usize::MAX;
 	let s = State {
 		cost: 0,
 		grid: parse_grid(&input),
@@ -84,7 +83,7 @@ fn part1(input: String) -> String {
 		}
 	}
     
-	best.to_string()
+	panic!("Mission failed");
 }
 
 fn part2(input: String) -> String {
@@ -124,22 +123,6 @@ impl State {
 		}
 
 		pq
-	}
-
-	fn check_horizontal(&self, row: usize, c1: usize, c2: usize, cost: usize) -> Option<usize> {
-		if c2 < c1 {
-			// going left
-			if !is_free_x(&self.grid, row, c2, c1-1) {
-				return None;
-			}
-			Some((c1 - c2) * cost)
-		} else {
-			// going right
-			if !is_free_x(&self.grid, row, c1+1, c2) {
-				return None;
-			}
-			Some((c2 - c1) * cost)
-		}
 	}
 
 	fn moveto(&self, from: Pos, to: Pos) -> Option<Self> {
@@ -204,18 +187,38 @@ impl State {
 				}
 			}
 			new_cost += (r1 - r2) * cost;
-			match self.check_horizontal(r2, c1, c2, cost) {
-				Some(c) => new_cost += c,
-				None => return None,
+
+			// move horizontal
+			let mut l = c1;
+			let mut r = c2;
+			if c1 > c2 {
+				l = c2;
+				r = c1;
 			}
+			for c in l..=r {
+				if self.grid[r2][c] != '.' {
+					return None;
+				}
+			}
+			new_cost += (r - l) * cost;
 		} else {
 			// going down
 			// first move horizontal
-			match self.check_horizontal(r1, c1, c2, cost) {
-				Some(c) => new_cost += c,
-				None => return None,
+			let (l, r, diff) = {
+				if c1 > c2 {
+					(c2, c1 - 1, c1 - c2)
+				} else {
+					(c1 + 1, c2, c2 - c1)
+				}
+			};
+			for c in l..=r {
+				if self.grid[r1][c] != '.' {
+					return None;
+				}
 			}
+			new_cost += diff * cost;
 
+			// move vertically
 			for r in (r1+1..r2).rev() {
 				if self.grid[r][c2] != '.' {
 					return None;
@@ -236,24 +239,6 @@ impl State {
 		grid[from.0][from.1] = '.';
 		grid
 	}
-}
-
-fn is_free_x(grid: &Grid, row: usize, cl: usize, cr: usize) -> bool {
-	for c in cl..=cr {
-		if grid[row][c] != '.' {
-			return false;
-		}
-	}
-	true
-}
-
-fn is_free_y(grid: &Grid, col: usize, r1: usize, r2: usize) -> bool {
-	for r in r1..=r2 {
-		if grid[r][col] != '.' {
-			return false;
-		}
-	}
-	true
 }
 
 impl Ord for State {
