@@ -52,6 +52,11 @@ fn part1(input: String) -> String {
 		cost: 0,
 		grid: parse_grid(&input),
 	};
+	println!("------- Solving ---------");
+	for r in &s.grid {
+		println!("{:?}", r);
+	}
+	println!("------- -----------------");
 	
 	let mut mem: HashSet<Grid> = HashSet::new();
 	let mut pq: BinaryHeap<State> = BinaryHeap::new();
@@ -66,15 +71,12 @@ fn part1(input: String) -> String {
 			for r in &s.grid {
 				println!("{:?}", r);
 			}
-			best = s.cost;
-		}
-		if s.cost > best {
-			return best.to_string();
+			return s.cost.to_string();
 		}
 		
 		// move all Letters if possible
-		for r in 1..ROWS {
-			for c in 1..COLS {
+		for r in 1..ROWS - 1 {
+			for c in 1..COLS - 1 {
 				if s.grid[r][c] >= 'A' && s.grid[r][c] <= 'D' {
 					pq.append(&mut s.find_moves(&mut mem, r, c));
 				}
