@@ -126,7 +126,7 @@ impl State {
 		pq
 	}
 
-	fn check_vertical(&self, col: usize, (r1, _): Pos, (r2, _): Pos, cost: usize) -> Option<usize> {
+	fn check_vertical(&self, col: usize, r1: usize, r2: usize, cost: usize) -> Option<usize> {
 		if r1 < r2 {
 			// going down
 			if !is_free_y(&self.grid, col, r1+1, r2) {
@@ -142,7 +142,7 @@ impl State {
 		}
 	}
 
-	fn check_horizontal(&self, row: usize, (_, c1): Pos, (_, c2): Pos, cost: usize) -> Option<usize> {
+	fn check_horizontal(&self, row: usize, c1: usize, c2: usize, cost: usize) -> Option<usize> {
 		if c2 < c1 {
 			// going left
 			if !is_free_x(&self.grid, row, c2, c1-1) {
@@ -161,6 +161,11 @@ impl State {
 	fn moveto(&self, from: Pos, to: Pos) -> Option<Self> {
 		let (r1, c1) = (from.0, from.1);
 		let (r2, c2) = (to.0, to.1);
+
+		if r1 == r2 {
+			// from the hallway it can only go to its final room!
+			return None;
+		}
 
 		// Only go up if it goes to the hallway
 		if r2 < r1 && r2 != 1 { return None; }
@@ -205,28 +210,26 @@ impl State {
 		let mut new_cost = 0;
 		let cost = get_cost(self.grid[r1][c1]);
 
-		if r1 == r2 {
-			// from the hallway it can only go to its final room!
-			return None;
-		} else if r1 > r2 {
+		
+		if r1 > r2 {
 			// going up
 			// first move vertical
-			match self.check_vertical(c1, from, to, cost) {
+			match self.check_vertical(c1, r1, r2, cost) {
 				Some(c) => new_cost += c,
 				None => return None,
 			}
-			match self.check_horizontal(r2, from, to, cost) {
+			match self.check_horizontal(r2, c1, c2, cost) {
 				Some(c) => new_cost += c,
 				None => return None,
 			}
 		} else {
 			// going down
 			// first move horizontal
-			match self.check_horizontal(r1, from, to, cost) {
+			match self.check_horizontal(r1, c1, c2, cost) {
 				Some(c) => new_cost += c,
 				None => return None,
 			}
-			match self.check_vertical(c2, from, to, cost) {
+			match self.check_vertical(c2, r1, r2, cost) {
 				Some(c) => new_cost += c,
 				None => return None,
 			}
