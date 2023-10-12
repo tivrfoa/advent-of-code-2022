@@ -13,6 +13,16 @@ const COLS: usize = 13;
 type Grid = [[char; COLS]; ROWS];
 type Pos = (usize, usize);
 
+const fn get_final_room_col(c: char) -> usize {
+	match c {
+		'A' => 3,
+		'B' => 5,
+		'C' => 7,
+		'D' => 9,
+		_ => unreachable!(),
+	}
+}
+
 fn parse_grid(s: &str) -> Grid {
 	let mut g: Grid = [[' '; COLS]; ROWS];
 
@@ -262,10 +272,29 @@ impl State {
 	fn moveto(&self, from: Pos, to: Pos) -> Option<Self> {
 		let (r1, c1) = (from.0, from.1);
 		let (r2, c2) = (to.0, to.1);
+		if r2 < r1 && r2 != 1 { return None; }
+
+		let final_col = get_final_room_col(self.grid[r1][c1]);
+
+		// It it's in hallway, only go down if it's its final room
+		if r2 > r1 && c2 != final_col {
+			return None;
+		}
+
+		// Do not move if it's already in final column and it's filled?
+		if c1 == final_col && r1 == 2 {
+			let mut filled = true;
+			for r in 3..ROWS - 1 {
+				if self.grid[r][final_col] != self.grid[r1][c1] {
+					filled = false;
+					break;
+				}
+			}
+			if filled { return None; }
+		}
+
 		let mut new_cost = 0;
 		let cost = self.get_cost(r1, c1);
-
-		if r2 < r1 && r2 != 1 { return None; }
 
 		match c2 {
 			3 | 5 | 7 | 9 => {
