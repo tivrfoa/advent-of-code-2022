@@ -185,7 +185,7 @@ impl State {
 		if r1 > r2 {
 			// going up
 			// first move vertical
-			for r in (r2..r1).rev() {
+			for r in r2..r1 {
 				if self.grid[r][c1] != '.' {
 					return None;
 				}
