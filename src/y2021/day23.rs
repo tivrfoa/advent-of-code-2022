@@ -23,6 +23,16 @@ const fn get_final_room_col(c: char) -> usize {
 	}
 }
 
+const fn get_cost(c: char) -> usize {
+	match c {
+		'A' => 1,
+		'B' => 10,
+		'C' => 100,
+		'D' => 1000,
+		_ => unreachable!(),
+	}
+}
+
 fn parse_grid(s: &str) -> Grid {
 	let mut g: Grid = [[' '; COLS]; ROWS];
 
@@ -114,8 +124,7 @@ impl State {
 		pq
 	}
 
-	fn check_vertical(&self, col: usize, (r1, c1): Pos, to: Pos, cost: usize) -> Option<usize> {
-		let (r2, c2) = (to.0, to.1);
+	fn check_vertical(&self, col: usize, (r1, _): Pos, (r2, _): Pos, cost: usize) -> Option<usize> {
 		if r1 < r2 {
 			// going down
 			if !is_free_y(&self.grid, col, r1+1, r2) {
@@ -131,9 +140,7 @@ impl State {
 		}
 	}
 
-	fn check_horizontal(&self, row: usize, from: Pos, to: Pos, cost: usize) -> Option<usize> {
-		let (r1, c1) = (from.0, from.1);
-		let (r2, c2) = (to.0, to.1);
+	fn check_horizontal(&self, row: usize, (_, c1): Pos, (_, c2): Pos, cost: usize) -> Option<usize> {
 		if c2 < c1 {
 			// going left
 			if !is_free_x(&self.grid, row, c2, c1-1) {
@@ -146,17 +153,6 @@ impl State {
 				return None;
 			}
 			Some((c2 - c1) * cost)
-		}
-	}
-
-	fn get_cost(&self, row: usize, col: usize) -> usize {
-		let c = self.grid[row][col];
-		match c {
-			'A' => 1,
-			'B' => 10,
-			'C' => 100,
-			'D' => 1000,
-			_ => panic!("invalid Amphipod: {c} at ({row}, {col})"),
 		}
 	}
 
@@ -185,7 +181,7 @@ impl State {
 		}
 
 		let mut new_cost = 0;
-		let cost = self.get_cost(r1, c1);
+		let cost = get_cost(self.grid[r1][c1]);
 
 		match c2 {
 			3 | 5 | 7 | 9 => {
@@ -280,14 +276,12 @@ mod tests {
     use super::*;
 
     #[test]
-	//#[ignore]
     fn p1s() {
         let input = util::read_file("inputs/2021/day23-sample.txt");
         assert_eq!("12521", part1(input));
     }
 
     #[test]
-	//#[ignore]
     fn p1() {
         let input = util::read_file("inputs/2021/day23.txt");
         assert_eq!("16244", part1(input));
@@ -300,7 +294,6 @@ mod tests {
     }
 
     #[test]
-	#[ignore = "reason"]
     fn p2() {
         let input = util::read_file("inputs/2021/day23p2.txt");
         assert_eq!("", part2(input));
