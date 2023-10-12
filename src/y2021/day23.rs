@@ -129,6 +129,10 @@ impl State {
 		let (r1, c1) = (from.0, from.1);
 		let (r2, c2) = (to.0, to.1);
 
+		if self.grid[r2][c2] != '.' {
+			return None;
+		}
+
 		if r1 == r2 {
 			// from the hallway it can only go to its final room!
 			return None;
@@ -234,6 +238,9 @@ impl State {
 	}
 
 	fn update_grid(&self, from: Pos, to: Pos) -> Grid {
+		if self.grid[to.0][to.1] != '.' {
+			panic!("cant place here! {}", self.grid[to.0][to.1]);
+		}
 		let mut grid = self.grid.clone();
 		grid[to.0][to.1] = self.grid[from.0][from.1];
 		grid[from.0][from.1] = '.';
