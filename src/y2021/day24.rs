@@ -18,9 +18,8 @@ struct ALU {
 }
 
 impl ALU {
-	fn new(num: i64) -> Self {
-		let digits = num.to_string()
-			.chars()
+	fn new(num: &str) -> Self {
+		let digits = num.chars()
 			.map(|d| d.to_digit(10).unwrap() as i64)
 			.collect::<Vec<_>>();
 		Self {
@@ -96,8 +95,20 @@ impl ALU {
 }
 
 fn solve(input: String, l: i64, r: i64) -> Option<String> {
-	for num in (l..=r).rev() {
-		let mut alu = ALU::new(num);
+	println!("-------------------\n--- {l} to {r} --\n-----------------------");
+	let mut ans = None;
+	let mut lo: i64 = l;
+	let mut hi: i64 = r;
+
+	while lo <= hi {
+		let md = lo + (hi - lo) / 2;
+		let s_num = md.to_string();
+		if s_num.contains("0") {
+			lo += 1;
+			continue;
+		}
+		let mut alu = ALU::new(&s_num);
+
 		for line in input.lines() {
 			let line: Vec<&str> = line.split_ascii_whitespace().collect();
 			let (op, a, b) = if line.len() == 2 {
@@ -108,25 +119,30 @@ fn solve(input: String, l: i64, r: i64) -> Option<String> {
 			if !alu.do_op(op, a, b) { break; }
 		}
 		if alu.is_valid() {
-			return Some(num.to_string());
+			ans = Some(md.to_string());
+			lo = md + 1;
+		} else {
+			// TODO what to do here?!
+			lo = md + 1;
 		}
 	}
-	None
+
+	ans
 }
 
 fn part1(input: String) -> String {
-	let start = 10_000_000_000_000;
+	let start = 11_111_111_111_111;
 	let step = start / 7;
 	let mut l = start;
 	let mut r = l + step;
 	let mut nums = vec![];
 
-	for _ in 0..8 {
+	for _ in 0..7 {
 		let s = input.clone();
 		nums.push(thread::spawn(move || {
 			solve(s, l, r)
 		}));
-		l = r;
+		l = r + 1;
 		r = l + step;
 	}
 
@@ -139,50 +155,6 @@ fn part1(input: String) -> String {
 	panic!("Mission failed");
 
 	/*
-	for num in (10_000_000_000_000..=99_999_999_999_999).rev() {
-		let mut alu = ALU::new(num);
-		for line in input.lines() {
-			let line: Vec<&str> = line.split_ascii_whitespace().collect();
-			let (op, a, b) = if line.len() == 2 {
-				(line[0], line[1], None)
-			} else {
-				(line[0], line[1], Some(line[2]))
-			};
-			if !alu.do_op(op, a, b) { break; }
-		}
-		if alu.is_valid() {
-			return num.to_string();
-		}
-	}
-
-	panic!("Mission failed");
-	*/
-
-	/*
-	let mut lo: i64 = 10_000_000_000_000;
-	let mut hi: i64 = 99_999_999_999_999;
-
-	while lo <= hi {
-		let md = lo + (hi - lo) / 2;
-		let mut alu = ALU::new(md);
-
-		for line in input.lines() {
-			let line: Vec<&str> = line.split_ascii_whitespace().collect();
-			let (op, a, b) = if line.len() == 2 {
-				(line[0], line[1], None)
-			} else {
-				(line[0], line[1], Some(line[2]))
-			};
-			if !alu.do_op(op, a, b) { break; }
-		}
-		if alu.is_valid() {
-			lo = md + 1;
-		} else {
-			// TODO what to do here?!
-		}
-	}
-
-	(lo - 1).to_string()
 	*/
 }
 
