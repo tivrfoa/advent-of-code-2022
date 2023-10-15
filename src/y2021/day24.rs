@@ -80,11 +80,12 @@ add z y
 	let (a, b, c) = abc[idx];
 	for d in (1..=9).rev() {
 		let (mut w2, mut x2, mut y2, mut z2) = (d, x, y, z);
-		x2 += z2;
+		x2 = z2;
 		if x2 < 0 { return (false, 0, 0, 0, 0); }
 		x2 = (x2 % 26) + b;
-		z2 /= a;
 		x2 = if x2 != w2 { 1 } else { 0 };
+
+		z2 /= a;
 
 		y2 = 25 * x2 + 1;
 		z2 *= y2;
