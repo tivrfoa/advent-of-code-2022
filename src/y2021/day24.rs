@@ -41,30 +41,17 @@ const abc: [(i64, i64, i64); 14] = [
 	(26, -4, 7),
 ];
 
-// fn solve(mem: &mut HashSet<(u8, i64, i64, i64, i64)>,
 fn solve((mut w, mut x, mut y, mut z): (i64, i64, i64, i64),
-		a: i64, b: i64, c: i64, num: String)
+		a: i64, b: i64, c: i64)
 		-> (bool, i64, i64, i64, i64) {
 
-	if idx == ops.len() {
-		if z == 0 {
-			panic!("{num}"); // found answer actually xD
-		}
-		return false;
-	}
-
-	if mem.contains(&(idx as u8, w, x, y, z)) {
-		return false;
-	}
-	mem.insert((idx as u8, w, x, y, z));
-
-	if z > 10_000_000 {
-		return (false, None);
-	}
+	// if z > 10_000_000 {
+	// 	return (false, 0, 0, 0, 0);
+	// }
 
 	x += z;
-	if x < 0 { return false; }
-	x = (z + x) % 26 + b;
+	if x < 0 { return (false, 0, 0, 0, 0); }
+	x = (x % 26) + b;
 	z /= a;
 	x = if x != w { 1 } else { 0 };
 
@@ -74,72 +61,30 @@ fn solve((mut w, mut x, mut y, mut z): (i64, i64, i64, i64),
 
 	z += y;
 
-	return true;
-}
-
-#[derive(Debug)]
-enum VarNum {
-	Var(usize),
-	Num(i32),
-}
-
-use VarNum::*;
-
-impl VarNum {
-	fn get_var_num(s: &str) -> VarNum {
-		if s == "w" || s == "x" || s == "y" || s == "z" {
-			Var(get_reg_idx(s))
-		} else {
-			Num(s.parse().unwrap())
-		}
-	}
-}
-
-#[derive(Debug)]
-struct Op {
-	op: String,
-	a: usize,
-	b: Option<VarNum>,
-}
-
-impl Op {
-	fn new(op: &str, a: &str, b: Option<&str>) -> Self {
-		let a = get_reg_idx(a);
-		let b = if let Some(b) = b {
-			Some(VarNum::get_var_num(b))
-		} else {
-			None
-		};
-
-		Self {
-			op: op.into(),
-			a,
-			b,
-		}
-	}
-
-	fn get_ops(s: String) -> Vec<Op> {
-		let mut v = vec![];
-		for line in s.lines() {
-			let line: Vec<&str> = line.split_ascii_whitespace().collect();
-			let (op, a, b) = if line.len() == 2 {
-				(line[0], line[1], None)
-			} else {
-				(line[0], line[1], Some(line[2]))
-			};
-			v.push(Op::new(op, a, b));
-		}
-		v
-	}
+	return (true, w, x, y, z);
 }
 
 fn part1(input: String) -> String {
 
-	let ops = Op::get_ops(input);
-	let mut mem: HashMap<(u8, i32, i32, i32, i32), (bool, Option<String>)> = HashMap::new();
+	let mut rc = true;
+	let (mut w, mut x, mut y, mut z) = (0, 0, 0, 0);
+	let mut idx = 0;
+	let mut num = String::with_capacity(14);
 
-	let (_, v) = solve(&mut mem, (0, 0, 0, 0), 0, &ops);
-	v.unwrap()
+	while idx < 14 {
+		for d in (1..=9).rev() {
+			num.push_str(&mut d.to_string());
+			let (a, b, c) = abc[idx];
+			(rc, w, x, y, z) = solve((d, x, y, z), a, b, c);
+			if rc {
+				idx += 1;
+				break;
+			} else {
+				num.pop();
+			}
+		}
+	}
+	num
 }
 
 fn part2(input: String) -> String {
