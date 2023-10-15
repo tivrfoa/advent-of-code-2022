@@ -7,6 +7,7 @@ use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::iter::zip;
 use std::thread;
+use std::ops::RangeInclusive;
 
 const W: usize = 0;
 const Z: usize = 3;
@@ -43,17 +44,18 @@ const abc: [(i64, i64, i64); 14] = [
 
 fn solve(mem: &mut HashSet<(usize, i64, i64, i64, i64)>,
 		(w, x, y, z): (i64, i64, i64, i64),
-		idx: usize, mut num: String)
-		-> (bool, i64, i64, i64, i64) {
+		idx: usize, mut num: String,
+		range: &[i64; 9])
+		-> (bool, Option<String>) {
 	if idx == 14 {
 		if z == 0 {
-			panic!("Answer: {num}");
+			return (true, Some(num));
 		}
-		return (false, 0, 0, 0, 0);
+		return (false, None);
 	}
 
 	if mem.contains(&(idx, w, x, y, z)) {
-		return (false, 0, 0, 0, 0);
+		return (false, None);
 	}
 	mem.insert((idx, w, x, y, z));
 
@@ -78,10 +80,12 @@ mul y x
 add z y
 */
 	let (a, b, c) = abc[idx];
-	for d in (1..=9).rev() {
-		let (mut w2, mut x2, mut y2, mut z2) = (d, x, y, z);
+	// for d in (1..=9).rev() { // part 1
+	// for d in 1..=9 { // part 2
+	for d in range {
+		let (mut w2, mut x2, mut y2, mut z2) = (*d, x, y, z);
 		x2 = z2;
-		if x2 < 0 { return (false, 0, 0, 0, 0); }
+		if x2 < 0 { return (false, None); }
 		x2 = (x2 % 26) + b;
 		x2 = if x2 != w2 { 1 } else { 0 };
 
@@ -93,23 +97,27 @@ add z y
 		z2 += y2;
 
 		num.push_str(&mut d.to_string());
-		let (rc, w2, x2, y2, z2) = solve(mem, (w2, x2, y2, z2), idx + 1,
-			num.clone());
-		assert!(rc == false);
+		let (rc, ret) = solve(mem, (w2, x2, y2, z2), idx + 1,
+			num.clone(), range);
+		if rc {
+			return (rc, ret);
+		}
 		num.pop();
 	}
 
-	(false, 0, 0, 0, 0)
+	(false, None)
 }
 
 fn part1(input: String) -> String {
 	let mut mem: HashSet<(usize, i64, i64, i64, i64)> = HashSet::new();
-	solve(&mut mem, (0, 0, 0, 0), 0, "".into());
-	panic!("ops");
+	let (_, ret) = solve(&mut mem, (0, 0, 0, 0), 0, "".into(), &[9,8,7,6,5,4,3,2,1]);
+	ret.unwrap()
 }
 
 fn part2(input: String) -> String {
-    "".into()
+	let mut mem: HashSet<(usize, i64, i64, i64, i64)> = HashSet::new();
+	let (_, ret) = solve(&mut mem, (0, 0, 0, 0), 0, "".into(), &[1,2,3,4,5,6,7,8,9]);
+	ret.unwrap()
 }
 
 #[allow(dead_code)]
@@ -146,10 +154,11 @@ mod tests {
     #[test]
     fn p1() {
         let input = util::read_file("inputs/2021/day24.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("59998426997979", part1(input));
     }
 
     #[test]
+    #[ignore]
     fn p2s() {
         let input = util::read_file("inputs/2021/day24-sample.txt");
         assert_eq!("", part2(input));
@@ -158,6 +167,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2021/day24.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("13621111481315", part2(input));
     }
 }
