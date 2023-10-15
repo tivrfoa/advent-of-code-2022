@@ -11,151 +11,158 @@ use std::thread;
 const W: usize = 0;
 const Z: usize = 3;
 
-struct ALU {
-	regs: [i64; 4],
-	digits: Vec<i64>,
-	idx: usize,
+fn get_reg_idx(s: &str) -> usize {
+	match s {
+		"w" => 0,
+		"x" => 1,
+		"y" => 2,
+		"z" => 3,
+		_ => panic!("{s}"),
+	}
 }
 
-impl ALU {
-	fn new(num: &str) -> Self {
-		let digits = num.chars()
-			.map(|d| d.to_digit(10).unwrap() as i64)
-			.collect::<Vec<_>>();
-		Self {
-			regs: [0; 4],
-			digits,
-			idx: 0,
+fn solve(mem: &mut HashMap<(usize, Regs), (bool, Option<String>)>, mut regs: Regs, idx: usize, ops: &[Op]) -> (bool, Option<String>) {
+
+	for i in 0..=3 {
+		if regs[i] > 10_000_000 {
+			return (false, None);
 		}
 	}
 
-	fn get_reg_idx(s: &str) -> usize {
-		match s {
-			"w" => 0,
-			"x" => 1,
-			"y" => 2,
-			"z" => 3,
-			_ => panic!("{s}"),
-		}
+	if let Some(v) = mem.get(&(idx, regs)) {
+		return v.clone();
 	}
 
-	fn next_digit(&mut self) -> i64 {
-		let i = self.idx;
-		self.idx += 1;
-		self.digits[i]
+	if idx == ops.len() {
+		return (regs[Z] == 0, Some("".into()));
 	}
 
-	fn do_op(&mut self, op: &str, a: &str, b: Option<&str>) -> bool {
-		if op == "inp" {
-			self.regs[W] = self.next_digit();
-			return true;
+	let op = &ops[idx];
+
+	if op.op == "inp" {
+		for d in (1..=9).rev() {
+			regs[0] = d;
+			let (ok, v) = solve(mem, regs, idx + 1, ops);
+			if ok {
+				let mut dig_str = d.to_string();
+				if let Some(mut v) = v {
+					dig_str.push_str(&mut v);
+				}
+				// mem.insert((idx, regs), (true, Some(dig_str.clone())));
+				return (true, Some(dig_str));
+			}
 		}
 
-		let a = Self::get_reg_idx(a);
-		let b = b.unwrap();
-		let b: i64 = if b == "w" || b == "x" || b == "y" || b == "z" {
-			self.regs[Self::get_reg_idx(b)]
+		mem.insert((idx, regs), (false, None));
+		return (false, None);
+	}
+
+	let a = op.a;
+	let b = op.b.as_ref().unwrap();
+	let b = match b {
+		Var(i) => regs[*i],
+		Num(n) => *n,
+	};
+
+	match op.op.as_str() {
+		"add" => {
+			regs[a] += b;
+		}
+		"mul" => {
+			regs[a] *= b;
+		}
+		"div" => {
+			if b == 0 {
+				// mem.insert((idx, regs), (false, None));
+				return (false, None);
+			}
+			regs[a] /= b;
+		}
+		"mod" => {
+			if regs[a] < 0 || b < 0 {
+				// mem.insert((idx, regs), (false, None));
+				return (false, None);
+			}
+			regs[a] %= b;
+		}
+		"eql" => {
+			regs[a] = if regs[a] == b { 1 } else { 0 };
+		}
+		_ => panic!("{}", op.op),
+	}
+
+	let ret = solve(mem, regs, idx + 1, ops);
+	mem.insert((idx, regs), ret.clone());
+
+	ret
+}
+
+#[derive(Debug)]
+enum VarNum {
+	Var(usize),
+	Num(i64),
+}
+
+use VarNum::*;
+
+impl VarNum {
+	fn get_var_num(s: &str) -> VarNum {
+		if s == "w" || s == "x" || s == "y" || s == "z" {
+			Var(get_reg_idx(s))
 		} else {
-			b.parse().unwrap()
+			Num(s.parse().unwrap())
+		}
+	}
+}
+
+#[derive(Debug)]
+struct Op {
+	op: String,
+	a: usize,
+	b: Option<VarNum>,
+}
+
+impl Op {
+	fn new(op: &str, a: &str, b: Option<&str>) -> Self {
+		let a = get_reg_idx(a);
+		let b = if let Some(b) = b {
+			Some(VarNum::get_var_num(b))
+		} else {
+			None
 		};
 
-		match op {
-			"add" => {
-				self.regs[a] += b;
-			}
-			"mul" => {
-				self.regs[a] *= b;
-			}
-			"div" => {
-				if b == 0 {
-					self.regs[Z] = 1;
-					return false;
-				}
-				self.regs[a] /= b;
-			}
-			"mod" => {
-				if self.regs[a] < 0 || b < 0 {
-					self.regs[Z] = 1;
-					return false;
-				}
-				self.regs[a] %= b;
-			}
-			"eql" => {
-				self.regs[a] = if self.regs[a] == b { 1 } else { 0 };
-			}
-			_ => panic!("{op}"),
+		Self {
+			op: op.into(),
+			a,
+			b,
 		}
-
-		true
 	}
 
-	fn is_valid(&self) -> bool {
-		self.regs[Z] == 0
-	}
-}
-
-fn solve(input: String, l: i64, r: i64) -> Option<String> {
-	println!("-------------------\n--- {l} to {r} --\n-----------------------");
-	let mut ans = None;
-	let mut lo: i64 = l;
-	let mut hi: i64 = r;
-
-	while lo <= hi {
-		let md = lo + (hi - lo) / 2;
-		let s_num = md.to_string();
-		if s_num.contains("0") {
-			lo += 1;
-			continue;
-		}
-		let mut alu = ALU::new(&s_num);
-
-		for line in input.lines() {
+	fn get_ops(s: String) -> Vec<Op> {
+		let mut v = vec![];
+		for line in s.lines() {
 			let line: Vec<&str> = line.split_ascii_whitespace().collect();
 			let (op, a, b) = if line.len() == 2 {
 				(line[0], line[1], None)
 			} else {
 				(line[0], line[1], Some(line[2]))
 			};
-			if !alu.do_op(op, a, b) { break; }
+			v.push(Op::new(op, a, b));
 		}
-		if alu.is_valid() {
-			ans = Some(md.to_string());
-			lo = md + 1;
-		} else {
-			// TODO what to do here?!
-			lo = md + 1;
-		}
+		v
 	}
-
-	ans
 }
 
+
+type Regs = [i64; 4];
+
 fn part1(input: String) -> String {
-	let start = 11_111_111_111_111;
-	let step = start / 7;
-	let mut l = start;
-	let mut r = l + step;
-	let mut nums = vec![];
 
-	for _ in 0..7 {
-		let s = input.clone();
-		nums.push(thread::spawn(move || {
-			solve(s, l, r)
-		}));
-		l = r + 1;
-		r = l + step;
-	}
+	let ops = Op::get_ops(input);
+	let mut mem: HashMap<(usize, Regs), (bool, Option<String>)> = HashMap::new();
 
-	for nt in nums.into_iter().rev() {
-		if let Some(n) = nt.join().unwrap() {
-			return n;
-		}
-	}
-
-	panic!("Mission failed");
-
-	/*
-	*/
+	let (_, v) = solve(&mut mem, [0,0,0,0], 0, &ops);
+	v.unwrap()
 }
 
 fn part2(input: String) -> String {
