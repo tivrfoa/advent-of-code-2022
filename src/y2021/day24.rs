@@ -21,80 +21,60 @@ fn get_reg_idx(s: &str) -> usize {
 	}
 }
 
-fn solve(mem: &mut HashMap<(u8, Regs), (bool, Option<String>)>, mut regs: Regs, idx: usize, ops: &[Op]) -> (bool, Option<String>) {
+const MAX: i64 = i32::MAX as i64;
+const MIN: i64 = i32::MIN as i64;
 
-	for i in 0..=3 {
-		if regs[i] > 10_000_000 {
-			return (false, None);
-		}
-	}
+const abc: [(i64, i64, i64); 14] = [
+	(1, 13, 8),
+	(1, 12, 13),
+	(1, 12, 8),
+	(1, 10, 10),
+	(26, -11, 12),
+	(26, -13, 1),
+	(1, 15, 13),
+	(1, 10, 5),
+	(26, -2, 10),
+	(26, -6, 3),
+	(1, 14, 2),
+	(26, 0, 2),
+	(26, -15, 12),
+	(26, -4, 7),
+];
 
-	if let Some(v) = mem.get(&(idx as u8, regs)) {
-		return v.clone();
-	}
+// fn solve(mem: &mut HashSet<(u8, i64, i64, i64, i64)>,
+fn solve((mut w, mut x, mut y, mut z): (i64, i64, i64, i64),
+		a: i64, b: i64, c: i64, num: String)
+		-> (bool, i64, i64, i64, i64) {
 
 	if idx == ops.len() {
-		return (regs[Z] == 0, Some("".into()));
+		if z == 0 {
+			panic!("{num}"); // found answer actually xD
+		}
+		return false;
 	}
 
-	let op = &ops[idx];
+	if mem.contains(&(idx as u8, w, x, y, z)) {
+		return false;
+	}
+	mem.insert((idx as u8, w, x, y, z));
 
-	if op.op == "inp" {
-		for d in (1..=9).rev() {
-			regs[0] = d;
-			let (ok, v) = solve(mem, regs, idx + 1, ops);
-			if ok {
-				let mut dig_str = d.to_string();
-				if let Some(mut v) = v {
-					dig_str.push_str(&mut v);
-				}
-				// mem.insert((idx, regs), (true, Some(dig_str.clone())));
-				return (true, Some(dig_str));
-			}
-		}
-
-		mem.insert((idx as u8, regs), (false, None));
+	if z > 10_000_000 {
 		return (false, None);
 	}
 
-	let a = op.a;
-	let b = op.b.as_ref().unwrap();
-	let b = match b {
-		Var(i) => regs[*i],
-		Num(n) => *n,
-	};
+	x += z;
+	if x < 0 { return false; }
+	x = (z + x) % 26 + b;
+	z /= a;
+	x = if x != w { 1 } else { 0 };
 
-	match op.op.as_str() {
-		"add" => {
-			regs[a] += b;
-		}
-		"mul" => {
-			regs[a] *= b;
-		}
-		"div" => {
-			if b == 0 {
-				// mem.insert((idx, regs), (false, None));
-				return (false, None);
-			}
-			regs[a] /= b;
-		}
-		"mod" => {
-			if regs[a] < 0 || b < 0 {
-				// mem.insert((idx, regs), (false, None));
-				return (false, None);
-			}
-			regs[a] %= b;
-		}
-		"eql" => {
-			regs[a] = if regs[a] == b { 1 } else { 0 };
-		}
-		_ => panic!("{}", op.op),
-	}
+	z = (25 * x + 1) * z;
 
-	let ret = solve(mem, regs, idx + 1, ops);
-	mem.insert((idx as u8, regs), ret.clone());
+	y = (w + c) * x;
 
-	ret
+	z += y;
+
+	return true;
 }
 
 #[derive(Debug)]
@@ -153,15 +133,12 @@ impl Op {
 	}
 }
 
-
-type Regs = [i32; 4];
-
 fn part1(input: String) -> String {
 
 	let ops = Op::get_ops(input);
-	let mut mem: HashMap<(u8, Regs), (bool, Option<String>)> = HashMap::new();
+	let mut mem: HashMap<(u8, i32, i32, i32, i32), (bool, Option<String>)> = HashMap::new();
 
-	let (_, v) = solve(&mut mem, [0,0,0,0], 0, &ops);
+	let (_, v) = solve(&mut mem, (0, 0, 0, 0), 0, &ops);
 	v.unwrap()
 }
 

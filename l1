@@ -1,0 +1,50 @@
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1   --> a
+add x 13  --> b
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 8  --> c
+mul y x
+add z y
+
+
+let abc: [(i64, i64, i64); 14] = [
+	(1, 13, 8),
+	(1, 12, 13),
+	(1, 12, 8),
+	(1, 10, 10),
+	(26, -11, 12),
+	(26, -13, 1),
+	(1, 15, 13),
+	(1, 10, 5),
+	(26, -2, 10),
+	(26, -6, 3),
+	(1, 14, 2),
+	(26, 0, 2),
+	(26, -15, 12),
+	(26, -4, 7),
+];
+
+x += z;
+if x < 0 { return false; }
+x = (z + x) % 26 + b;
+z /= a;
+x = if x != w { 1 } else { 0 };
+
+z = (25 * x + 1) * z;
+
+y = (w + c) * x;
+
+z += y;
+
+
