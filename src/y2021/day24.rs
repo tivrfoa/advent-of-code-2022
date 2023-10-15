@@ -41,50 +41,55 @@ const abc: [(i64, i64, i64); 14] = [
 	(26, -4, 7),
 ];
 
-fn solve((mut w, mut x, mut y, mut z): (i64, i64, i64, i64),
-		a: i64, b: i64, c: i64)
+fn solve(mem: &mut HashSet<(usize, i64, i64, i64, i64)>,
+		(mut w, mut x, mut y, mut z): (i64, i64, i64, i64),
+		idx: usize, mut num: String)
 		-> (bool, i64, i64, i64, i64) {
+	if idx == 14 {
+		if z == 0 {
+			panic!("Answer: {num}");
+		}
+		return (false, 0, 0, 0, 0);
+	}
+
+	if mem.contains(&(idx, w, x, y, z)) {
+		return (false, 0, 0, 0, 0);
+	}
+	mem.insert((idx, w, x, y, z));
 
 	// if z > 10_000_000 {
 	// 	return (false, 0, 0, 0, 0);
 	// }
 
-	x += z;
-	if x < 0 { return (false, 0, 0, 0, 0); }
-	x = (x % 26) + b;
-	z /= a;
-	x = if x != w { 1 } else { 0 };
+	let (a, b, c) = abc[idx];
+	for d in (1..=9).rev() {
+		let (mut w2, mut x2, mut y2, mut z2) = (d, x, y, z);
+		x2 += z2;
+		if x2 < 0 { return (false, 0, 0, 0, 0); }
+		x2 = (x2 % 26) + b;
+		z2 /= a;
+		x2 = if x2 != w2 { 1 } else { 0 };
 
-	z = (25 * x + 1) * z;
+		z2 = (25 * x2 + 1) * z2;
 
-	y = (w + c) * x;
+		y2 = (w2 + c) * x2;
 
-	z += y;
+		z2 += y2;
 
-	return (true, w, x, y, z);
+		num.push_str(&mut d.to_string());
+		let (rc, w2, x2, y2, z2) = solve(mem, (w2, x2, y2, z2), idx + 1,
+			num.clone());
+		assert!(rc == false);
+		num.pop();
+	}
+
+	(false, 0, 0, 0, 0)
 }
 
 fn part1(input: String) -> String {
-
-	let mut rc = true;
-	let (mut w, mut x, mut y, mut z) = (0, 0, 0, 0);
-	let mut idx = 0;
-	let mut num = String::with_capacity(14);
-
-	while idx < 14 {
-		for d in (1..=9).rev() {
-			num.push_str(&mut d.to_string());
-			let (a, b, c) = abc[idx];
-			(rc, w, x, y, z) = solve((d, x, y, z), a, b, c);
-			if rc {
-				idx += 1;
-				break;
-			} else {
-				num.pop();
-			}
-		}
-	}
-	num
+	let mut mem: HashSet<(usize, i64, i64, i64, i64)> = HashSet::new();
+	solve(&mut mem, (0, 0, 0, 0), 0, "".into());
+	panic!("ops");
 }
 
 fn part2(input: String) -> String {
