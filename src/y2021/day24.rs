@@ -21,7 +21,7 @@ fn get_reg_idx(s: &str) -> usize {
 	}
 }
 
-fn solve(mem: &mut HashMap<(usize, Regs), (bool, Option<String>)>, mut regs: Regs, idx: usize, ops: &[Op]) -> (bool, Option<String>) {
+fn solve(mem: &mut HashMap<(u8, Regs), (bool, Option<String>)>, mut regs: Regs, idx: usize, ops: &[Op]) -> (bool, Option<String>) {
 
 	for i in 0..=3 {
 		if regs[i] > 10_000_000 {
@@ -29,7 +29,7 @@ fn solve(mem: &mut HashMap<(usize, Regs), (bool, Option<String>)>, mut regs: Reg
 		}
 	}
 
-	if let Some(v) = mem.get(&(idx, regs)) {
+	if let Some(v) = mem.get(&(idx as u8, regs)) {
 		return v.clone();
 	}
 
@@ -53,7 +53,7 @@ fn solve(mem: &mut HashMap<(usize, Regs), (bool, Option<String>)>, mut regs: Reg
 			}
 		}
 
-		mem.insert((idx, regs), (false, None));
+		mem.insert((idx as u8, regs), (false, None));
 		return (false, None);
 	}
 
@@ -92,7 +92,7 @@ fn solve(mem: &mut HashMap<(usize, Regs), (bool, Option<String>)>, mut regs: Reg
 	}
 
 	let ret = solve(mem, regs, idx + 1, ops);
-	mem.insert((idx, regs), ret.clone());
+	mem.insert((idx as u8, regs), ret.clone());
 
 	ret
 }
@@ -100,7 +100,7 @@ fn solve(mem: &mut HashMap<(usize, Regs), (bool, Option<String>)>, mut regs: Reg
 #[derive(Debug)]
 enum VarNum {
 	Var(usize),
-	Num(i64),
+	Num(i32),
 }
 
 use VarNum::*;
@@ -154,12 +154,12 @@ impl Op {
 }
 
 
-type Regs = [i64; 4];
+type Regs = [i32; 4];
 
 fn part1(input: String) -> String {
 
 	let ops = Op::get_ops(input);
-	let mut mem: HashMap<(usize, Regs), (bool, Option<String>)> = HashMap::new();
+	let mut mem: HashMap<(u8, Regs), (bool, Option<String>)> = HashMap::new();
 
 	let (_, v) = solve(&mut mem, [0,0,0,0], 0, &ops);
 	v.unwrap()
