@@ -42,7 +42,7 @@ const abc: [(i64, i64, i64); 14] = [
 ];
 
 fn solve(mem: &mut HashSet<(usize, i64, i64, i64, i64)>,
-		(mut w, mut x, mut y, mut z): (i64, i64, i64, i64),
+		(w, x, y, z): (i64, i64, i64, i64),
 		idx: usize, mut num: String)
 		-> (bool, i64, i64, i64, i64) {
 	if idx == 14 {
@@ -57,10 +57,26 @@ fn solve(mem: &mut HashSet<(usize, i64, i64, i64, i64)>,
 	}
 	mem.insert((idx, w, x, y, z));
 
-	// if z > 10_000_000 {
-	// 	return (false, 0, 0, 0, 0);
-	// }
-
+/*
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 13
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 8
+mul y x
+add z y
+*/
 	let (a, b, c) = abc[idx];
 	for d in (1..=9).rev() {
 		let (mut w2, mut x2, mut y2, mut z2) = (d, x, y, z);
@@ -70,10 +86,9 @@ fn solve(mem: &mut HashSet<(usize, i64, i64, i64, i64)>,
 		z2 /= a;
 		x2 = if x2 != w2 { 1 } else { 0 };
 
-		z2 = (25 * x2 + 1) * z2;
-
+		y2 = 25 * x2 + 1;
+		z2 *= y2;
 		y2 = (w2 + c) * x2;
-
 		z2 += y2;
 
 		num.push_str(&mut d.to_string());
