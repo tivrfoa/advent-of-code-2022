@@ -80,14 +80,10 @@ mul y x
 add z y
 */
 	let (a, b, c) = abc[idx];
-	// for d in (1..=9).rev() { // part 1
-	// for d in 1..=9 { // part 2
 	for d in it.clone() {
 		let (mut w2, mut x2, mut y2, mut z2) = (d, x, y, z);
-		x2 = z2;
-		if x2 < 0 { return (false, None); }
-		x2 = (x2 % 26) + b;
-		x2 = if x2 != w2 { 1 } else { 0 };
+		if z2 < 0 { return (false, None); }
+		x2 = if (z2 % 26) + b != w2 { 1 } else { 0 };
 
 		z2 /= a;
 
@@ -97,8 +93,7 @@ add z y
 		z2 += y2;
 
 		num.push_str(&mut d.to_string());
-		let (rc, ret) = solve(mem, (w2, x2, y2, z2), idx + 1,
-			num.clone(), it.clone());
+		let (rc, ret) = solve(mem, (w2, x2, y2, z2), idx + 1, num.clone(), it.clone());
 		if rc {
 			return (rc, ret);
 		}
