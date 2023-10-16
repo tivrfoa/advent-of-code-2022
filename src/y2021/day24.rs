@@ -45,7 +45,7 @@ const abc: [(i64, i64, i64); 14] = [
 fn solve(mem: &mut HashSet<(usize, i64, i64, i64, i64)>,
 		(w, x, y, z): (i64, i64, i64, i64),
 		idx: usize, mut num: String,
-		it: impl Iterator<Item = i64> + Clone)
+		range: &[i64; 9])
 		-> (bool, Option<String>) {
 	if idx == 14 {
 		if z == 0 {
@@ -59,41 +59,19 @@ fn solve(mem: &mut HashSet<(usize, i64, i64, i64, i64)>,
 	}
 	mem.insert((idx, w, x, y, z));
 
-/*
-inp w
-mul x 0
-add x z
-mod x 26
-div z 1
-add x 13
-eql x w
-eql x 0
-mul y 0
-add y 25
-mul y x
-add y 1
-mul z y
-mul y 0
-add y w
-add y 8
-mul y x
-add z y
-*/
 	let (a, b, c) = abc[idx];
-	for d in it.clone() {
-		let (mut w2, mut x2, mut y2, mut z2) = (d, x, y, z);
+	for d in range {
+		let (mut w2, mut x2, mut y2, mut z2) = (*d, x, y, z);
 		if z2 < 0 { return (false, None); }
 		x2 = if (z2 % 26) + b != w2 { 1 } else { 0 };
-
 		z2 /= a;
-
 		y2 = 25 * x2 + 1;
 		z2 *= y2;
 		y2 = (w2 + c) * x2;
 		z2 += y2;
 
 		num.push_str(&mut d.to_string());
-		let (rc, ret) = solve(mem, (w2, x2, y2, z2), idx + 1, num.clone(), it.clone());
+		let (rc, ret) = solve(mem, (w2, x2, y2, z2), idx + 1, num.clone(), range);
 		if rc {
 			return (rc, ret);
 		}
@@ -105,13 +83,13 @@ add z y
 
 fn part1(input: String) -> String {
 	let mut mem: HashSet<(usize, i64, i64, i64, i64)> = HashSet::new();
-	let (_, ret) = solve(&mut mem, (0, 0, 0, 0), 0, "".into(), (1..=9).rev());
+	let (_, ret) = solve(&mut mem, (0, 0, 0, 0), 0, "".into(), &[9,8,7,6,5,4,3,2,1]);
 	ret.unwrap()
 }
 
 fn part2(input: String) -> String {
 	let mut mem: HashSet<(usize, i64, i64, i64, i64)> = HashSet::new();
-	let (_, ret) = solve(&mut mem, (0, 0, 0, 0), 0, "".into(), 1..=9);
+	let (_, ret) = solve(&mut mem, (0, 0, 0, 0), 0, "".into(), &[1,2,3,4,5,6,7,8,9]);
 	ret.unwrap()
 }
 
