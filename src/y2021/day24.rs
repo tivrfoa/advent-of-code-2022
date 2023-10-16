@@ -43,10 +43,8 @@ const abc: [(i64, i64, i64); 14] = [
 ];
 
 fn solve(mem: &mut HashSet<(usize, i64, i64, i64, i64)>,
-		(w, x, y, z): (i64, i64, i64, i64),
-		idx: usize, mut num: String,
-		range: &[i64; 9])
-		-> (bool, Option<String>) {
+		(w, x, y, z): (i64, i64, i64, i64), idx: usize, mut num: String,
+		range: &[i64; 9]) -> (bool, Option<String>) {
 	if idx == 14 {
 		if z == 0 {
 			return (true, Some(num));
