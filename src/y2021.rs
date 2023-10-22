@@ -1,1 +1,1 @@
-mod day24;
+mod day25;
