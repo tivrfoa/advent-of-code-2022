@@ -24,32 +24,33 @@ fn part1(input: String) -> String {
 	let mut steps: u32 = 0;
 	loop {
 		steps += 1;
-		let mut new_grid: Vec<Vec<char>> = grid.clone();
+		let mut moved: Vec<Vec<char>> = grid.clone();
 		let mut did_move = false;
 
 		// move east
 		for r in 0..rows {
 			for c in 0..cols {
 				let c2 = if c + 1 < cols { c + 1 } else { 0 };
-				if grid[r][c] == '>' && grid[r][c2] == '.' {
-					new_grid[r][c] = '.';
-					new_grid[r][c2] = '>';
+				if grid[r][c] == '>' && moved[r][c] != 'r' && moved[r][c2] != 'r' && grid[r][c2] == '.' {
+					grid[r][c] = '.';
+					grid[r][c2] = '>';
 					did_move = true;
+					moved[r][c] = 'r';
+					moved[r][c2] = 'r';
 				}
 			}
 		}
-
-		grid = new_grid;
-		let mut new_grid: Vec<Vec<char>> = grid.clone();
 
 		// move south
 		for r in 0..rows {
 			for c in 0..cols {
 				let r2 = if r + 1 < rows { r + 1 } else { 0 };
-				if grid[r][c] == 'v' && grid[r2][c] == '.' {
-					new_grid[r][c] = '.';
-					new_grid[r2][c] = 'v';
+				if grid[r][c] == 'v' && moved[r][c] != 'd' && moved[r2][c] != 'd' && grid[r2][c] == '.' {
+					grid[r][c] = '.';
+					grid[r2][c] = 'v';
 					did_move = true;
+					moved[r][c] = 'd';
+					moved[r2][c] = 'd';
 				}
 			}
 		}
@@ -57,7 +58,6 @@ fn part1(input: String) -> String {
 		if !did_move {
 			break;
 		}
-		grid = new_grid;
 	}
 
 	steps.to_string()
