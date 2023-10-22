@@ -12,21 +12,15 @@ fn parse(input: String) -> Vec<Vec<char>> {
 
 	for line in input.lines() {
 		grid.push(line.chars().collect());
-		let last_row = grid.len() - 1;
-		grid[last_row].push(' ');
 	}
-
-	let last_row = vec![' '; grid[grid.len() - 1].len()];
-	grid.push(last_row);
 
 	grid
 }
 
 fn part1(input: String) -> String {
 	let mut grid: Vec<Vec<char>> = parse(input);
-	let rows = grid.len() - 1;
-	let cols = grid[rows].len() - 1;
-	// dbg!(&grid);
+	let rows = grid.len();
+	let cols = grid[rows - 1].len();
 	let mut steps: u32 = 0;
 	loop {
 		steps += 1;
@@ -36,13 +30,10 @@ fn part1(input: String) -> String {
 		// move east
 		for r in 0..rows {
 			for c in 0..cols {
-				if grid[r][c] == '>' && grid[r][c+1] == '.' {
+				let c2 = if c + 1 < cols { c + 1 } else { 0 };
+				if grid[r][c] == '>' && grid[r][c2] == '.' {
 					new_grid[r][c] = '.';
-					new_grid[r][c+1] = '>';
-					did_move = true;
-				} else if grid[r][c] == '>' && grid[r][c+1] == ' ' && grid[r][0] == '.' {
-					new_grid[r][c] = '.';
-					new_grid[r][0] = '>';
+					new_grid[r][c2] = '>';
 					did_move = true;
 				}
 			}
@@ -54,13 +45,10 @@ fn part1(input: String) -> String {
 		// move south
 		for r in 0..rows {
 			for c in 0..cols {
-				if grid[r][c] == 'v' && grid[r+1][c] == '.' {
+				let r2 = if r + 1 < rows { r + 1 } else { 0 };
+				if grid[r][c] == 'v' && grid[r2][c] == '.' {
 					new_grid[r][c] = '.';
-					new_grid[r+1][c] = 'v';
-					did_move = true;
-				} else if grid[r][c] == 'v' && grid[r+1][c] == ' ' && grid[0][c] == '.' {
-					new_grid[r][c] = '.';
-					new_grid[0][c] = 'v';
+					new_grid[r2][c] = 'v';
 					did_move = true;
 				}
 			}
