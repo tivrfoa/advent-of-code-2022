@@ -23,6 +23,22 @@ pub fn read_file(file_path: &str) -> String {
 }
 
 #[allow(dead_code)]
+pub fn split_space(input: &str) -> Vec<&str> {
+	input.split_ascii_whitespace().collect()
+}
+
+#[allow(dead_code)]
+pub fn split_once(input: &str, delimiter: char) -> (&str, &str) {
+	input.split_once(delimiter).unwrap()
+}
+
+#[allow(dead_code)]
+pub fn split_once_i32(input: &str, delimiter: char) -> (i32, i32) {
+	let (a, b) = input.split_once(delimiter).unwrap();
+	(a.parse().unwrap(), b.parse().unwrap())
+}
+
+#[allow(dead_code)]
 pub fn input_as_vec_i32(input: &str) -> Vec<i32> {
     input.lines().map(|l| l.parse::<i32>().unwrap()).collect()
 }
