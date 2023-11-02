@@ -30,7 +30,26 @@ fn part1(input: String) -> String {
 }
 
 fn part2(input: String) -> String {
-    "".into()
+	let mut valid_qt = 0;
+
+	for line in input.lines() {
+		let tmp = util::split_space(&line);
+		let (min, max) = util::split_once_usize(tmp[0], '-');
+		let letter = util::split_once(tmp[1], ':').0.chars().next().unwrap();
+		let pwd: Vec<char> = tmp[2].chars().collect();
+		let mut qt = 0;
+		let pos = [min as usize - 1, max as usize - 1];
+		for p in pos {
+			if pwd[p] == letter {
+				qt += 1;
+			}
+		}
+		if qt == 1 {
+			valid_qt += 1;
+		}
+	}
+
+	valid_qt.to_string()
 }
 
 #[allow(dead_code)]
@@ -72,12 +91,12 @@ mod tests {
     #[test]
     fn p2s() {
         let input = util::read_file("inputs/2020/day2-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("1", part2(input));
     }
 
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2020/day2.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("708", part2(input));
     }
 }

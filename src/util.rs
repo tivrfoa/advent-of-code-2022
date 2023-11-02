@@ -39,6 +39,12 @@ pub fn split_once_i32(input: &str, delimiter: char) -> (i32, i32) {
 }
 
 #[allow(dead_code)]
+pub fn split_once_usize(input: &str, delimiter: char) -> (usize, usize) {
+	let (a, b) = input.split_once(delimiter).unwrap();
+	(a.parse().unwrap(), b.parse().unwrap())
+}
+
+#[allow(dead_code)]
 pub fn input_as_vec_i32(input: &str) -> Vec<i32> {
     input.lines().map(|l| l.parse::<i32>().unwrap()).collect()
 }
