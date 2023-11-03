@@ -136,13 +136,6 @@ pub fn sum_of_consecutive_numbers(a: u32, b: u32) -> u32 {
 }
 
 #[allow(dead_code)]
-pub fn dbg_grid<T: Debug + Display>(grid: &[Vec<T>]) {
-    for item in grid {
-        println!("{item:?}");
-    }
-}
-
-#[allow(dead_code)]
 pub fn in_to_nums<T: std::str::FromStr>(input: &str) -> Vec<T>
 where
     <T as std::str::FromStr>::Err: Debug,
@@ -237,4 +230,21 @@ pub fn get_dirs_with_diagonals(r: usize, c: usize, rows: usize, cols: usize) -> 
         // bottom right
         (r < rows - 1 && c < cols - 1, (r + 1, c + 1)),
     ]
+}
+
+pub trait ParseInput {
+	fn to_num_vec<T: std::str::FromStr>(input: &str) -> Vec<T>
+	where
+		<T as std::str::FromStr>::Err: Debug,
+	{
+		input.split(',').map(|n| n.parse::<T>().unwrap()).collect()
+	}
+
+	fn to_char_grid(&self) -> Vec<Vec<char>>;
+}
+
+impl ParseInput for String {
+	fn to_char_grid(&self) -> Vec<Vec<char>> {
+		self.lines().map(|l| l.chars().collect()).collect()
+	}
 }

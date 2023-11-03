@@ -7,6 +7,8 @@ use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::iter::zip;
 
+use util::*;
+
 fn part1(input: String) -> String {
     "".into()
 }
