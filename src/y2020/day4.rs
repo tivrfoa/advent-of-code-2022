@@ -23,6 +23,40 @@ fn map(key: &str) -> usize {
 	}
 }
 
+fn is_valid(key: &str, value: &str) -> bool {
+	match key {
+		"byr" => "1920" <= value && value <= "2002",
+		"iyr" => "2010" <= value && value <= "2020",
+		"eyr" => "2020" <= value && value <= "2030",
+		"hgt" => {
+			if value.len() < 3 {
+				return false;
+			}
+			let n = &value[0..value.len() - 2];
+			let m = &value[value.len() - 2..];
+			match m {
+				"cm" => "150" <= n && n <= "193",
+				"in" => "59" <= n && n <= "76",
+				_ => false,
+			}
+		},
+		"hcl" => value.starts_with("#") && value.len() == 7 && {
+			for c in value.chars().skip(1) {
+				if !('0' <= c && c <= '9' || 'a' <= c && c <= 'f') {
+					return false;
+				}
+			}
+			true
+		},
+		"ecl" => ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]
+			.iter()
+			.any(|&v| v == value),
+		"pid" => value.len() == 9 && value.parse::<u32>().is_ok(),
+		"cid" => false,
+		_ => panic!("{key}"),
+	}
+}
+
 fn part1(input: String) -> String {
 	let mut qt_valid = 0;
 	let mut keys = [0; 8];
@@ -45,7 +79,27 @@ fn part1(input: String) -> String {
 }
 
 fn part2(input: String) -> String {
-    "".into()
+	let mut qt_valid = 0;
+	let mut keys = [0; 8];
+
+	for line in input.lines() {
+		if line.is_empty() {
+			if keys[0..7].iter().filter(|&&v| v == 1).sum::<u8>() == 7 {
+				qt_valid += 1;
+			}
+			keys = [0; 8];
+			continue;
+		}
+		let kvs = line.split_space();
+		for kv in kvs {
+			let (k, v) = kv.split_delim(':');
+			if is_valid(k, v) {
+				keys[map(k)] = 1;
+			}
+		}
+	}
+
+	qt_valid.to_string()
 }
 
 #[allow(dead_code)]
@@ -87,12 +141,12 @@ mod tests {
     #[test]
     fn p2s() {
         let input = util::read_file("inputs/2020/day4-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("2", part2(input));
     }
 
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2020/day4.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("156", part2(input));
     }
 }

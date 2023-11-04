@@ -240,14 +240,18 @@ pub trait ParseInput {
 		input.split(',').map(|n| n.parse::<T>().unwrap()).collect()
 	}
 
-	fn to_char_grid(&self) -> Vec<Vec<char>>;
-	fn split_space(&self) -> Vec<&str>;
 	fn left(&self, delim: char) -> &str;
+	fn split_delim(&self, delim: char) -> (&str, &str);
+	fn split_space(&self) -> Vec<&str>;
+	fn to_char_grid(&self) -> Vec<Vec<char>>;
 }
 
 impl ParseInput for &str {
 	fn left(&self, delim: char) -> &str {
 		self.split_once(delim).unwrap().0
+	}
+	fn split_delim(&self, delimiter: char) -> (&str, &str) {
+		self.split_once(delimiter).unwrap()
 	}
 	fn split_space(&self) -> Vec<&str> {
 		self.split_ascii_whitespace().collect()
