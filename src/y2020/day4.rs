@@ -32,8 +32,7 @@ fn is_valid(key: &str, value: &str) -> bool {
 			if value.len() < 3 {
 				return false;
 			}
-			let n = &value[0..value.len() - 2];
-			let m = &value[value.len() - 2..];
+			let (n, m) = value.split_at(value.len() - 2);
 			match m {
 				"cm" => n.is_in("150", "193"),
 				"in" => n.is_in("59", "76"),
