@@ -240,6 +240,7 @@ pub trait ParseInput {
 		input.split(',').map(|n| n.parse::<T>().unwrap()).collect()
 	}
 
+	fn is_in(&self, l: &str, r: &str) -> bool;
 	fn left(&self, delim: char) -> &str;
 	fn split_delim(&self, delim: char) -> (&str, &str);
 	fn split_space(&self) -> Vec<&str>;
@@ -247,6 +248,9 @@ pub trait ParseInput {
 }
 
 impl ParseInput for &str {
+	fn is_in(&self, l: &str, r: &str) -> bool {
+		l <= self && self <= &r
+	}
 	fn left(&self, delim: char) -> &str {
 		self.split_once(delim).unwrap().0
 	}

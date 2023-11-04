@@ -25,9 +25,9 @@ fn map(key: &str) -> usize {
 
 fn is_valid(key: &str, value: &str) -> bool {
 	match key {
-		"byr" => "1920" <= value && value <= "2002",
-		"iyr" => "2010" <= value && value <= "2020",
-		"eyr" => "2020" <= value && value <= "2030",
+		"byr" => value.is_in("1920", "2002"),
+		"iyr" => value.is_in("2010", "2020"),
+		"eyr" => value.is_in("2020", "2030"),
 		"hgt" => {
 			if value.len() < 3 {
 				return false;
@@ -35,8 +35,8 @@ fn is_valid(key: &str, value: &str) -> bool {
 			let n = &value[0..value.len() - 2];
 			let m = &value[value.len() - 2..];
 			match m {
-				"cm" => "150" <= n && n <= "193",
-				"in" => "59" <= n && n <= "76",
+				"cm" => n.is_in("150", "193"),
+				"in" => n.is_in("59", "76"),
 				_ => false,
 			}
 		},
