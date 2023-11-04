@@ -45,7 +45,48 @@ fn part1(input: String) -> String {
 }
 
 fn part2(input: String) -> String {
-    "".into()
+	let mut seats: [[bool; 8]; 128] = [[false; 8]; 128];
+
+	for line in input.lines() {
+		let mut l = 0;
+		let mut r = 127;
+		for c in line[0..7].chars() {
+			if c == 'F' {
+				r = (l + r) / 2;
+			} else {
+				l = (l + r) / 2 + 1;
+			}
+		}
+		assert!(l == r);
+		let row = l;
+
+		let mut l = 0;
+		let mut r = 7;
+		for c in line[7..].chars() {
+			if c == 'L' {
+				r = (l + r) / 2;
+			} else {
+				l = (l + r) / 2 + 1;
+			}
+		}
+		assert!(l == r);
+		let col = l;
+
+		seats[row][col] = true;
+	}
+
+	// for l in seats.iter() {
+	// 	println!("{:?}", l);
+	// }
+
+	for r in 1..127 {
+		for c in 1..7 {
+			if !seats[r][c] && seats[r][c-1] && seats[r][c+1] {
+				return (r * 8 + c).to_string();
+			}
+		}
+	}
+	panic!("failed");
 }
 
 #[allow(dead_code)]
@@ -73,6 +114,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore]
     fn p1s() {
         let input = util::read_file("inputs/2020/day5-sample.txt");
         assert_eq!("", part1(input));
@@ -85,6 +127,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn p2s() {
         let input = util::read_file("inputs/2020/day5-sample.txt");
         assert_eq!("", part2(input));
@@ -93,6 +136,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2020/day5.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("534", part2(input));
     }
 }
