@@ -51,7 +51,7 @@ fn is_valid(key: &str, value: &str) -> bool {
 			.iter()
 			.any(|&v| v == value),
 		"pid" => value.len() == 9 && value.parse::<u32>().is_ok(),
-		"cid" => false,
+		"cid" => true,
 		_ => panic!("{key}"),
 	}
 }

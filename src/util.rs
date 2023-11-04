@@ -247,9 +247,9 @@ pub trait ParseInput {
 	fn to_char_grid(&self) -> Vec<Vec<char>>;
 }
 
-impl ParseInput for &str {
+impl ParseInput for str {
 	fn is_in(&self, l: &str, r: &str) -> bool {
-		l <= self && self <= &r
+		l <= self && self <= r
 	}
 	fn left(&self, delim: char) -> &str {
 		self.split_once(delim).unwrap().0
