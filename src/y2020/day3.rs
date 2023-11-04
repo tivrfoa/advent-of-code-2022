@@ -17,16 +17,12 @@ fn solve(grid: &[Vec<char>], (r, c): (usize, usize)) -> u32 {
 	let mut row = 0;
 	let mut col = 0;
 
-	loop {
-		row += r;
-		if row >= rows {
-			break;
-		}
-
-		col = (col + c) % cols;
+	while row < rows {
 		if grid[row][col] == '#' {
 			qt_trees += 1;
 		}
+		row += r;
+		col = (col + c) % cols;
 	}
 
 	qt_trees
