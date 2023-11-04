@@ -241,10 +241,19 @@ pub trait ParseInput {
 	}
 
 	fn to_char_grid(&self) -> Vec<Vec<char>>;
+	fn split_space(&self) -> Vec<&str>;
+	fn left(&self, delim: char) -> &str;
 }
 
-impl ParseInput for String {
+impl ParseInput for &str {
+	fn left(&self, delim: char) -> &str {
+		self.split_once(delim).unwrap().0
+	}
+	fn split_space(&self) -> Vec<&str> {
+		self.split_ascii_whitespace().collect()
+	}
 	fn to_char_grid(&self) -> Vec<Vec<char>> {
 		self.lines().map(|l| l.chars().collect()).collect()
 	}
 }
+
