@@ -35,14 +35,14 @@ fn part2(input: String) -> String {
 	let mut n = 0;
 	for line in input.lines() {
 		if line.is_empty() {
-			sum += map.iter().filter(|(_, &v)| v == n).count();
+			sum += map.count(n);
 			map = HashMap::new();
 			n = 0;
 			continue;
 		}
 		n += 1;
 		for c in line.chars() {
-			map.entry(c).and_modify(|qt| *qt += 1).or_insert(1);
+			map.add_or_insert(c, 1);
 		}
 	}
 

@@ -178,13 +178,17 @@ pub fn str_to_char_tuple(s: &str) -> (char, char) {
 #[allow(dead_code)]
 pub trait MapAddOrInsert<K, V> {
     fn add_or_insert(&mut self, k: K, v: V);
+	fn count(&self, n: V) -> usize;
 }
 
 #[allow(dead_code)]
-impl<K: Eq + Hash, V: std::ops::AddAssign + Copy> MapAddOrInsert<K, V> for HashMap<K, V> {
+impl<K: Eq + Hash, V: std::ops::AddAssign + Copy + std::cmp::PartialEq> MapAddOrInsert<K, V> for HashMap<K, V> {
     fn add_or_insert(&mut self, k: K, v: V) {
         self.entry(k).and_modify(|qt| *qt += v).or_insert(v);
     }
+	fn count(&self, n: V) -> usize {
+		self.iter().filter(|(_, &v)| v == n).count()
+	}
 }
 
 #[allow(dead_code)]
