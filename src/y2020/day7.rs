@@ -70,14 +70,14 @@ fn part1(input: String) -> String {
 
 fn part2(input: String) -> String {
 	let mut ans = 0;
-	let mut bags: HashMap<&str, Vec<Bag>> = HashMap::new();
+	let mut bags: HashMap<&str, Vec<(&str, u32)>> = HashMap::new();
 	for line in input.lines() {
 		let (l, r) = line.split_once(" contain ").unwrap();
 		let mut inner_bags = vec![];
 		if !r.starts_with("no") {
 			for b in r.split(", ") {
 				let (qt, name) = b.split_delim(' ');
-				inner_bags.push(Bag::new(name.into(), qt));
+				inner_bags.push((name, qt.parse::<u32>().unwrap()));
 			}
 		}
 		bags.insert(l, inner_bags);
@@ -86,10 +86,10 @@ fn part2(input: String) -> String {
 	count_inner("shiny gold", &bags).to_string()
 }
 
-fn count_inner(outer: &str, bags: &HashMap<&str, Vec<Bag>>) -> u32 {
+fn count_inner(outer: &str, bags: &HashMap<&str, Vec<(&str, u32)>>) -> u32 {
 	let mut qt = 0;
-	for inner in &bags[outer] {
-		qt += inner.qt + inner.qt * count_inner(&inner.name, bags);
+	for (name, q) in &bags[outer] {
+		qt += q + q * count_inner(name, bags);
 	}
 	qt
 }
