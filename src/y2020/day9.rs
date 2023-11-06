@@ -36,7 +36,9 @@ fn part2(input: String) -> String {
 	let mut r = 665;
 	for l in 0..=664 {
 		for r in (l+1..=665).rev() {
-			if nums[l..=r].iter().sum::<i64>() == target {
+			let sum = nums[l..=r].iter().sum::<i64>();
+			if sum < target { break; }
+			if sum == target {
 				let min = nums[l..=r].iter().min().unwrap();
 				let max = nums[l..=r].iter().max().unwrap();
 				return (min + max).to_string();
