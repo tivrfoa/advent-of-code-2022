@@ -9,7 +9,7 @@ use std::iter::zip;
 
 use util::*;
 
-#[derive(Eq, Hash, PartialEq)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 struct Bag {
 	name: String,
 	qt: u32,
@@ -69,7 +69,29 @@ fn part1(input: String) -> String {
 }
 
 fn part2(input: String) -> String {
-    "".into()
+	let mut ans = 0;
+	let mut bags: HashMap<&str, Vec<Bag>> = HashMap::new();
+	for line in input.lines() {
+		let (l, r) = line.split_once(" contain ").unwrap();
+		let mut inner_bags = vec![];
+		if !r.starts_with("no") {
+			for b in r.split(", ") {
+				let (qt, name) = b.split_delim(' ');
+				inner_bags.push(Bag::new(name.into(), qt));
+			}
+		}
+		bags.insert(l, inner_bags);
+	}
+
+	count_inner("shiny gold", &bags).to_string()
+}
+
+fn count_inner(outer: &str, bags: &HashMap<&str, Vec<Bag>>) -> u32 {
+	let mut qt = 0;
+	for inner in &bags[outer] {
+		qt += inner.qt + inner.qt * count_inner(&inner.name, bags);
+	}
+	qt
 }
 
 #[allow(dead_code)]
@@ -111,12 +133,12 @@ mod tests {
     #[test]
     fn p2s() {
         let input = util::read_file("inputs/2020/day7-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("32", part2(input));
     }
 
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2020/day7.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("35487", part2(input));
     }
 }
