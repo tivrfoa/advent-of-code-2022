@@ -63,12 +63,9 @@ fn part2(input: String) -> String {
 		let mut visited = HashSet::new();
 		let mut idx: usize = 0;
 		let mut v = 0;
-		loop {
+		while idx <= len && !visited.contains(&idx) {
 			if idx == len {
 				return v.to_string();
-			}
-			if idx > len || visited.contains(&idx) {
-				break;
 			}
 			visited.insert(idx);
 			if idx == guess {
@@ -76,16 +73,9 @@ fn part2(input: String) -> String {
 				continue;
 			}
 			match ops[idx].0 {
-				"acc" => {
-					v += ops[idx].1;
-					idx += 1;
-				}
-				"jmp" => {
-					idx = (idx as i32 + ops[idx].1) as usize;
-				}
-				"nop" => {
-					idx += 1;
-				}
+				"acc" => { v += ops[idx].1; idx += 1; }
+				"jmp" => idx = (idx as i32 + ops[idx].1) as usize,
+				"nop" => idx += 1,
 				_ => panic!("{}", ops[idx].0),
 			}
 		}
