@@ -32,11 +32,11 @@ fn part1(input: String) -> String {
 fn part2(input: String) -> String {
 	let mut nums: Vec<i32> = input.to_nums();
 	nums.sort();
-	let mut mem: HashMap<(usize, i32), u32> = HashMap::new();
+	let mut mem: HashMap<(usize, i32), u64> = HashMap::new();
 	count(&nums, &mut mem, 0, 0).to_string()
 }
 
-fn count(nums: &[i32], mem: &mut HashMap<(usize, i32), u32>, l: usize, curr: i32) -> u32 {
+fn count(nums: &[i32], mem: &mut HashMap<(usize, i32), u64>, l: usize, curr: i32) -> u64 {
 	if l == nums.len() {
 		return 1;
 	}
@@ -100,6 +100,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2020/day10.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("1973822685184", part2(input));
     }
 }
