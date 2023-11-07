@@ -23,14 +23,36 @@ fn part1(input: String) -> String {
 		} else if diff == 3 {
 			three_qt += 1;
 		}
-		curr += diff;
+		curr = n;
 	}
 
 	(one_qt * three_qt).to_string()
 }
 
 fn part2(input: String) -> String {
-    "".into()
+	let mut nums: Vec<i32> = input.to_nums();
+	nums.sort();
+	let mut mem: HashMap<(usize, i32), u32> = HashMap::new();
+	count(&nums, &mut mem, 0, 0).to_string()
+}
+
+fn count(nums: &[i32], mem: &mut HashMap<(usize, i32), u32>, l: usize, curr: i32) -> u32 {
+	if l == nums.len() {
+		return 1;
+	}
+	if let Some(qt) = mem.get(&(l, curr)) {
+		return *qt;
+	}
+	let mut qt = 0;
+	for i in l..nums.len() {
+		if nums[i] - curr <= 3 {
+			qt += count(nums, mem, i + 1, nums[i]);
+		} else {
+			break;
+		}
+	}
+	mem.insert((l, curr), qt);
+	qt
 }
 
 #[allow(dead_code)]
@@ -72,7 +94,7 @@ mod tests {
     #[test]
     fn p2s() {
         let input = util::read_file("inputs/2020/day10-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("19208", part2(input));
     }
 
     #[test]
