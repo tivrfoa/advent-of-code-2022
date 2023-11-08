@@ -55,6 +55,25 @@ fn count(nums: &[i32], mem: &mut HashMap<(usize, i32), u64>, l: usize, curr: i32
 	qt
 }
 
+fn part2_elizarov(input: String) -> String {
+	let mut nums: Vec<i32> = input.to_nums();
+	nums.push(0);
+	nums.sort();
+	nums.push(nums[nums.len() - 1] + 3);
+	let len = nums.len();
+	let mut dp = vec![0; len];
+	dp[0] = 1i64;
+	for i in 1..len {
+		let l = if i < 3 { 0 } else { i - 3 };
+		for j in l..i {
+			if nums[i] - nums[j] <= 3 {
+				dp[i] += dp[j];
+			}
+		}
+	}
+	dp[len - 1].to_string()
+}
+
 #[allow(dead_code)]
 #[derive(Clone, Eq, PartialEq)]
 struct State {
@@ -100,6 +119,7 @@ mod tests {
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2020/day10.txt");
-        assert_eq!("1973822685184", part2(input));
+        // assert_eq!("1973822685184", part2(input));
+        assert_eq!("1973822685184", part2_elizarov(input));
     }
 }
