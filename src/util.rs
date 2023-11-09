@@ -116,10 +116,21 @@ pub fn map_matrices(
 }
 
 #[allow(dead_code)]
+pub fn dbg_grid(grid: &[Vec<char>]) {
+	println!("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+    for item in grid {
+        println!("{}", item.iter().collect::<String>());
+    }
+	println!("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+}
+
+#[allow(dead_code)]
 pub fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
+	println!("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
     for item in grid {
         println!("{item:?}");
     }
+	println!("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
 }
 
 #[allow(dead_code)]
