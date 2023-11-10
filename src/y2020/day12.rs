@@ -92,6 +92,22 @@ fn move_ship((dir, y, x): (char, i32, i32), (cmd, qt): &(char, i32)) -> (char, i
 	}
 }
 
+struct Point {
+	dir: char,
+	y: i32,
+	x: i32,
+}
+
+impl Point {
+	fn new(dir: char, y: i32, x: i32) -> Self {
+		Self {
+			dir,
+			y,
+			x,
+		}
+	}
+}
+
 fn part1(input: String) -> String {
 	let mut dir = 'E';
 	let mut y = 0;
@@ -115,8 +131,47 @@ fn part1(input: String) -> String {
 	(y.abs() + x.abs()).to_string()
 }
 
+fn rotate_left(n: i32, mut x: i32, mut y: i32) -> (i32, i32) {
+	for _ in 0..n {
+		(y, x) = (x, -y);
+	}
+	(y, x)
+}
+
+fn rotate_right(n: i32, x: i32, y: i32) -> (i32, i32) {
+	rotate_left(4 - n, x, y)
+}
+
 fn part2(input: String) -> String {
-    "".into()
+	let mut sd = 'E';
+	let mut sy = 0;
+	let mut sx = 0;
+	let mut wy = 1;
+	let mut wx = 10;
+
+	let mut cmds: Vec<(char, i32)> = {
+		let mut cmds = vec![];
+		for line in input.lines() {
+			let (cmd, qt) = line.split_at(1);
+			let cmd = cmd.chars().next().unwrap();
+			let qt = qt.parse::<i32>().unwrap();
+			cmds.push((cmd, qt));
+		}
+		cmds
+	};
+
+	for (dir, n) in cmds {
+		match dir {
+			'N' | 'S' | 'E' | 'W' =>
+				(_, wy, wx) = move_ship((dir, wy, wx), &('F', n)),
+			'R' => (wy, wx) = rotate_right(n / 90, wy, wx),
+			'L' => (wy, wx) = rotate_left(n / 90, wy, wx),
+			'F' => (sy, sx) = (sy + n * wy, sx + n * wx),
+			_ => panic!("{dir}"),
+		}
+	}
+
+	(sy.abs() + sx.abs()).to_string()
 }
 
 #[allow(dead_code)]
@@ -158,7 +213,7 @@ mod tests {
     #[test]
     fn p2s() {
         let input = util::read_file("inputs/2020/day12-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("286", part2(input));
     }
 
     #[test]
