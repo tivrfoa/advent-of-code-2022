@@ -247,6 +247,33 @@ pub fn get_dirs_with_diagonals(r: usize, c: usize, rows: usize, cols: usize) -> 
     ]
 }
 
+#[allow(dead_code)]
+pub fn get_dirs_with_diagonals_i32(r: usize, c: usize, rows: usize, cols: usize) -> [(bool, (i32, i32)); 8] {
+    [
+        (c > 0, (0, -1)), // left
+        (c + 1 < cols, (0, 1)), // right
+        (r > 0, (-1, 0)), // top
+        (r + 1 < rows, (1, 0)), // bottom
+        (r > 0 && c > 0, (-1, -1)), // top left
+        (r > 0 && c + 1 < cols, (-1, 1)), // top right
+        (r + 1 < rows && c > 0, (1, -1)),
+        (r + 1 < rows && c + 1 < cols, (1, 1)),
+    ]
+}
+
+#[allow(dead_code)]
+pub fn move_while(grid: &[Vec<char>], mut r: i32, mut c: i32, rd: i32, cd: i32, t: char) -> (usize, usize) {
+	let rows = grid.len() as i32;
+	let cols = grid[0].len() as i32;
+
+	while grid[r as usize][c as usize] == t && r + rd >= 0 && r + rd < rows &&
+			c + cd >= 0 && c + cd < cols {
+		r += rd;
+		c += cd;
+	}
+	(r as usize, c as usize)
+}
+
 pub trait ParseInput {
 	fn to_num_vec<T: std::str::FromStr>(input: &str) -> Vec<T>
 	where

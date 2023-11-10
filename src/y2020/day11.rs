@@ -12,85 +12,13 @@ use util::*;
 fn is_around_free_p2(grid: &[Vec<char>], r: usize, c: usize) -> bool {
 	let rows = grid.len();
 	let cols = grid[0].len();
-
-	// left
-	if c > 0 {
-		let mut c2 = c - 1;
-		while c2 > 0 && grid[r][c2] == '.' {
-			c2 -= 1;
+	for (cond, (rd, cd)) in get_dirs_with_diagonals_i32(r, c, rows, cols) {
+		if cond {
+			let (r2, c2) = move_while(&grid, r as i32 + rd, c as i32 + cd, rd, cd, '.');
+			if grid[r2][c2] == '#' {
+				return false;
+			}
 		}
-		if grid[r][c2] == '#' { return false; }
-	}
-
-	// right
-	if c + 1 < cols {
-		let mut c2 = c + 1;
-		while c2 + 1 < cols && grid[r][c2] == '.' {
-			c2 += 1;
-		}
-		if grid[r][c2] == '#' { return false; }
-	}
-
-	// top
-	if r > 0 {
-		let mut r2 = r - 1;
-		while r2 > 0 && grid[r2][c] == '.' {
-			r2 -= 1;
-		}
-		if grid[r2][c] == '#' { return false; }
-	}
-
-	// bottom
-	if r + 1 < rows {
-		let mut r2 = r + 1;
-		while r2 + 1 < rows && grid[r2][c] == '.' {
-			r2 += 1;
-		}
-		if grid[r2][c] == '#' { return false; }
-	}
-
-	// top left
-	if r > 0 && c > 0 {
-		let mut r2 = r - 1;
-		let mut c2 = c - 1;
-		while r2 > 0 && c2 > 0 && grid[r2][c2] == '.' {
-			r2 -= 1;
-			c2 -= 1;
-		}
-		if grid[r2][c2] == '#' { return false; }
-	}
-
-	// top right
-	if r > 0 && c + 1 < cols {
-		let mut r2 = r - 1;
-		let mut c2 = c + 1;
-		while r2 > 0 && c2 + 1 < cols && grid[r2][c2] == '.' {
-			r2 -= 1;
-			c2 += 1;
-		}
-		if grid[r2][c2] == '#' { return false; }
-	}
-
-	// bottom left
-	if r + 1 < rows && c > 0 {
-		let mut r2 = r + 1;
-		let mut c2 = c - 1;
-		while r2 + 1 < rows && c2 > 0 && grid[r2][c2] == '.' {
-			r2 += 1;
-			c2 -= 1;
-		}
-		if grid[r2][c2] == '#' { return false; }
-	}
-
-	// bottom right
-	if r + 1 < rows && c + 1 < cols {
-		let mut r2 = r + 1;
-		let mut c2 = c + 1;
-		while r2 + 1 < rows && c2 + 1 < cols && grid[r2][c2] == '.' {
-			r2 += 1;
-			c2 += 1;
-		}
-		if grid[r2][c2] == '#' { return false; }
 	}
 
 	true
@@ -100,87 +28,14 @@ fn is_around_occupied_p2(grid: &[Vec<char>], r: usize, c: usize) -> bool {
 	let rows = grid.len();
 	let cols = grid[0].len();
 	let mut qt = 0;
-
-	// left
-	if c > 0 {
-		let mut c2 = c - 1;
-		while c2 > 0 && grid[r][c2] == '.' {
-			c2 -= 1;
+	for (cond, (rd, cd)) in get_dirs_with_diagonals_i32(r, c, rows, cols) {
+		if cond {
+			let (r2, c2) = move_while(&grid, r as i32 + rd, c as i32 + cd, rd, cd, '.');
+			if grid[r2][c2] == '#' {
+				qt += 1;
+			}
 		}
-		if grid[r][c2] == '#' { qt += 1; }
 	}
-
-	// right
-	if c + 1 < cols {
-		let mut c2 = c + 1;
-		while c2 + 1 < cols && grid[r][c2] == '.' {
-			c2 += 1;
-		}
-		if grid[r][c2] == '#' { qt += 1; }
-	}
-
-	// top
-	if r > 0 {
-		let mut r2 = r - 1;
-		while r2 > 0 && grid[r2][c] == '.' {
-			r2 -= 1;
-		}
-		if grid[r2][c] == '#' { qt += 1; }
-	}
-
-	// bottom
-	if r + 1 < rows {
-		let mut r2 = r + 1;
-		while r2 + 1 < rows && grid[r2][c] == '.' {
-			r2 += 1;
-		}
-		if grid[r2][c] == '#' { qt += 1; }
-	}
-
-	// top left
-	if r > 0 && c > 0 {
-		let mut r2 = r - 1;
-		let mut c2 = c - 1;
-		while r2 > 0 && c2 > 0 && grid[r2][c2] == '.' {
-			r2 -= 1;
-			c2 -= 1;
-		}
-		if grid[r2][c2] == '#' { qt += 1; }
-	}
-
-	// top right
-	if r > 0 && c + 1 < cols {
-		let mut r2 = r - 1;
-		let mut c2 = c + 1;
-		while r2 > 0 && c2 + 1 < cols && grid[r2][c2] == '.' {
-			r2 -= 1;
-			c2 += 1;
-		}
-		if grid[r2][c2] == '#' { qt += 1; }
-	}
-
-	// bottom left
-	if r + 1 < rows && c > 0 {
-		let mut r2 = r + 1;
-		let mut c2 = c - 1;
-		while r2 + 1 < rows && c2 > 0 && grid[r2][c2] == '.' {
-			r2 += 1;
-			c2 -= 1;
-		}
-		if grid[r2][c2] == '#' { qt += 1; }
-	}
-
-	// bottom right
-	if r + 1 < rows && c + 1 < cols {
-		let mut r2 = r + 1;
-		let mut c2 = c + 1;
-		while r2 + 1 < rows && c2 + 1 < cols && grid[r2][c2] == '.' {
-			r2 += 1;
-			c2 += 1;
-		}
-		if grid[r2][c2] == '#' { qt += 1; }
-	}
-
 	qt >= 5
 }
 
