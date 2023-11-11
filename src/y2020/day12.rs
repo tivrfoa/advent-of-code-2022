@@ -131,15 +131,15 @@ fn part1(input: String) -> String {
 	(y.abs() + x.abs()).to_string()
 }
 
-fn rotate_left(n: i32, mut x: i32, mut y: i32) -> (i32, i32) {
+fn rotate_left(n: i32, mut y: i32, mut x: i32) -> (i32, i32) {
 	for _ in 0..n {
 		(y, x) = (x, -y);
 	}
 	(y, x)
 }
 
-fn rotate_right(n: i32, x: i32, y: i32) -> (i32, i32) {
-	rotate_left(4 - n, x, y)
+fn rotate_right(n: i32, y: i32, x: i32) -> (i32, i32) {
+	rotate_left(4 - n, y, x)
 }
 
 fn part2(input: String) -> String {
@@ -219,6 +219,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2020/day12.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("106860", part2(input));
     }
 }
