@@ -203,6 +203,39 @@ impl<K: Eq + Hash, V: std::ops::AddAssign + Copy + std::cmp::PartialEq> MapAddOr
 }
 
 #[allow(dead_code)]
+pub trait GroupBy<K> {
+	fn grouping_by_ref(&self) -> HashMap<&K, usize>;
+	fn grouping_by(&self) -> HashMap<K, usize>;
+}
+
+#[allow(dead_code)]
+impl<K: Copy + Eq + Hash> GroupBy<K> for Vec<K> {
+	fn grouping_by_ref(&self) -> HashMap<&K, usize> {
+		let mut map: HashMap<&K, usize> = HashMap::new();
+		if self.is_empty() {
+			return map;
+		}
+		for v in self {
+			map.entry(v).and_modify(|qt| *qt += 1).or_insert(1);
+		}
+
+		map
+	}
+
+	fn grouping_by(&self) -> HashMap<K, usize> {
+		let mut map: HashMap<K, usize> = HashMap::new();
+		if self.is_empty() {
+			return map;
+		}
+		for v in self {
+			map.entry(*v).and_modify(|qt| *qt += 1).or_insert(1);
+		}
+
+		map
+	}
+}
+
+#[allow(dead_code)]
 pub fn get_dirs(r: usize, c: usize, rows: usize, cols: usize) -> [(bool, (usize, usize)); 4] {
     [
         // left
