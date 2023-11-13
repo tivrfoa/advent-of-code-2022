@@ -319,6 +319,8 @@ pub trait ParseInput {
 	fn left(&self, delim: char) -> &str;
 	fn split_delim(&self, delim: char) -> (&str, &str);
 	fn split_space(&self) -> Vec<&str>;
+	fn split_to_nums<T: std::str::FromStr>(&self, delim: char) -> Vec<T>
+		where <T as std::str::FromStr>::Err: Debug;
 	fn to_char_grid(&self) -> Vec<Vec<char>>;
 	fn to_nums<T: std::str::FromStr>(&self) -> Vec<T>
 		where <T as std::str::FromStr>::Err: Debug;
@@ -336,6 +338,10 @@ impl ParseInput for str {
 	}
 	fn split_space(&self) -> Vec<&str> {
 		self.split_ascii_whitespace().collect()
+	}
+	fn split_to_nums<T: std::str::FromStr>(&self, delim: char) -> Vec<T>
+		where <T as std::str::FromStr>::Err: Debug, {
+		self.split(',').map(|n| n.parse::<T>().unwrap()).collect()
 	}
 	fn to_char_grid(&self) -> Vec<Vec<char>> {
 		self.lines().map(|l| l.chars().collect()).collect()
