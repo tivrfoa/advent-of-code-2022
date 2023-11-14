@@ -24,24 +24,24 @@ pub fn read_file(file_path: &str) -> String {
 
 #[allow(dead_code)]
 pub fn split_space(input: &str) -> Vec<&str> {
-	input.split_ascii_whitespace().collect()
+    input.split_ascii_whitespace().collect()
 }
 
 #[allow(dead_code)]
 pub fn split_once(input: &str, delimiter: char) -> (&str, &str) {
-	input.split_once(delimiter).unwrap()
+    input.split_once(delimiter).unwrap()
 }
 
 #[allow(dead_code)]
 pub fn split_once_i32(input: &str, delimiter: char) -> (i32, i32) {
-	let (a, b) = input.split_once(delimiter).unwrap();
-	(a.parse().unwrap(), b.parse().unwrap())
+    let (a, b) = input.split_once(delimiter).unwrap();
+    (a.parse().unwrap(), b.parse().unwrap())
 }
 
 #[allow(dead_code)]
 pub fn split_once_usize(input: &str, delimiter: char) -> (usize, usize) {
-	let (a, b) = input.split_once(delimiter).unwrap();
-	(a.parse().unwrap(), b.parse().unwrap())
+    let (a, b) = input.split_once(delimiter).unwrap();
+    (a.parse().unwrap(), b.parse().unwrap())
 }
 
 #[allow(dead_code)]
@@ -117,20 +117,20 @@ pub fn map_matrices(
 
 #[allow(dead_code)]
 pub fn dbg_grid(grid: &[Vec<char>]) {
-	println!("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+    println!("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
     for item in grid {
         println!("{}", item.iter().collect::<String>());
     }
-	println!("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+    println!("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
 }
 
 #[allow(dead_code)]
 pub fn dbg<T: Debug + Display>(grid: &[Vec<T>]) {
-	println!("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+    println!("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
     for item in grid {
         println!("{item:?}");
     }
-	println!("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+    println!("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
 }
 
 #[allow(dead_code)]
@@ -183,56 +183,61 @@ where
 
 #[allow(dead_code)]
 pub fn str_to_char_tuple(s: &str) -> (char, char) {
-    (s[0..1].chars().next().unwrap(), s[1..2].chars().next().unwrap())
+    (
+        s[0..1].chars().next().unwrap(),
+        s[1..2].chars().next().unwrap(),
+    )
 }
 
 #[allow(dead_code)]
 pub trait MapAddOrInsert<K, V> {
     fn add_or_insert(&mut self, k: K, v: V);
-	fn count(&self, n: V) -> usize;
+    fn count(&self, n: V) -> usize;
 }
 
 #[allow(dead_code)]
-impl<K: Eq + Hash, V: std::ops::AddAssign + Copy + std::cmp::PartialEq> MapAddOrInsert<K, V> for HashMap<K, V> {
+impl<K: Eq + Hash, V: std::ops::AddAssign + Copy + std::cmp::PartialEq> MapAddOrInsert<K, V>
+    for HashMap<K, V>
+{
     fn add_or_insert(&mut self, k: K, v: V) {
         self.entry(k).and_modify(|qt| *qt += v).or_insert(v);
     }
-	fn count(&self, n: V) -> usize {
-		self.iter().filter(|(_, &v)| v == n).count()
-	}
+    fn count(&self, n: V) -> usize {
+        self.iter().filter(|(_, &v)| v == n).count()
+    }
 }
 
 #[allow(dead_code)]
 pub trait GroupBy<K> {
-	fn grouping_by_ref(&self) -> HashMap<&K, usize>;
-	fn grouping_by(&self) -> HashMap<K, usize>;
+    fn grouping_by_ref(&self) -> HashMap<&K, usize>;
+    fn grouping_by(&self) -> HashMap<K, usize>;
 }
 
 #[allow(dead_code)]
 impl<K: Copy + Eq + Hash> GroupBy<K> for Vec<K> {
-	fn grouping_by_ref(&self) -> HashMap<&K, usize> {
-		let mut map: HashMap<&K, usize> = HashMap::new();
-		if self.is_empty() {
-			return map;
-		}
-		for v in self {
-			map.entry(v).and_modify(|qt| *qt += 1).or_insert(1);
-		}
+    fn grouping_by_ref(&self) -> HashMap<&K, usize> {
+        let mut map: HashMap<&K, usize> = HashMap::new();
+        if self.is_empty() {
+            return map;
+        }
+        for v in self {
+            map.entry(v).and_modify(|qt| *qt += 1).or_insert(1);
+        }
 
-		map
-	}
+        map
+    }
 
-	fn grouping_by(&self) -> HashMap<K, usize> {
-		let mut map: HashMap<K, usize> = HashMap::new();
-		if self.is_empty() {
-			return map;
-		}
-		for v in self {
-			map.entry(*v).and_modify(|qt| *qt += 1).or_insert(1);
-		}
+    fn grouping_by(&self) -> HashMap<K, usize> {
+        let mut map: HashMap<K, usize> = HashMap::new();
+        if self.is_empty() {
+            return map;
+        }
+        for v in self {
+            map.entry(*v).and_modify(|qt| *qt += 1).or_insert(1);
+        }
 
-		map
-	}
+        map
+    }
 }
 
 #[allow(dead_code)]
@@ -250,7 +255,12 @@ pub fn get_dirs(r: usize, c: usize, rows: usize, cols: usize) -> [(bool, (usize,
 }
 
 #[allow(dead_code)]
-pub fn get_dirs_with_diagonals(r: usize, c: usize, rows: usize, cols: usize) -> [(bool, (usize, usize)); 8] {
+pub fn get_dirs_with_diagonals(
+    r: usize,
+    c: usize,
+    rows: usize,
+    cols: usize,
+) -> [(bool, (usize, usize)); 8] {
     [
         // left
         (c > 0, (r, if c > 0 { c - 1 } else { 0 })),
@@ -281,13 +291,18 @@ pub fn get_dirs_with_diagonals(r: usize, c: usize, rows: usize, cols: usize) -> 
 }
 
 #[allow(dead_code)]
-pub fn get_dirs_with_diagonals_i32(r: usize, c: usize, rows: usize, cols: usize) -> [(bool, (i32, i32)); 8] {
+pub fn get_dirs_with_diagonals_i32(
+    r: usize,
+    c: usize,
+    rows: usize,
+    cols: usize,
+) -> [(bool, (i32, i32)); 8] {
     [
-        (c > 0, (0, -1)), // left
-        (c + 1 < cols, (0, 1)), // right
-        (r > 0, (-1, 0)), // top
-        (r + 1 < rows, (1, 0)), // bottom
-        (r > 0 && c > 0, (-1, -1)), // top left
+        (c > 0, (0, -1)),                 // left
+        (c + 1 < cols, (0, 1)),           // right
+        (r > 0, (-1, 0)),                 // top
+        (r + 1 < rows, (1, 0)),           // bottom
+        (r > 0 && c > 0, (-1, -1)),       // top left
         (r > 0 && c + 1 < cols, (-1, 1)), // top right
         (r + 1 < rows && c > 0, (1, -1)),
         (r + 1 < rows && c + 1 < cols, (1, 1)),
@@ -295,60 +310,76 @@ pub fn get_dirs_with_diagonals_i32(r: usize, c: usize, rows: usize, cols: usize)
 }
 
 #[allow(dead_code)]
-pub fn move_while(grid: &[Vec<char>], mut r: i32, mut c: i32, rd: i32, cd: i32, t: char) -> (usize, usize) {
-	let rows = grid.len() as i32;
-	let cols = grid[0].len() as i32;
+pub fn move_while(
+    grid: &[Vec<char>],
+    mut r: i32,
+    mut c: i32,
+    rd: i32,
+    cd: i32,
+    t: char,
+) -> (usize, usize) {
+    let rows = grid.len() as i32;
+    let cols = grid[0].len() as i32;
 
-	while grid[r as usize][c as usize] == t && r + rd >= 0 && r + rd < rows &&
-			c + cd >= 0 && c + cd < cols {
-		r += rd;
-		c += cd;
-	}
-	(r as usize, c as usize)
+    while grid[r as usize][c as usize] == t
+        && r + rd >= 0
+        && r + rd < rows
+        && c + cd >= 0
+        && c + cd < cols
+    {
+        r += rd;
+        c += cd;
+    }
+    (r as usize, c as usize)
 }
 
 pub trait ParseInput {
-	fn to_num_vec<T: std::str::FromStr>(input: &str) -> Vec<T>
-	where
-		<T as std::str::FromStr>::Err: Debug,
-	{
-		input.split(',').map(|n| n.parse::<T>().unwrap()).collect()
-	}
+    fn to_num_vec<T: std::str::FromStr>(input: &str) -> Vec<T>
+    where
+        <T as std::str::FromStr>::Err: Debug,
+    {
+        input.split(',').map(|n| n.parse::<T>().unwrap()).collect()
+    }
 
-	fn is_in(&self, l: &str, r: &str) -> bool;
-	fn left(&self, delim: char) -> &str;
-	fn split_delim(&self, delim: char) -> (&str, &str);
-	fn split_space(&self) -> Vec<&str>;
-	fn split_to_nums<T: std::str::FromStr>(&self, delim: char) -> Vec<T>
-		where <T as std::str::FromStr>::Err: Debug;
-	fn to_char_grid(&self) -> Vec<Vec<char>>;
-	fn to_nums<T: std::str::FromStr>(&self) -> Vec<T>
-		where <T as std::str::FromStr>::Err: Debug;
+    fn is_in(&self, l: &str, r: &str) -> bool;
+    fn left(&self, delim: char) -> &str;
+    fn split_delim(&self, delim: char) -> (&str, &str);
+    fn split_space(&self) -> Vec<&str>;
+    fn split_to_nums<T: std::str::FromStr>(&self, delim: char) -> Vec<T>
+    where
+        <T as std::str::FromStr>::Err: Debug;
+    fn to_char_grid(&self) -> Vec<Vec<char>>;
+    fn to_nums<T: std::str::FromStr>(&self) -> Vec<T>
+    where
+        <T as std::str::FromStr>::Err: Debug;
 }
 
 impl ParseInput for str {
-	fn is_in(&self, l: &str, r: &str) -> bool {
-		l <= self && self <= r
-	}
-	fn left(&self, delim: char) -> &str {
-		self.split_once(delim).unwrap().0
-	}
-	fn split_delim(&self, delimiter: char) -> (&str, &str) {
-		self.split_once(delimiter).unwrap()
-	}
-	fn split_space(&self) -> Vec<&str> {
-		self.split_ascii_whitespace().collect()
-	}
-	fn split_to_nums<T: std::str::FromStr>(&self, delim: char) -> Vec<T>
-		where <T as std::str::FromStr>::Err: Debug, {
-		self.split(',').map(|n| n.parse::<T>().unwrap()).collect()
-	}
-	fn to_char_grid(&self) -> Vec<Vec<char>> {
-		self.lines().map(|l| l.chars().collect()).collect()
-	}
-	fn to_nums<T: std::str::FromStr>(&self) -> Vec<T>
-	where <T as std::str::FromStr>::Err: Debug, {
-		self.lines().map(|n| n.parse::<T>().unwrap()).collect()
-	}
+    fn is_in(&self, l: &str, r: &str) -> bool {
+        l <= self && self <= r
+    }
+    fn left(&self, delim: char) -> &str {
+        self.split_once(delim).unwrap().0
+    }
+    fn split_delim(&self, delimiter: char) -> (&str, &str) {
+        self.split_once(delimiter).unwrap()
+    }
+    fn split_space(&self) -> Vec<&str> {
+        self.split_ascii_whitespace().collect()
+    }
+    fn split_to_nums<T: std::str::FromStr>(&self, delim: char) -> Vec<T>
+    where
+        <T as std::str::FromStr>::Err: Debug,
+    {
+        self.split(',').map(|n| n.parse::<T>().unwrap()).collect()
+    }
+    fn to_char_grid(&self) -> Vec<Vec<char>> {
+        self.lines().map(|l| l.chars().collect()).collect()
+    }
+    fn to_nums<T: std::str::FromStr>(&self) -> Vec<T>
+    where
+        <T as std::str::FromStr>::Err: Debug,
+    {
+        self.lines().map(|n| n.parse::<T>().unwrap()).collect()
+    }
 }
-
