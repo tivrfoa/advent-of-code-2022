@@ -139,7 +139,8 @@ fn part2(input: String) -> String {
 
 	dbg!(&in_range);
 	let mut order = vec![0; qt_fields];
-	if solve(&in_range, 0, 0, &mut order) {
+	let mut mem = HashSet::new();
+	if solve(&in_range, &mut mem, 0, 0, &mut order) {
 		dbg!(&order);
 		let mut ans = 1;
 		for i in 0..6 {
@@ -156,7 +157,11 @@ fn is_used(used: usize, pos: usize) -> bool {
 	n & used == n
 }
 
-fn solve(in_range: &[Vec<usize>], field: usize, mut used: usize, order: &mut Vec<usize>) -> bool {
+fn solve(in_range: &[Vec<usize>], mem: &mut HashSet<usize>, field: usize, mut used: usize, order: &mut Vec<usize>) -> bool {
+	if mem.contains(&used) {
+		return false;
+	}
+	mem.insert(used);
 	for c in &in_range[field] {
 		let c = *c;
 		if !is_used(used, c) {
@@ -165,7 +170,7 @@ fn solve(in_range: &[Vec<usize>], field: usize, mut used: usize, order: &mut Vec
 				return true;
 			}
 			order[field] = c;
-			if solve(in_range, field + 1, used, order) {
+			if solve(in_range, mem, field + 1, used, order) {
 				return true;
 			}
 			used &= !(1 << c);
