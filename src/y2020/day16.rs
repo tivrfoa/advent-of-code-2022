@@ -91,6 +91,7 @@ fn part2(input: String) -> String {
 		tickets.push(line.split_to_nums(','));
 	}
 
+	// filter valid tickets
     let mut valid_tickets = vec![];
     'ticket: for ticket in &tickets {
         'n: for n in ticket {
@@ -104,9 +105,10 @@ fn part2(input: String) -> String {
         }
         valid_tickets.push(ticket);
     }
+
+	// candidates
     let qt_fields = ranges.len();
     let mut in_range: Vec<Vec<usize>> = vec![vec![]; qt_fields];
-
     for f in 0..qt_fields {
         'c: for c in 0..qt_fields {
             for i in 0..valid_tickets.len() {
