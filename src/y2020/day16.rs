@@ -65,57 +65,46 @@ fn part1(input: String) -> String {
 
 fn part2(input: String) -> String {
     let mut ranges: Vec<(usize, usize, usize, usize)> = vec![];
-    let mut my_tickets: Vec<usize> = vec![];
-    let mut nearby_tickets: Vec<Vec<usize>> = vec![];
-    let mut read_my_tickets = false;
-    let mut read_nearby = false;
+    let mut tickets: Vec<Vec<usize>> = vec![];
+	let mut lines = input.lines();
 
-    for line in input.lines() {
-        if line.starts_with("your") || line.starts_with("nearby") {
-            continue;
-        }
-        if line.is_empty() {
-            if read_my_tickets {
-                read_nearby = true;
-            } else {
-                read_my_tickets = true;
-            }
-            continue;
-        }
-        if read_nearby {
-            nearby_tickets.push(line.split_to_nums(','));
-        } else if read_my_tickets {
-            my_tickets = line.split_to_nums(',');
-        } else {
-            let tmp: Vec<&str> = line.split(':').collect();
-            let (l, r) = tmp[1].trim().split_once(" or ").unwrap();
-            let (l1, l2) = l.split_once('-').unwrap();
-            let (r1, r2) = r.split_once('-').unwrap();
-            ranges.push((
-                l1.parse().unwrap(),
-                l2.parse().unwrap(),
-                r1.parse().unwrap(),
-                r2.parse().unwrap(),
-            ));
-        }
+	// read ranges
+	while let Some(line) = lines.next() {
+		if line.is_empty() { break; }
+		let tmp: Vec<&str> = line.split(':').collect();
+		let (l, r) = tmp[1].trim().split_once(" or ").unwrap();
+		let (l1, l2) = l.split_once('-').unwrap();
+		let (r1, r2) = r.split_once('-').unwrap();
+		ranges.push((
+			l1.parse().unwrap(),
+			l2.parse().unwrap(),
+			r1.parse().unwrap(),
+			r2.parse().unwrap(),
+		));
     }
 
+	// read tickets
+	while let Some(line) = lines.next() {
+		if line.is_empty() || line.starts_with("your") || line.starts_with("nearby") {
+            continue;
+        }
+		tickets.push(line.split_to_nums(','));
+	}
+
     let mut valid_tickets = vec![];
-    valid_tickets.push(&my_tickets);
-    'nearby: for near in &nearby_tickets {
-        'n: for n in near {
+    'ticket: for ticket in &tickets {
+        'n: for n in ticket {
             let n = *n;
             for r in &ranges {
                 if (r.0 <= n && n <= r.1) || (r.2 <= n && n <= r.3) {
                     continue 'n;
                 }
             }
-            continue 'nearby;
+            continue 'ticket;
         }
-        valid_tickets.push(near);
+        valid_tickets.push(ticket);
     }
-    let qt_fields = my_tickets.len();
-    assert!(qt_fields == ranges.len());
+    let qt_fields = ranges.len();
     let mut in_range: Vec<Vec<usize>> = vec![vec![]; qt_fields];
 
     for f in 0..qt_fields {
@@ -137,7 +126,7 @@ fn part2(input: String) -> String {
     if solve(&in_range, &mut mem, 0, 0, &mut order) {
         let mut ans = 1;
         for i in 0..6 {
-            ans *= my_tickets[order[i]];
+            ans *= tickets[0][order[i]];
         }
         ans.to_string()
     } else {
