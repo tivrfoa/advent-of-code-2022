@@ -140,6 +140,7 @@ fn part2(input: String) -> String {
 	dbg!(&in_range);
 	let mut order = vec![0; qt_fields];
 	if solve(&in_range, 0, 0, &mut order) {
+		dbg!(&order);
 		let mut ans = 1;
 		for i in 0..6 {
 			ans *= my_tickets[order[i]];
@@ -151,7 +152,8 @@ fn part2(input: String) -> String {
 }
 
 fn is_used(used: usize, pos: usize) -> bool {
-	(1 << pos) & used == 1
+	let n = 1 << pos;
+	n & used == n
 }
 
 fn solve(in_range: &[Vec<usize>], field: usize, mut used: usize, order: &mut Vec<usize>) -> bool {
@@ -218,6 +220,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2020/day16.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("634796407951", part2(input));
     }
 }
