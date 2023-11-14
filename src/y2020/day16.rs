@@ -114,8 +114,6 @@ fn part2(input: String) -> String {
         }
         valid_tickets.push(near);
     }
-    // dbg!(ranges, my_tickets, nearby_tickets);
-    let qt_tickets = valid_tickets.len();
     let qt_fields = my_tickets.len();
     assert!(qt_fields == ranges.len());
     let mut in_range: Vec<Vec<usize>> = vec![vec![]; qt_fields];
@@ -134,11 +132,9 @@ fn part2(input: String) -> String {
         }
     }
 
-    dbg!(&in_range);
     let mut order = vec![0; qt_fields];
     let mut mem = HashSet::new();
     if solve(&in_range, &mut mem, 0, 0, &mut order) {
-        dbg!(&order);
         let mut ans = 1;
         for i in 0..6 {
             ans *= my_tickets[order[i]];
