@@ -190,6 +190,21 @@ pub fn str_to_char_tuple(s: &str) -> (char, char) {
 }
 
 #[allow(dead_code)]
+pub trait CharAsNum {
+	fn asu32(self) -> u32;
+	fn asu64(self) -> u64;
+}
+
+impl CharAsNum for char {
+	fn asu32(self) -> u32 {
+		self as u32 - '0' as u32
+	}
+	fn asu64(self) -> u64 {
+		self.asu32() as u64
+	}
+}
+
+#[allow(dead_code)]
 pub trait MapAddOrInsert<K, V> {
     fn add_or_insert(&mut self, k: K, v: V);
     fn count(&self, n: V) -> usize;
