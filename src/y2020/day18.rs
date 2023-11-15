@@ -84,13 +84,7 @@ fn eval2(chars: &[char]) -> u64 {
 		}
 	}
 
-	let mut n = no_parens[0];
-	for i in (1..no_parens.len()).step_by(2) {
-		let b = no_parens[i + 1];
-		n *= b;
-	}
-
-	n
+	no_parens.into_iter().step_by(2).reduce(|acc, e| acc * e).unwrap()
 }
 
 fn part1(input: String) -> String {
