@@ -66,6 +66,23 @@ pub fn get_numbers_in_line(line: &str) -> Vec<i32> {
         .collect()
 }
 
+// slice must start after opening paren '('
+pub fn find_close_paren(chars: &[char]) -> usize {
+	let mut qt = 0;
+
+	for i in 0..chars.len() {
+		if chars[i] == ')' {
+			if qt == 0 {
+				return i;
+			}
+			qt -= 1;
+		} else if chars[i] == '(' {
+			qt += 1;
+		}
+	}
+	panic!("Failed to find close parentheses");
+}
+
 #[allow(dead_code)]
 pub fn parse_matrices(
     input: &str,

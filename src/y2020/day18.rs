@@ -9,22 +9,6 @@ use std::iter::zip;
 
 use util::*;
 
-fn find_close_paren(chars: &[char]) -> usize {
-	let mut qt = 0;
-
-	for i in 0..chars.len() {
-		if chars[i] == ')' {
-			if qt == 0 {
-				return i;
-			}
-			qt -= 1;
-		} else if chars[i] == '(' {
-			qt += 1;
-		}
-	}
-	panic!("Failed to find close parentheses");
-}
-
 fn eval(chars: &[char]) -> u64 {
 	let mut idx = 0;
 	let mut no_parens: Vec<u64> = vec![];
