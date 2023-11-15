@@ -26,9 +26,6 @@ fn find_close_paren(chars: &[char]) -> usize {
 }
 
 fn eval(chars: &[char]) -> u64 {
-	if chars.len() == 1 {
-		return chars[0].asu64();
-	}
 	let mut idx = 0;
 	let mut no_parens: Vec<u64> = vec![];
 	while idx < chars.len() {
@@ -60,10 +57,46 @@ fn eval(chars: &[char]) -> u64 {
 	n
 }
 
+fn eval2(chars: &[char]) -> u64 {
+	let mut idx = 0;
+	let mut no_parens: Vec<u64> = vec![];
+	while idx < chars.len() {
+		let c = chars[idx];
+		if c == '(' {
+			let idx_close_paren = idx + 1 + find_close_paren(&chars[idx+1..]);
+			no_parens.push(eval2(&chars[idx + 1..idx_close_paren]));
+			idx = idx_close_paren + 1;
+		} else {
+			if c == '*' || c == '+' {
+				no_parens.push(c as u64);
+			} else {
+				no_parens.push(c.asu64());
+			}
+			idx += 1;
+		}
+	}
+
+	for i in (0..no_parens.len() - 2).step_by(2) {
+		if no_parens[i+1] == 43 {
+			no_parens[i+2] += no_parens[i];
+			no_parens[i+1] = 42;
+			no_parens[i] = 1;
+		}
+	}
+
+	let mut n = no_parens[0];
+	for i in (1..no_parens.len()).step_by(2) {
+		let b = no_parens[i + 1];
+		n *= b;
+	}
+
+	n
+}
+
 fn part1(input: String) -> String {
 	let mut sum = 0;
 	for line in input.lines() {
-		let mut tokens: Vec<char> = line.chars().filter(|&c| c != ' ').collect();
+		let tokens: Vec<char> = line.chars().filter(|&c| c != ' ').collect();
 		sum += eval(&tokens);
 	}
 
@@ -71,7 +104,13 @@ fn part1(input: String) -> String {
 }
 
 fn part2(input: String) -> String {
-    "".into()
+	let mut sum = 0;
+	for line in input.lines() {
+		let tokens: Vec<char> = line.chars().filter(|&c| c != ' ').collect();
+		sum += eval2(&tokens);
+	}
+
+	sum.to_string()
 }
 
 #[allow(dead_code)]
@@ -99,7 +138,7 @@ mod tests {
     use super::*;
 
     #[test]
-#[ignore]
+    #[ignore]
     fn p1s() {
         let input = util::read_file("inputs/2020/day18-sample.txt");
         assert_eq!("", part1(input));
@@ -112,6 +151,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn p2s() {
         let input = util::read_file("inputs/2020/day18-sample.txt");
         assert_eq!("", part2(input));
@@ -120,6 +160,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2020/day18.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("323912478287549", part2(input));
     }
 }
