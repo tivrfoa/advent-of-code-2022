@@ -11,7 +11,7 @@ use util::*;
 
 fn part1(nums: Vec<usize>) -> String {
     let mut last = nums[nums.len() - 1];
-	let mut ss: Vec<(usize, usize)> = vec![(0, 0); 5000];
+	let mut ss: Vec<(usize, usize)> = vec![(0, 0); 7_000_000];
 	let mut t = 1;
 	for n in nums {
 		ss[n] = (t, 0);
@@ -41,8 +41,38 @@ fn part1(nums: Vec<usize>) -> String {
 	last.to_string()
 }
 
-fn part2(input: String) -> String {
-    "".into()
+fn part2(nums: Vec<usize>) -> String {
+    let mut last = nums[nums.len() - 1];
+    let mut ss: HashMap<usize, (usize, usize)> = HashMap::new();
+	let mut t = 1;
+	for n in nums {
+		ss.insert(n, (t, 0));
+		t += 1;
+	}
+
+	while t <= 30000000 {
+		let (l, r) = ss[&last];
+		let mut next = 0;
+		if r != 0 {
+			next = r - l;
+		}
+        if ss.contains_key(&next) {
+            if let Some(m) = ss.get_mut(&next) {
+                if m.1 == 0 {
+                    m.1 = t;
+                } else {
+                    m.0 = m.1;
+                    m.1 = t;
+                }
+            }
+        } else {
+            ss.insert(next, (t, 0));
+        }
+		last = next;
+		t += 1;
+	}
+
+	last.to_string()
 }
 
 #[allow(dead_code)]
@@ -83,13 +113,11 @@ mod tests {
 
     #[test]
     fn p2s() {
-        let input = util::read_file("inputs/2020/day15-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("175594", part2(vec![0,3,6]));
     }
 
     #[test]
     fn p2() {
-        let input = util::read_file("inputs/2020/day15.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("41687", part2(vec![15,12,0,14,3,1]));
     }
 }
