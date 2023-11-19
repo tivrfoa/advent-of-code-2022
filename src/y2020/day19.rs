@@ -10,9 +10,10 @@ use std::iter::zip;
 use util::*;
 
 #[derive(Debug)]
-struct Rule {
-	c: char,
-	rules: Vec<usize>,
+enum Rule {
+	Char(char),
+	Seq(Vec<usize>),
+	SeqOr((Vec<usize>, Vec<usize>)),
 }
 
 fn parse(lines: &mut std::str::Lines) -> HashMap<usize, Rule> {
@@ -25,21 +26,26 @@ fn parse(lines: &mut std::str::Lines) -> HashMap<usize, Rule> {
 		if v[0].starts_with("\"") {
 			let tmp: Vec<&str> = v[0].split('"').collect();
 			let c = tmp[1].as_char();
-			rules.insert(k, Rule {
-				c,
-				rules: vec![],
-			});
+			rules.insert(k, Rule::Char(c));
+		} else if line.contains('|') {
+			let mut left: Vec<usize> = vec![];
+			let mut nums = vec![];
+			for i in 0..v.len() {
+				if v[i] == "|" {
+					left = nums;
+					nums = vec![];
+				} else {
+					nums.push(v[i].parse().unwrap());
+				}
+			}
+
+			rules.insert(k, Rule::SeqOr((left, nums)));
 		} else {
 			let mut nums = vec![];
 			for n in v {
-				if n != "|" {
-					nums.push(n.parse().unwrap());
-				}
+				nums.push(n.parse().unwrap());
 			}
-			rules.insert(k, Rule {
-				c: 'r',
-				rules: nums,
-			});
+			rules.insert(k, Rule::Seq(nums));
 		}
 	}
 
@@ -52,76 +58,80 @@ fn compute_rule(computed_rules: &mut Vec<Option<Vec<String>>>,
 	if let Some(comp) = &computed_rules[rule_idx] {
 		return comp.clone();
 	}
-	let rule = &rules[&rule_idx];
-	if rule.c != 'r' {
-		let v = vec![rule.c.to_string()];
-		computed_rules[rule_idx] = Some(v.clone());
-		return v;
-	}
 
 	let mut comp: Vec<String> = vec![];
-	if rule.rules.len() == 4 {
-		let mut left: Vec<String> = vec![];
-		for idx in 0..2 {
-			let i = rule.rules[idx];
-			if left.is_empty() {
-				left = compute_rule(computed_rules, rules, i);
-			} else {
-				let mut r = compute_rule(computed_rules, rules, i);
-				let mut new_comp = Vec::with_capacity(r.len() * left.len());
-				let len = left.len();
-				for l in 0..len {
-					for ri in 0..r.len() {
-						let mut s = left[l].clone();
-						s.push_str(&mut r[ri]);
-						new_comp.push(s);
-					}
-				}
-				left = new_comp;
-			}
+	match &rules[&rule_idx] {
+		Rule::Char(c) => {
+			let v = vec![c.to_string()];
+			computed_rules[rule_idx] = Some(v.clone());
+			return v;
 		}
-		comp = left;
-
-		let mut left: Vec<String> = vec![];
-		for idx in 2..4 {
-			let i = rule.rules[idx];
-			if left.is_empty() {
-				left = compute_rule(computed_rules, rules, i);
-			} else {
-				let mut r = compute_rule(computed_rules, rules, i);
-				let mut new_comp = Vec::with_capacity(r.len() * left.len());
-				let len = left.len();
-				for l in 0..len {
-					for ri in 0..r.len() {
-						let mut s = left[l].clone();
-						s.push_str(&mut r[ri]);
-						new_comp.push(s);
+		Rule::SeqOr((s1, s2)) => {
+			let mut left: Vec<String> = vec![];
+			for idx in 0..s1.len() {
+				let i = s1[idx];
+				if left.is_empty() {
+					left = compute_rule(computed_rules, rules, i);
+				} else {
+					let mut r = compute_rule(computed_rules, rules, i);
+					let mut new_comp = Vec::with_capacity(r.len() * left.len());
+					let len = left.len();
+					for l in 0..len {
+						for ri in 0..r.len() {
+							let mut s = left[l].clone();
+							s.push_str(&mut r[ri]);
+							new_comp.push(s);
+						}
 					}
+					left = new_comp;
 				}
-				left = new_comp;
 			}
-		}
+			comp = left;
 
-		comp.append(&mut left);
-	} else {
-		for i in &rule.rules {
-			if comp.is_empty() {
-				comp = compute_rule(computed_rules, rules, *i);
-			} else {
-				let mut r = compute_rule(computed_rules, rules, *i);
-				let mut new_comp = Vec::with_capacity(r.len() * comp.len());
-				let len = comp.len();
-				for l in 0..len {
-					for ri in 0..r.len() {
-						let mut s = comp[l].clone();
-						s.push_str(&mut r[ri]);
-						new_comp.push(s);
+			let mut left: Vec<String> = vec![];
+			for idx in 0..s2.len() {
+				let i = s2[idx];
+				if left.is_empty() {
+					left = compute_rule(computed_rules, rules, i);
+				} else {
+					let mut r = compute_rule(computed_rules, rules, i);
+					let mut new_comp = Vec::with_capacity(r.len() * left.len());
+					let len = left.len();
+					for l in 0..len {
+						for ri in 0..r.len() {
+							let mut s = left[l].clone();
+							s.push_str(&mut r[ri]);
+							new_comp.push(s);
+						}
 					}
+					left = new_comp;
 				}
-				comp = new_comp;
+			}
+
+			comp.append(&mut left);
+		}
+		Rule::Seq(s1) => {
+			for idx in 0..s1.len() {
+				let i = s1[idx];
+				if comp.is_empty() {
+					comp = compute_rule(computed_rules, rules, i);
+				} else {
+					let mut r = compute_rule(computed_rules, rules, i);
+					let mut new_comp = Vec::with_capacity(r.len() * comp.len());
+					let len = comp.len();
+					for l in 0..len {
+						for ri in 0..r.len() {
+							let mut s = comp[l].clone();
+							s.push_str(&mut r[ri]);
+							new_comp.push(s);
+						}
+					}
+					comp = new_comp;
+				}
 			}
 		}
 	}
+
 	computed_rules[rule_idx] = Some(comp.clone());
 	comp
 }
@@ -130,13 +140,13 @@ fn part1(input: String) -> String {
 	let mut qt = 0;
 	let mut lines = input.lines();
 	let mut rules: HashMap<usize, Rule> = parse(&mut lines);
-	let mut msgs: Vec<&str> = lines.collect();
+	let msgs: Vec<&str> = lines.collect();
 	let mut computed_rules: Vec<Option<Vec<String>>> = vec![None; rules.len()];
-	let zero_rules = compute_rule(&mut computed_rules, &rules, 0);
-	dbg!(computed_rules);
+	let mut zero_rules: Vec<String> = compute_rule(&mut computed_rules, &rules, 0);
+	zero_rules.sort();
 
 	for msg in msgs {
-		if zero_rules.contains(&msg.to_string()) {
+		if zero_rules.binary_search(&msg.to_string()).is_ok() {
 			qt += 1;
 		}
 	}
@@ -181,7 +191,7 @@ mod tests {
     #[test]
     fn p1() {
         let input = util::read_file("inputs/2020/day19.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("205", part1(input));
     }
 
     #[test]
