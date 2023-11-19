@@ -52,23 +52,6 @@ fn parse(lines: &mut std::str::Lines) -> Vec<Rule> {
     rules.into_iter().map(|r| r.1).collect()
 }
 
-fn part1(input: String) -> String {
-	let mut qt = 0;
-	let mut lines = input.lines();
-	let mut rules: Vec<Rule> = parse(&mut lines);
-	let msgs: Vec<&str> = lines.collect();
-
-	for msg in msgs {
-		if let Some(q) = matches(msg.as_bytes(), &rules, 0) {
-			if q == msg.len() {
-				qt += 1;
-			}
-		}
-	}
-
-	qt.to_string()
-}
-
 fn part2(input: String) -> String {
 	let mut qt = 0;
 	let mut lines = input.lines();
@@ -76,36 +59,50 @@ fn part2(input: String) -> String {
 	let msgs: Vec<&str> = lines.collect();
 
 	for msg in msgs {
-		if let Some(q) = matches(msg.as_bytes(), &rules, 0) {
-			if q == msg.len() {
-				qt += 1;
-			}
+		if matches_42(msg.as_bytes(), &rules) {
+			qt += 1;
 		}
 	}
 
 	qt.to_string()
 }
 
-fn matches(msg: &[u8], rules: &[Rule], rule: usize) -> Option<usize> {
-    if msg.is_empty() {
-        return None;
-    }
 
+fn matches_42(msg: &[u8], rules: &[Rule]) -> bool {
+    (0..)
+        .try_fold(msg, |msg, depth| match matches(msg, 42, rules) {
+            Some(msg) if matches_31(depth, msg, rules) => Err(true),
+            Some(msg) => Ok(msg),
+            None => Err(false),
+        })
+        .err()
+        .unwrap()
+}
+
+fn matches_31(depth: usize, msg: &[u8], rules: &[Rule]) -> bool {
+    (0..depth)
+        .try_fold(msg, |msg, _| match matches(msg, 31, rules) {
+            Some(msg) if msg.is_empty() => Err(true),
+            Some(msg) => Ok(msg),
+            None => Err(false),
+        })
+        .err()
+        .unwrap_or(false)
+}
+
+fn matches<'a>(msg: &'a [u8], rule: usize, rules: &[Rule]) -> Option<&'a [u8]> {
     match &rules[rule] {
-        Rule::Char(c) if &msg[0] == c => Some(1),
+        Rule::Char(_) if msg.is_empty() => None,
+        Rule::Char(c) if &msg[0] == c => Some(&msg[1..]),
         Rule::Char(_) => None,
-        Rule::Seq(r) => r
+        Rule::Seq(a) => a.into_iter().try_fold(msg, |m, &r| matches(m, r, rules)),
+        Rule::SeqOr(a, b) => a
             .into_iter()
-            .try_fold(0, |c, r| matches(&msg[c..], rules, *r).map(|n| n + c)),
-        Rule::SeqOr(r, s) => r
-            .into_iter()
-            .try_fold(0, |c, r| matches(&msg[c..], rules, *r).map(|n| n + c))
-            .or_else(|| {
-                s.into_iter()
-                    .try_fold(0, |c, r| matches(&msg[c..], rules, *r).map(|n| n + c))
-            }),
+            .try_fold(msg, |m, &r| matches(m, r, rules))
+            .or_else(|| b.into_iter().try_fold(msg, |m, &r| matches(m, r, rules))),
     }
 }
+
 
 
 #[allow(dead_code)]
@@ -131,18 +128,6 @@ impl PartialOrd for State {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn p1s() {
-        let input = util::read_file("inputs/2020/day19-sample.txt");
-        assert_eq!("2", part1(input));
-    }
-
-    #[test]
-    fn p1() {
-        let input = util::read_file("inputs/2020/day19.txt");
-        assert_eq!("205", part1(input));
-    }
 
     #[test]
     #[ignore]
