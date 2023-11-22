@@ -206,10 +206,26 @@ pub fn str_to_char_tuple(s: &str) -> (char, char) {
     )
 }
 
-#[allow(dead_code)]
-pub trait BitSet<T> {
-	fn set_zero_at(&self, pos: T) -> T;
+/// Set bit at pos with value 0
+pub fn set_zero_at(n: usize, pos: usize) -> usize {
+	n & !(1 << pos)
 }
+
+/// Set bit at pos with value 1
+pub fn set_one_at(n: usize, pos: usize) -> usize {
+	n | (1 << pos)
+}
+
+/// Set bit at pos with value 0
+pub fn u32_set_zero_at(n: u32, pos: u32) -> u32 {
+	n & !(1 << pos)
+}
+
+/// Set bit at pos with value 1
+pub fn u32_set_one_at(n: u32, pos: u32) -> u32 {
+	n | (1 << pos)
+}
+
 
 #[allow(dead_code)]
 pub trait CharAsNum {
