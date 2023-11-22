@@ -207,6 +207,11 @@ pub fn str_to_char_tuple(s: &str) -> (char, char) {
 }
 
 #[allow(dead_code)]
+pub trait BitSet<T> {
+	fn set_zero_at(&self, pos: T) -> T;
+}
+
+#[allow(dead_code)]
 pub trait CharAsNum {
 	fn asu32(self) -> u32;
 	fn asu64(self) -> u64;
