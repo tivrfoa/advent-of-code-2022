@@ -10,67 +10,67 @@ use std::iter::zip;
 use util::*;
 
 fn part1(input: String) -> String {
-	let mut map: HashMap<usize, usize> = HashMap::new();
-	let mut mask = "";
-	for line in input.lines() {
-		let (op, val) = line.split_once(" = ").unwrap();
-		if op.starts_with("mask") {
-			mask = val;
-		} else {
-			let tmp: Vec<&str> = op.split('[').collect();
-			let (op, _) = tmp[1].split_once(']').unwrap();
-			let op: usize = op.parse().unwrap();
-			let mut num: usize = val.parse().unwrap();
-			for (i, c) in mask.chars().enumerate() {
-				if c == '1' {
-					num = set_one_at(num, 36 - i - 1);
-				} else if c == '0' {
-					num = set_zero_at(num, 36 - i - 1);
-				} else {
-					// skip
-				}
-			}
+    let mut map: HashMap<usize, usize> = HashMap::new();
+    let mut mask = "";
+    for line in input.lines() {
+        let (op, val) = line.split_once(" = ").unwrap();
+        if op.starts_with("mask") {
+            mask = val;
+        } else {
+            let tmp: Vec<&str> = op.split('[').collect();
+            let (op, _) = tmp[1].split_once(']').unwrap();
+            let op: usize = op.parse().unwrap();
+            let mut num: usize = val.parse().unwrap();
+            for (i, c) in mask.chars().enumerate() {
+                if c == '1' {
+                    num = set_one_at(num, 36 - i - 1);
+                } else if c == '0' {
+                    num = set_zero_at(num, 36 - i - 1);
+                } else {
+                    // skip
+                }
+            }
             map.insert(op, num);
-		}
-	}
+        }
+    }
 
-	map.into_iter().map(|(_, v)| v).sum::<usize>().to_string()
+    map.into_iter().map(|(_, v)| v).sum::<usize>().to_string()
 }
 
 fn part2(input: String) -> String {
-	let mut map: HashMap<usize, usize> = HashMap::new();
-	let mut mask = "";
-	for line in input.lines() {
-		let (op, val) = line.split_once(" = ").unwrap();
-		if op.starts_with("mask") {
-			mask = val;
-		} else {
-			let tmp: Vec<&str> = op.split('[').collect();
-			let (op, _) = tmp[1].split_once(']').unwrap();
-			let mut addr: usize = op.parse().unwrap();
-			let mut num: usize = val.parse().unwrap();
-			for (i, c) in mask.chars().enumerate() {
-				if c != '0' {
-					addr = set_one_at(addr, 36 - i - 1);
-				}
-			}
-			let mut floats = vec![addr];
-			for (i, c) in mask.chars().enumerate() {
-				if c == 'X' {
-					let len = floats.len();
-					for j in 0..len {
-						let new = set_zero_at(floats[j], 36 - i - 1);
-						floats.push(new);
-					}
-				}
-			}
-			for addr in floats {
-				map.insert(addr, num);
-			}
-		}
-	}
+    let mut map: HashMap<usize, usize> = HashMap::new();
+    let mut mask = "";
+    for line in input.lines() {
+        let (op, val) = line.split_once(" = ").unwrap();
+        if op.starts_with("mask") {
+            mask = val;
+        } else {
+            let tmp: Vec<&str> = op.split('[').collect();
+            let (op, _) = tmp[1].split_once(']').unwrap();
+            let mut addr: usize = op.parse().unwrap();
+            let mut num: usize = val.parse().unwrap();
+            for (i, c) in mask.chars().enumerate() {
+                if c != '0' {
+                    addr = set_one_at(addr, 36 - i - 1);
+                }
+            }
+            let mut floats = vec![addr];
+            for (i, c) in mask.chars().enumerate() {
+                if c == 'X' {
+                    let len = floats.len();
+                    for j in 0..len {
+                        let new = set_zero_at(floats[j], 36 - i - 1);
+                        floats.push(new);
+                    }
+                }
+            }
+            for addr in floats {
+                map.insert(addr, num);
+            }
+        }
+    }
 
-	map.into_iter().map(|(_, v)| v).sum::<usize>().to_string()
+    map.into_iter().map(|(_, v)| v).sum::<usize>().to_string()
 }
 
 #[allow(dead_code)]
@@ -82,7 +82,9 @@ struct State {
 
 impl Ord for State {
     fn cmp(&self, other: &Self) -> Ordering {
-        other.cost.cmp(&self.cost)
+        other
+            .cost
+            .cmp(&self.cost)
             .then_with(|| self.position.cmp(&other.position))
     }
 }
@@ -111,7 +113,7 @@ mod tests {
 
     #[test]
     fn p2s() {
-		let input = "mask = 000000000000000000000000000000X1001X
+        let input = "mask = 000000000000000000000000000000X1001X
 mem[42] = 100
 mask = 00000000000000000000000000000000X0XX
 mem[26] = 1";

@@ -68,19 +68,19 @@ pub fn get_numbers_in_line(line: &str) -> Vec<i32> {
 
 // slice must start after opening paren '('
 pub fn find_close_paren(chars: &[char]) -> usize {
-	let mut qt = 0;
+    let mut qt = 0;
 
-	for i in 0..chars.len() {
-		if chars[i] == ')' {
-			if qt == 0 {
-				return i;
-			}
-			qt -= 1;
-		} else if chars[i] == '(' {
-			qt += 1;
-		}
-	}
-	panic!("Failed to find close parentheses");
+    for i in 0..chars.len() {
+        if chars[i] == ')' {
+            if qt == 0 {
+                return i;
+            }
+            qt -= 1;
+        } else if chars[i] == '(' {
+            qt += 1;
+        }
+    }
+    panic!("Failed to find close parentheses");
 }
 
 #[allow(dead_code)]
@@ -208,38 +208,37 @@ pub fn str_to_char_tuple(s: &str) -> (char, char) {
 
 /// Set bit at pos with value 0
 pub fn set_zero_at(n: usize, pos: usize) -> usize {
-	n & !(1 << pos)
+    n & !(1 << pos)
 }
 
 /// Set bit at pos with value 1
 pub fn set_one_at(n: usize, pos: usize) -> usize {
-	n | (1 << pos)
+    n | (1 << pos)
 }
 
 /// Set bit at pos with value 0
 pub fn u32_set_zero_at(n: u32, pos: u32) -> u32 {
-	n & !(1 << pos)
+    n & !(1 << pos)
 }
 
 /// Set bit at pos with value 1
 pub fn u32_set_one_at(n: u32, pos: u32) -> u32 {
-	n | (1 << pos)
+    n | (1 << pos)
 }
-
 
 #[allow(dead_code)]
 pub trait CharAsNum {
-	fn asu32(self) -> u32;
-	fn asu64(self) -> u64;
+    fn asu32(self) -> u32;
+    fn asu64(self) -> u64;
 }
 
 impl CharAsNum for char {
-	fn asu32(self) -> u32 {
-		self as u32 - '0' as u32
-	}
-	fn asu64(self) -> u64 {
-		self.asu32() as u64
-	}
+    fn asu32(self) -> u32 {
+        self as u32 - '0' as u32
+    }
+    fn asu64(self) -> u64 {
+        self.asu32() as u64
+    }
 }
 
 #[allow(dead_code)]
@@ -410,7 +409,7 @@ pub trait ParseInput {
 
 impl ParseInput for str {
     fn as_char(&self) -> char {
-		self.chars().next().unwrap()
+        self.chars().next().unwrap()
     }
     fn is_in(&self, l: &str, r: &str) -> bool {
         l <= self && self <= r
