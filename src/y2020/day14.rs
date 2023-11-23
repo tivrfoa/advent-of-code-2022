@@ -21,11 +21,11 @@ fn part1(input: String) -> String {
             let (op, _) = tmp[1].split_once(']').unwrap();
             let op: usize = op.parse().unwrap();
             let mut num: usize = val.parse().unwrap();
-            for (i, c) in mask.chars().enumerate() {
+            for (i, c) in mask.chars().rev().enumerate() {
                 if c == '1' {
-                    num = set_one_at(num, 36 - i - 1);
+                    num = set_one_at(num, i);
                 } else if c == '0' {
-                    num = set_zero_at(num, 36 - i - 1);
+                    num = set_zero_at(num, i);
                 } else {
                     // skip
                 }
@@ -49,17 +49,17 @@ fn part2(input: String) -> String {
             let (op, _) = tmp[1].split_once(']').unwrap();
             let mut addr: usize = op.parse().unwrap();
             let mut num: usize = val.parse().unwrap();
-            for (i, c) in mask.chars().enumerate() {
+            for (i, c) in mask.chars().rev().enumerate() {
                 if c != '0' {
-                    addr = set_one_at(addr, 36 - i - 1);
+                    addr = set_one_at(addr, i);
                 }
             }
             let mut floats = vec![addr];
-            for (i, c) in mask.chars().enumerate() {
+            for (i, c) in mask.chars().rev().enumerate() {
                 if c == 'X' {
                     let len = floats.len();
                     for j in 0..len {
-                        let new = set_zero_at(floats[j], 36 - i - 1);
+                        let new = set_zero_at(floats[j], i);
                         floats.push(new);
                     }
                 }
