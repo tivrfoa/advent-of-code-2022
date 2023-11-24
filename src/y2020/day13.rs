@@ -30,7 +30,28 @@ fn part1(input: String) -> String {
 }
 
 fn part2(input: String) -> String {
-	"".into()
+	let mut lines = input.lines();
+	let _ = lines.next();
+	let mut buses = vec![];
+	if let Some(line) = lines.next() {
+		for (pos, id) in line.split(',').enumerate() {
+			if id == "x" { continue; }
+			let id: usize = id.parse().unwrap();
+			buses.push((pos, id));
+		}
+	}
+	// dbg!(buses);
+
+	let mut t = 0;
+	let mut mult = buses[0].1;
+	for (pos, id) in buses.into_iter().skip(1) {
+		while (t + pos) % id != 0 {
+			t += mult;
+		}
+		mult *= id;
+	}
+
+	t.to_string()
 }
 
 #[allow(dead_code)]
@@ -72,12 +93,12 @@ mod tests {
     #[test]
     fn p2s() {
         let input = util::read_file("inputs/2020/day13-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("1068781", part2(input));
     }
 
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2020/day13.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("725169163285238", part2(input));
     }
 }
