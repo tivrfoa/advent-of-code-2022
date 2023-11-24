@@ -12,7 +12,6 @@ use util::*;
 fn part1(input: String) -> String {
 	let mut lines = input.lines();
 	let start = lines.next().unwrap().parse::<usize>().unwrap();
-	// let mut ids: Vec<usize> = vec![];
 	let mut min = usize::MAX;
 	let mut bus = 0;
 	if let Some(line) = lines.next() {
@@ -20,14 +19,12 @@ fn part1(input: String) -> String {
 			if id == "x" { continue; }
 			let id: usize = id.parse().unwrap();
 			let rem = start % id;
-			dbg!(rem, id);
 			if id - rem < min {
 				min = id - rem;
 				bus = id;
 			}
 		}
 	}
-	dbg!(start, min, bus);
 
 	(min * bus).to_string()
 }
