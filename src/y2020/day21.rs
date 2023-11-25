@@ -38,15 +38,17 @@ fn part1(input: String) -> String {
 			if allergens.contains_key(a) {
 				filter(&mut allergens, a, &ff);
 				if allergens[a].len() == 1 {
-					let food_to_remove = allergens[a][0];
-					used.insert(food_to_remove);
-					// remove this food from other lists
-					for (k, v) in allergens.iter_mut() {
-						if k == a { continue; }
-						if let Some(pos) = v.iter().position(|f| f == &food_to_remove) {
-							v.remove(pos);
-							if v.len() == 1 {
-								used.insert(v[0]);
+					let mut foods_to_remove: Vec<(&str, &str)> = vec![(a, allergens[a][0])];
+					while let Some((key, used_food)) = foods_to_remove.pop() {
+						used.insert(used_food);
+						// remove this food from other lists
+						for (k, v) in allergens.iter_mut() {
+							if k == &key { continue; }
+							if let Some(pos) = v.iter().position(|f| f == &used_food) {
+								v.remove(pos);
+								if v.len() == 1 {
+									foods_to_remove.push((k, v[0]));
+								}
 							}
 						}
 					}
@@ -107,7 +109,7 @@ mod tests {
     #[test]
     fn p1() {
         let input = util::read_file("inputs/2020/day21.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("2211", part1(input));
     }
 
     #[test]
