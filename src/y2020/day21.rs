@@ -18,9 +18,8 @@ fn part1(input: String) -> String {
         let (ff, aa) = line.split_once(" (contains ").unwrap();
         let ff: Vec<&str> = ff.split(" ").collect();
         let aa = aa.split_once(')').unwrap().0;
-        let aa: Vec<&str> = aa.split(", ").collect();
 
-        for a in &aa {
+        for a in aa.split(", ") {
 			if let Some(v) = allergens.get_mut(a) {
 				*v = v.into_iter()
 					.filter(|f| ff.contains(f))
@@ -68,9 +67,8 @@ fn part2(input: String) -> String {
         let (ff, aa) = line.split_once(" (contains ").unwrap();
         let ff: Vec<&str> = ff.split(" ").collect();
         let aa = aa.split_once(')').unwrap().0;
-        let aa: Vec<&str> = aa.split(", ").collect();
 
-        for a in &aa {
+        for a in aa.split(", ") {
 			if let Some(v) = allergens.get_mut(a) {
 				*v = v.into_iter()
 					.filter(|f| ff.contains(f))
