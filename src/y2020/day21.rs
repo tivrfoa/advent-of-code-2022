@@ -9,20 +9,6 @@ use std::iter::zip;
 
 use util::*;
 
-fn filter<'a>(allergens: &mut HashMap<&'a str, Vec<&str>>, a: &'a str, ingredients: &Vec<&str>) {
-    let mut retain = vec![];
-    if let Some(foods) = allergens.get(a) {
-        for f in foods {
-            if ingredients.contains(f) {
-                retain.push(*f);
-            }
-        }
-    } else {
-        panic!("nothing to filter ...");
-    }
-    allergens.insert(a, retain);
-}
-
 fn part1(input: String) -> String {
     let mut allergens: HashMap<&str, Vec<&str>> = HashMap::new();
     let mut ingredients: Vec<&str> = vec![];
@@ -35,10 +21,14 @@ fn part1(input: String) -> String {
         let aa: Vec<&str> = aa.split(", ").collect();
 
         for a in &aa {
-            if allergens.contains_key(a) {
-                filter(&mut allergens, a, &ff);
-                if allergens[a].len() == 1 {
-                    let mut foods_to_remove: Vec<(&str, &str)> = vec![(a, allergens[a][0])];
+			if let Some(v) = allergens.get_mut(a) {
+				*v = v.into_iter()
+					.filter(|f| ff.contains(f))
+					.map(|f| *f)
+					.collect();
+
+                if v.len() == 1 {
+                    let mut foods_to_remove: Vec<(&str, &str)> = vec![(a, v[0])];
                     while let Some((key, used_food)) = foods_to_remove.pop() {
                         used.insert(used_food);
                         // remove this food from other lists
@@ -61,7 +51,6 @@ fn part1(input: String) -> String {
         }
 
         ingredients.append(&mut ff);
-        dbg!(&allergens, &used);
     }
 
     ingredients
