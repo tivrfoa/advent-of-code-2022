@@ -16,7 +16,7 @@ fn part1(input: String) -> String {
 
     for line in input.lines() {
         let (ff, aa) = line.split_once(" (contains ").unwrap();
-        let ff: Vec<&str> = ff.split(" ").filter(|f| !used.contains(f)).collect();
+        let ff: Vec<&str> = ff.split(" ").collect();
         let aa = aa.split_once(')').unwrap().0;
         let aa: Vec<&str> = aa.split(", ").collect();
 
