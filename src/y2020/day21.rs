@@ -9,7 +9,7 @@ use std::iter::zip;
 
 use util::*;
 
-fn part1(input: String) -> String {
+pub fn part1(input: String) -> String {
     let mut allergens: HashMap<&str, Vec<&str>> = HashMap::new();
     let mut ingredients: Vec<&str> = vec![];
 
@@ -58,7 +58,7 @@ fn part1(input: String) -> String {
         .to_string()
 }
 
-fn part2(input: String) -> String {
+pub fn part2(input: String) -> String {
     let mut allergens: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
     for line in input.lines() {
         let (ff, aa) = line.split_once(" (contains ").unwrap();

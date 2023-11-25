@@ -5,4 +5,4 @@
 #![allow(unused_imports)]
 mod aoc;
 mod util;
-mod y2020;
+pub mod y2020;
