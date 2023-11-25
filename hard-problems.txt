@@ -1,0 +1,15 @@
+
+https://adventofcode.com/2020/day/13
+
+  - math
+  - Chinese Remainder Theorem
+  - Lowest Common Multiple
+
+https://adventofcode.com/2020/day/20
+
+  - grid
+  - rotate
+  - flip
+  - pattern matching
+
+
