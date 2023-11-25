@@ -9,11 +9,11 @@ use std::iter::zip;
 
 use util::*;
 
-fn part1(input: String) -> String {
+pub fn part1(input: String) -> String {
     "".into()
 }
 
-fn part2(input: String) -> String {
+pub fn part2(input: String) -> String {
     "".into()
 }
 
