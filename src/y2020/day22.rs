@@ -9,8 +9,8 @@ use std::iter::zip;
 
 use util::*;
 
-fn parse_players(input: &str) -> Vec<VecDeque<u32>> {
-	let mut players: Vec<VecDeque<u32>> = vec![VecDeque::new(); 2];
+fn parse_players(input: &str) -> Vec<VecDeque<u16>> {
+	let mut players: Vec<VecDeque<u16>> = vec![VecDeque::new(); 2];
 	let mut player_idx = 0;
 	for player in input.split("\n\n") {
 		let mut lines = player.lines();
@@ -25,7 +25,7 @@ fn parse_players(input: &str) -> Vec<VecDeque<u32>> {
 }
 
 pub fn part1(input: String) -> String {
-	let mut players: Vec<VecDeque<u32>> = parse_players(&input);
+	let mut players: Vec<VecDeque<u16>> = parse_players(&input);
 
 	while !players[0].is_empty() && !players[1].is_empty() {
 		if players[0][0] > players[1][0] {
@@ -44,16 +44,16 @@ pub fn part1(input: String) -> String {
 	let won = if players[0].is_empty() { 1 } else { 0 };
 	let mut score = 0;
 	for (i, v) in players[won].iter().rev().enumerate() {
-		score += v * (i as u32 + 1);
+		score += v * (i as u16 + 1);
 	}
 
 	score.to_string()
 }
 
-fn play_p2(visited: &mut HashSet<(u32, VecDeque<u32>)>,
-		mut player1: VecDeque<u32>,
-		mut player2: VecDeque<u32>,
-		game: &mut u32) -> (usize, Option<VecDeque<u32>>) {
+fn play_p2(visited: &mut HashSet<(u16, VecDeque<u16>)>,
+		mut player1: VecDeque<u16>,
+		mut player2: VecDeque<u16>,
+		game: &mut u16) -> (usize, Option<VecDeque<u16>>) {
     let start_game = *game;
 
 	while !player1.is_empty() && !player2.is_empty() {
@@ -63,7 +63,7 @@ fn play_p2(visited: &mut HashSet<(u32, VecDeque<u32>)>,
 		let p1_first = player1.pop_front().unwrap();
 		let p2_first = player2.pop_front().unwrap();
 
-		let won = if p1_first <= player1.len() as u32 && p2_first <= player2.len() as u32 {
+		let won = if p1_first <= player1.len() as u16 && p2_first <= player2.len() as u16 {
             *game += 1;
 			play_p2(visited,
                 player1.range(..p1_first as usize).copied().collect(),
@@ -85,14 +85,16 @@ fn play_p2(visited: &mut HashSet<(u32, VecDeque<u32>)>,
 }
 
 pub fn part2(input: String) -> String {
-	let mut players: Vec<VecDeque<u32>> = parse_players(&input);
-	let mut visited: HashSet<(u32, VecDeque<u32>)> = HashSet::new();
+	let mut players: Vec<VecDeque<u16>> = parse_players(&input);
+	let player2 = players.pop().unwrap();
+	let player1 = players.pop().unwrap();
+	let mut visited: HashSet<(u16, VecDeque<u16>)> = HashSet::new();
     let mut game = 1;
 
-	let (_, p) = play_p2(&mut visited, players[0].clone(), players[1].clone(), &mut game);
+	let (_, p) = play_p2(&mut visited, player1, player2, &mut game);
 	let mut score = 0;
 	for (i, v) in p.unwrap().iter().rev().enumerate() {
-		score += v * (i as u32 + 1);
+		score += v * (i as u16 + 1);
 	}
 
 	score.to_string()
@@ -101,7 +103,7 @@ pub fn part2(input: String) -> String {
 #[allow(dead_code)]
 #[derive(Clone, Eq, PartialEq)]
 struct State {
-    cost: u32,
+    cost: u16,
     position: (usize, usize),
 }
 
