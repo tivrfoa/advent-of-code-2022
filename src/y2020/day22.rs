@@ -54,15 +54,15 @@ fn play_p2(visited: &mut HashSet<(u32, VecDeque<u32>)>,
 		mut player1: VecDeque<u32>,
 		mut player2: VecDeque<u32>,
 		game: u32) -> (usize, Option<VecDeque<u32>>) {
-	if !visited.insert((game, player1.clone())) || !visited.insert((game, player2.clone())) {
-		if game == 1 {
-			return (1, None);
-		} else {
-			return (1, Some(player1));
-		}
-	}
 
 	while !player1.is_empty() && !player2.is_empty() {
+        if !visited.insert((game, player1.clone())) && !visited.insert((game, player2.clone())) {
+            if game == 1 {
+                return (1, None);
+            } else {
+                return (1, Some(player1));
+            }
+        }
 		let p1_first = player1.pop_front().unwrap();
 		let p2_first = player2.pop_front().unwrap();
 
