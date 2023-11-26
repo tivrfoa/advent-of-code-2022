@@ -10,7 +10,7 @@ use std::iter::zip;
 use util::*;
 
 pub fn part1(input: String) -> String {
-    "".into()
+    "todo".into()
 }
 
 pub fn part2(input: String) -> String {
