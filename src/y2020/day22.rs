@@ -50,14 +50,14 @@ pub fn part1(input: String) -> String {
 	score.to_string()
 }
 
-fn play_p2(visited: &mut HashSet<(u32, u8, VecDeque<u32>)>,
+fn play_p2(visited: &mut HashSet<(u32, VecDeque<u32>)>,
 		mut player1: VecDeque<u32>,
 		mut player2: VecDeque<u32>,
 		game: &mut u32) -> (usize, Option<VecDeque<u32>>) {
     let start_game = *game;
 
 	while !player1.is_empty() && !player2.is_empty() {
-        if !visited.insert((start_game, 1, player1.clone())) && !visited.insert((start_game, 2, player2.clone())) {
+        if !visited.insert((start_game, player1.clone())) {
             return (1, None);
         }
 		let p1_first = player1.pop_front().unwrap();
@@ -86,7 +86,7 @@ fn play_p2(visited: &mut HashSet<(u32, u8, VecDeque<u32>)>,
 
 pub fn part2(input: String) -> String {
 	let mut players: Vec<VecDeque<u32>> = parse_players(&input);
-	let mut visited: HashSet<(u32, u8, VecDeque<u32>)> = HashSet::new();
+	let mut visited: HashSet<(u32, VecDeque<u32>)> = HashSet::new();
     let mut game = 1;
 
 	let (_, p) = play_p2(&mut visited, players[0].clone(), players[1].clone(), &mut game);

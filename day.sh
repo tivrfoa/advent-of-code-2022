@@ -6,7 +6,7 @@
 year=$1
 day=$2
 
-echo "mod day${day};" > "src/y${year}.rs"
+echo "pub mod day${day};" > "src/y${year}.rs"
 
 touch inputs/$year/day$day.txt inputs/$year/day$day-sample.txt
 
