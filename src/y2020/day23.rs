@@ -20,33 +20,44 @@ fn pick(cups: &[usize], curr: usize, n: usize) -> Vec<usize> {
 	picked
 }
 
-fn update_cups(cups: Vec<usize>, curr: usize, picked: &[usize],
+// at most 8 cups move for part 1
+fn update_cups(mut cups: Vec<usize>, curr: usize, picked: &[usize],
 		destination_idx: usize) -> Vec<usize> {
 	let len = cups.len();
-	let mut new_cups = cups.clone();
 	let mut pos_to_fill = (curr + 1) % len;
 	let mut pos_to_look = (curr + 4) % len;
+	// [(pos, value)]
+	let mut moved: [(usize, usize); 8] = [(0, 0); 8];
+	let mut idx = 0;
 
 	for _ in 0..4 {
 		if pos_to_look == destination_idx {
 			break;
 		}
-		new_cups[pos_to_fill] = cups[pos_to_look];
-
+		moved[idx] = (pos_to_fill, cups[pos_to_look]);
+		idx += 1;
 		pos_to_fill = (pos_to_fill + 1) % len;
 		pos_to_look = (pos_to_look + 1) % len;
 	}
 
-	new_cups[pos_to_fill] = cups[pos_to_look];
+	moved[idx] = (pos_to_fill, cups[pos_to_look]);
+	idx += 1;
 	pos_to_fill = (pos_to_fill + 1) % len;
 
 	for i in 0..picked.len() {
-		new_cups[pos_to_fill] = picked[i];
+		moved[idx] = (pos_to_fill, picked[i]);
+		idx += 1;
 
 		pos_to_fill = (pos_to_fill + 1) % len;
 	}
 
-	new_cups
+	// update cups
+	for (pos, value) in moved {
+		if value == 0 { break; }
+		cups[pos] = value;
+	}
+
+	cups
 }
 
 fn find_destination(cups: &[usize], curr_idx: usize) -> usize {
@@ -120,13 +131,10 @@ pub fn part2(input: String) -> String {
 	let cups = play(cups, 1_000_000);
 	let len = cups.len();
 	let cup1_pos = cups.iter().position(|&v| v == 1).unwrap();
-	let mut ans = String::with_capacity(len - 1);
-
-	for i in cup1_pos + 1..cup1_pos + len {
-		ans.push_str(&cups[i % len].to_string());
-	}
-
-	ans
+	let star1 = cups[(cup1_pos + 1) % len];
+	let star2 = cups[(cup1_pos + 2) % len];
+	dbg!(star1, star2);
+	(star1 * star2).to_string()
 }
 
 #[allow(dead_code)]
