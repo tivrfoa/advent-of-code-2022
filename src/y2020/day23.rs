@@ -77,12 +77,11 @@ fn find_destination(cups: &[usize], curr_idx: usize) -> usize {
 	max_idx
 }
 
-pub fn part1(input: String) -> String {
-	let mut cups: Vec<usize> = input.lines().next().unwrap().chars().map(|c| c.to_decimal()).collect();
+pub fn play(mut cups: Vec<usize>, times: usize) -> Vec<usize> {
 	let len = cups.len();
 	let mut curr = 0;
 
-	for _ in 0..100 {
+	for _ in 0..times {
 		// print_vec_inline(&cups);
 		let picked = pick(&cups, curr, 3);
 		let destination_idx = find_destination(&cups, curr);
@@ -90,6 +89,13 @@ pub fn part1(input: String) -> String {
 		curr = (curr + 1) % len;
 	}
 
+	cups
+}
+
+pub fn part1(input: String) -> String {
+	let cups: Vec<usize> = input.lines().next().unwrap().chars().map(|c| c.to_decimal()).collect();
+	let cups = play(cups, 100);
+	let len = cups.len();
 	let cup1_pos = cups.iter().position(|&v| v == 1).unwrap();
 	let mut ans = String::with_capacity(len - 1);
 
@@ -101,7 +107,26 @@ pub fn part1(input: String) -> String {
 }
 
 pub fn part2(input: String) -> String {
-    "".into()
+	let mut cups: Vec<usize> = input.lines().next().unwrap().chars().map(|c| c.to_decimal()).collect();
+	let highest = cups.iter().max().unwrap();
+	let mut v = highest + 1;
+	let remain = 1_000_000 - cups.len();
+
+	for _ in 0..remain {
+		cups.push(v);
+		v += 1;
+	}
+
+	let cups = play(cups, 1_000_000);
+	let len = cups.len();
+	let cup1_pos = cups.iter().position(|&v| v == 1).unwrap();
+	let mut ans = String::with_capacity(len - 1);
+
+	for i in cup1_pos + 1..cup1_pos + len {
+		ans.push_str(&cups[i % len].to_string());
+	}
+
+	ans
 }
 
 #[allow(dead_code)]
