@@ -230,6 +230,7 @@ pub fn u32_set_one_at(n: u32, pos: u32) -> u32 {
 pub trait CharAsNum {
     fn asu32(self) -> u32;
     fn asu64(self) -> u64;
+    fn to_decimal(self) -> usize;
 }
 
 impl CharAsNum for char {
@@ -239,6 +240,10 @@ impl CharAsNum for char {
     fn asu64(self) -> u64 {
         self.asu32() as u64
     }
+
+    fn to_decimal(self) -> usize {
+		self.asu32() as usize
+	}
 }
 
 #[allow(dead_code)]
