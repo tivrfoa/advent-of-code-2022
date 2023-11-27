@@ -38,6 +38,7 @@ fn update_cups(cups: Vec<usize>, curr: usize, picked: &[usize],
 	}
 
 	new_cups[pos_to_fill] = cups[pos_to_look];
+	pos_to_fill = (pos_to_fill + 1) % len;
 
 	for i in 0..picked.len() {
 		new_cups[pos_to_fill] = picked[i];
@@ -48,40 +49,26 @@ fn update_cups(cups: Vec<usize>, curr: usize, picked: &[usize],
 	new_cups
 }
 
-fn find_lowest_value(cups: &[usize], curr_idx: usize) -> usize {
-	let mut i = (curr_idx + 4) % cups.len();
-	let mut min = usize::MAX;
+fn find_destination(cups: &[usize], curr_idx: usize) -> usize {
+	for target in (0..cups[curr_idx]).rev() {
+		let mut i = (curr_idx + 4) % cups.len();
+		while i != curr_idx {
+			if cups[i] == target {
+				return i;
+			}
 
-	while i != curr_idx {
-		if cups[i] < min {
-			min = cups[i];
+			i = (i + 1) % cups.len();
 		}
-
-		i = (i + 1) % cups.len();
-	}
-
-	min
-}
-
-fn find_destination(cups: &[usize], curr_idx: usize, lowest: usize) -> usize {
-	let mut target = cups[curr_idx] - 1;
-	let mut i = (curr_idx + 4) % cups.len();
-
-	for target in (lowest..cups[curr_idx]).rev() {
-		if cups[i] == target {
-			return i;
-		}
-
-		i = (i + 1) % cups.len();
-		if i == curr_idx { break; }
 	}
 
 	// find highest
 	let mut i = (curr_idx + 4) % cups.len();
+	let mut max = 0;
 	let mut max_idx = 0;
 	while i != curr_idx {
-		if cups[i] > cups[max_idx] {
+		if cups[i] > max {
 			max_idx = i;
+			max = cups[i];
 		}
 
 		i = (i + 1) % cups.len();
@@ -95,16 +82,22 @@ pub fn part1(input: String) -> String {
 	let len = cups.len();
 	let mut curr = 0;
 
-	for _ in 0..10 {
-		print_vec_inline(&cups);
+	for _ in 0..100 {
+		// print_vec_inline(&cups);
 		let picked = pick(&cups, curr, 3);
-		let lowest_value = find_lowest_value(&cups, curr);
-		let destination_idx = find_destination(&cups, curr, lowest_value);
+		let destination_idx = find_destination(&cups, curr);
 		cups = update_cups(cups, curr, &picked, destination_idx);
 		curr = (curr + 1) % len;
 	}
 
-	cups.into_iter().map(|i| i.to_string()).collect()
+	let cup1_pos = cups.iter().position(|&v| v == 1).unwrap();
+	let mut ans = String::with_capacity(len - 1);
+
+	for i in cup1_pos + 1..cup1_pos + len {
+		ans.push_str(&cups[i % len].to_string());
+	}
+
+	ans
 }
 
 pub fn part2(input: String) -> String {
@@ -144,7 +137,7 @@ mod tests {
     #[test]
     fn p1() {
         let input = util::read_file("inputs/2020/day23.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("38925764", part1(input));
     }
 
     #[test]
