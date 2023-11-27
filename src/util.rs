@@ -164,6 +164,17 @@ pub fn sum_of_consecutive_numbers(a: u32, b: u32) -> u32 {
 }
 
 #[allow(dead_code)]
+pub fn print_vec_inline<T: std::str::FromStr + std::fmt::Display>(vec: &[T]) 
+where
+    <T as std::str::FromStr>::Err: Debug,
+{
+	for i in 0..vec.len() {
+		print!("{}, ", vec[i]);
+	}
+	println!();
+}
+
+#[allow(dead_code)]
 pub fn in_to_nums<T: std::str::FromStr>(input: &str) -> Vec<T>
 where
     <T as std::str::FromStr>::Err: Debug,

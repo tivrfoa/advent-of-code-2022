@@ -9,11 +9,18 @@ use std::iter::zip;
 
 use util::*;
 
-fn pick(cups: &[usize], curr: usize, n: usize) -> (usize, usize, bool) {
-	(0, 0, true)
+fn pick(cups: &[usize], curr: usize, n: usize) -> Vec<usize> {
+	let mut picked: Vec<usize> = Vec::with_capacity(n);
+	let mut i = (curr + 1) % cups.len();
+	for _ in 0..n {
+		picked.push(cups[i]);
+		i = (i + 1) % cups.len();
+	}
+
+	picked
 }
 
-fn update_cups(cups: Vec<usize>, picked: &[usize],
+fn update_cups(cups: Vec<usize>, curr: usize, picked: &[usize],
 		destination_idx: usize) -> Vec<usize> {
 	let len = cups.len();
 	let mut new_cups = cups.clone();
@@ -52,71 +59,32 @@ fn find_lowest_value(cups: &[usize], curr_idx: usize) -> usize {
 
 		i = (i + 1) % cups.len();
 	}
-	if wrapped {
-		for i in l+1..r {
-			if i == curr { continue; }
-			if cups[i] < min { min = cups[i]; }
-		}
-		min
-	} else {
-		let mut min = usize::MAX;
-		for i in 0..l {
-			if i == curr { continue; }
-			if cups[i] < min { min = cups[i]; }
-		}
-		for i in r+1..cups.len() {
-			if i == curr { continue; }
-			if cups[i] < min { min = cups[i]; }
-		}
-		min
-	}
+
+	min
 }
 
-fn find_destination(cups: &[usize], curr: usize, l: usize, r: usize, wrapped: bool, lowest: usize) -> usize {
-	let mut target = cups[curr] - 1;
-	for target in (lowest..cups[curr]).rev() {
-		if wrapped {
-			for i in l+1..r {
-				if cups[i] == target {
-					return i;
-				}
-			}
-		} else {
-			for i in 0..l {
-				if cups[i] == target {
-					return i;
-				}
-			}
-			for i in r+1..cups.len() {
-				if cups[i] == target {
-					return i;
-				}
-			}
+fn find_destination(cups: &[usize], curr_idx: usize, lowest: usize) -> usize {
+	let mut target = cups[curr_idx] - 1;
+	let mut i = (curr_idx + 4) % cups.len();
+
+	for target in (lowest..cups[curr_idx]).rev() {
+		if cups[i] == target {
+			return i;
 		}
+
+		i = (i + 1) % cups.len();
+		if i == curr_idx { break; }
 	}
 
 	// find highest
+	let mut i = (curr_idx + 4) % cups.len();
 	let mut max_idx = 0;
-	if wrapped {
-		for i in l+1..r {
-			if i == curr { continue; }
-			if cups[i] > cups[max_idx] {
-				max_idx = i;
-			}
+	while i != curr_idx {
+		if cups[i] > cups[max_idx] {
+			max_idx = i;
 		}
-	} else {
-		for i in 0..l {
-			if i == curr { continue; }
-			if cups[i] > cups[max_idx] {
-				max_idx = i;
-			}
-		}
-		for i in r+1..cups.len() {
-			if i == curr { continue; }
-			if cups[i] > cups[max_idx] {
-				max_idx = i;
-			}
-		}
+
+		i = (i + 1) % cups.len();
 	}
 
 	max_idx
@@ -127,11 +95,12 @@ pub fn part1(input: String) -> String {
 	let len = cups.len();
 	let mut curr = 0;
 
-	for _ in 0..100 {
-		let (l, r, wrapped) = pick(&cups, curr, 3);
-		let lowest_value = find_lowest(&cups, l, r, wrapped);
-		let destination_idx = find_destination(&cups, l, r, wrapped, lowest_value);
-		cups = update_cups(cups, &picked, destination_idx);
+	for _ in 0..10 {
+		print_vec_inline(&cups);
+		let picked = pick(&cups, curr, 3);
+		let lowest_value = find_lowest_value(&cups, curr);
+		let destination_idx = find_destination(&cups, curr, lowest_value);
+		cups = update_cups(cups, curr, &picked, destination_idx);
 		curr = (curr + 1) % len;
 	}
 
@@ -169,7 +138,7 @@ mod tests {
     #[test]
     fn p1s() {
         let input = util::read_file("inputs/2020/day23-sample.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("67384529", part1(input));
     }
 
     #[test]
