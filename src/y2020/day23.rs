@@ -125,14 +125,12 @@ pub fn part1(input: String) -> String {
 
 #[derive(Clone, Debug)]
 struct Node {
-    n: usize,
     next: Cell<usize>,
 }
 
 impl Node {
 	fn new(n: usize) -> Self {
 		Self {
-			n,
 			next: n.into(),
 		}
 	}
@@ -169,7 +167,7 @@ impl Node {
 }
 
 pub fn part2(input: String) -> String {
-	let mut cups: Vec<Node> = vec![Node { n: 0, next: 0.into() }; 1_000_001];
+	let mut cups: Vec<Node> = vec![Node { next: 0.into() }; 1_000_001];
 	let mut chars = input.lines().next().unwrap().chars();
 	let mut current = chars.next().unwrap().to_decimal();
 	cups[current] = Node::new(current);
@@ -192,12 +190,12 @@ pub fn part2(input: String) -> String {
 	for _ in 0..N * 10 {
 		let taken = cups[current].popn(&cups, 3);
 		let taken_n = {
-			let n2 = cups[taken].next.get();
-			let n3 = cups[n2].next.get();
-			[cups[taken].n, cups[n2].n, cups[n3].n]
+			let taken2 = cups[taken].next.get();
+			let taken3 = cups[taken2].next.get();
+			[taken, taken2, taken3]
 		};
 
-		let mut current_label = cups[current].n - 1;
+		let mut current_label = current - 1;
 		if current_label == 0 {
 			current_label = N;
 		}
@@ -215,7 +213,7 @@ pub fn part2(input: String) -> String {
 
 	let star1 = cups[1].next.get();
 	let star2 = cups[star1].next.get();
-	(cups[star1].n * cups[star2].n).to_string()
+	(star1 * star2).to_string()
 }
 
 #[allow(dead_code)]
