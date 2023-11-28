@@ -16,3 +16,6 @@ https://adventofcode.com/2020/day/20
 
 Day 23: Crab Cups
 https://adventofcode.com/2020/day/23
+
+  - Game Simulation
+  - Linked List

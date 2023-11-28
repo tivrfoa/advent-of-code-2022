@@ -67,6 +67,7 @@ pub fn get_numbers_in_line(line: &str) -> Vec<i32> {
 }
 
 // slice must start after opening paren '('
+#[allow(dead_code)]
 pub fn find_close_paren(chars: &[char]) -> usize {
     let mut qt = 0;
 
@@ -218,21 +219,25 @@ pub fn str_to_char_tuple(s: &str) -> (char, char) {
 }
 
 /// Set bit at pos with value 0
+#[allow(dead_code)]
 pub fn set_zero_at(n: usize, pos: usize) -> usize {
     n & !(1 << pos)
 }
 
 /// Set bit at pos with value 1
+#[allow(dead_code)]
 pub fn set_one_at(n: usize, pos: usize) -> usize {
     n | (1 << pos)
 }
 
 /// Set bit at pos with value 0
+#[allow(dead_code)]
 pub fn u32_set_zero_at(n: u32, pos: u32) -> u32 {
     n & !(1 << pos)
 }
 
 /// Set bit at pos with value 1
+#[allow(dead_code)]
 pub fn u32_set_one_at(n: u32, pos: u32) -> u32 {
     n | (1 << pos)
 }
@@ -443,7 +448,7 @@ impl ParseInput for str {
     where
         <T as std::str::FromStr>::Err: Debug,
     {
-        self.split(',').map(|n| n.parse::<T>().unwrap()).collect()
+        self.split(delim).map(|n| n.parse::<T>().unwrap()).collect()
     }
     fn to_char_grid(&self) -> Vec<Vec<char>> {
         self.lines().map(|l| l.chars().collect()).collect()
