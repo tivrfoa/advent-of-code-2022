@@ -20,41 +20,48 @@ fn pick(cups: &[usize], curr: usize, n: usize) -> Vec<usize> {
 	picked
 }
 
+static mut buffer: [(usize, usize); 1_000_010] = [(0, 0); 1_000_010];
+
 // at most 8 cups move for part 1
 fn update_cups(mut cups: Vec<usize>, curr: usize, picked: &[usize],
 		destination_idx: usize) -> Vec<usize> {
 	let len = cups.len();
 	let mut pos_to_fill = (curr + 1) % len;
 	let mut pos_to_look = (curr + 4) % len;
-	// [(pos, value)]
-	let mut moved: [(usize, usize); 8] = [(0, 0); 8];
 	let mut idx = 0;
 
 	for _ in 0..4 {
 		if pos_to_look == destination_idx {
 			break;
 		}
-		moved[idx] = (pos_to_fill, cups[pos_to_look]);
-		idx += 1;
+		unsafe {
+			buffer[idx] = (pos_to_fill, cups[pos_to_look]);
+			idx += 1;
+		}
 		pos_to_fill = (pos_to_fill + 1) % len;
 		pos_to_look = (pos_to_look + 1) % len;
 	}
 
-	moved[idx] = (pos_to_fill, cups[pos_to_look]);
-	idx += 1;
+	unsafe {
+		buffer[idx] = (pos_to_fill, cups[pos_to_look]);
+		idx += 1;
+	}
 	pos_to_fill = (pos_to_fill + 1) % len;
 
 	for i in 0..picked.len() {
-		moved[idx] = (pos_to_fill, picked[i]);
-		idx += 1;
+		unsafe {
+			buffer[idx] = (pos_to_fill, picked[i]);
+			idx += 1;
+		}
 
 		pos_to_fill = (pos_to_fill + 1) % len;
 	}
 
 	// update cups
-	for (pos, value) in moved {
-		if value == 0 { break; }
-		cups[pos] = value;
+	for i in 0..idx {
+		unsafe {
+			cups[buffer[i].0] = buffer[i].1;
+		}
 	}
 
 	cups
@@ -88,11 +95,21 @@ fn find_destination(cups: &[usize], curr_idx: usize) -> usize {
 	max_idx
 }
 
-pub fn play(mut cups: Vec<usize>, times: usize) -> Vec<usize> {
+pub fn play(mut cups: Vec<usize>, times: usize,
+		cache: &mut HashSet<(usize, usize)>) -> Vec<usize> {
 	let len = cups.len();
 	let mut curr = 0;
 
 	for _ in 0..times {
+		if cups[curr] == 1 {
+			let star1 = cups[(curr + 1) % len];
+			let star2 = cups[(curr + 2) % len];
+			if cache.contains(&(star1, star2)) {
+				dbg!(star1, star2);
+				panic!("{}", star1 * star2);
+			}
+			cache.insert((star1, star2));
+		}
 		// print_vec_inline(&cups);
 		let picked = pick(&cups, curr, 3);
 		let destination_idx = find_destination(&cups, curr);
@@ -105,7 +122,8 @@ pub fn play(mut cups: Vec<usize>, times: usize) -> Vec<usize> {
 
 pub fn part1(input: String) -> String {
 	let cups: Vec<usize> = input.lines().next().unwrap().chars().map(|c| c.to_decimal()).collect();
-	let cups = play(cups, 100);
+	let mut cache: HashSet<(usize, usize)> = HashSet::new();
+	let cups = play(cups, 100, &mut cache);
 	let len = cups.len();
 	let cup1_pos = cups.iter().position(|&v| v == 1).unwrap();
 	let mut ans = String::with_capacity(len - 1);
@@ -122,13 +140,18 @@ pub fn part2(input: String) -> String {
 	let highest = cups.iter().max().unwrap();
 	let mut v = highest + 1;
 	let remain = 1_000_000 - cups.len();
+	dbg!(highest, remain);
 
 	for _ in 0..remain {
 		cups.push(v);
 		v += 1;
 	}
 
-	let cups = play(cups, 1_000_000);
+	// cup1 and two stars
+	let mut cache: HashSet<(usize, usize)> = HashSet::new();
+	// let cups = play(cups, 1_000, &mut cache);
+	// let cups = play(cups, 10_000, &mut cache); // 6.59s
+	// let cups = play(cups, 10_000_000, &mut cache);
 	let len = cups.len();
 	let cup1_pos = cups.iter().position(|&v| v == 1).unwrap();
 	let star1 = cups[(cup1_pos + 1) % len];
