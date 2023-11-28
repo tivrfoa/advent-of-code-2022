@@ -123,30 +123,99 @@ pub fn part1(input: String) -> String {
 	ans
 }
 
+#[derive(Clone, Debug)]
+struct Node {
+    n: usize,
+    next: Cell<usize>,
+}
+
+impl Node {
+	fn new(n: usize) -> Self {
+		Self {
+			n,
+			next: n.into(),
+		}
+	}
+
+	fn append(&self, n: usize) -> Self {
+		let new_node = Node::new(n);
+		new_node.next.replace(self.next.get());
+		self.next.replace(n);
+
+		new_node
+	}
+
+    fn popn(&self, nodes: &[Node], n: usize) -> usize {
+        let mut next: usize = self.next.get();
+        let taken = next;
+
+        for _ in 0..n {
+            next = nodes[next].next.get();
+        }
+        self.next.replace(next);
+
+        taken
+    }
+
+    fn pushn(&self, nodes: &[Node], node: usize, n: usize) {
+        let head = node;
+        let mut next: usize = node;
+        for _ in 0..n - 1 {
+            next = nodes[next].next.get();
+        }
+        nodes[next].next.replace(self.next.get());
+        self.next.replace(head);
+    }
+}
+
 pub fn part2(input: String) -> String {
-	let mut cups: Vec<usize> = input.lines().next().unwrap().chars().map(|c| c.to_decimal()).collect();
-	let highest = cups.iter().max().unwrap();
-	let mut v = highest + 1;
-	let remain = 1_000_000 - cups.len();
-	dbg!(highest, remain);
+	let mut cups: Vec<Node> = vec![Node { n: 0, next: 0.into() }; 1_000_001];
+	let mut chars = input.lines().next().unwrap().chars();
+	let mut current = chars.next().unwrap().to_decimal();
+	cups[current] = Node::new(current);
+	let mut prev = current;
+	for c in chars {
+		let n = c.to_decimal();
+		cups[n] = cups[prev].append(n);
+		prev = n;
+	}
 
-	// for _ in 0..remain {
-	// 	cups.push(v);
-	// 	v += 1;
-	// }
+	const N: usize = 1_000_000;
 
-	// // cup1 and two stars
-	// let mut cache: HashSet<(usize, usize)> = HashSet::new();
-	// // let cups = play(cups, 1_000, &mut cache);
-	// // let cups = play(cups, 10_000, &mut cache); // 6.59s
-	// let cups = play(cups, 100_000, &mut cache);
-	// let len = cups.len();
-	// let cup1_pos = cups.iter().position(|&v| v == 1).unwrap();
-	// let star1 = cups[(cup1_pos + 1) % len];
-	// let star2 = cups[(cup1_pos + 2) % len];
-	// dbg!(star1, star2);
-	// (star1 * star2).to_string()
-	"".into()
+	for i in 10..=N {
+		cups[i] = cups[prev].append(i);
+		prev = i;
+	}
+
+	dbg!(&cups[0..11], &cups[current], &cups[N]);
+
+	for _ in 0..N * 10 {
+		let taken = cups[current].popn(&cups, 3);
+		let taken_n = {
+			let n2 = cups[taken].next.get();
+			let n3 = cups[n2].next.get();
+			[cups[taken].n, cups[n2].n, cups[n3].n]
+		};
+
+		let mut current_label = cups[current].n - 1;
+		if current_label == 0 {
+			current_label = N;
+		}
+		while taken_n.contains(&current_label) {
+			current_label -= 1;
+			if current_label == 0 {
+				current_label = N;
+			}
+		}
+
+		cups[current_label].pushn(&cups, taken, 3);
+
+		current = cups[current].next.get();
+	}
+
+	let star1 = cups[1].next.get();
+	let star2 = cups[star1].next.get();
+	(cups[star1].n * cups[star2].n).to_string()
 }
 
 #[allow(dead_code)]
@@ -188,12 +257,12 @@ mod tests {
     #[test]
     fn p2s() {
         let input = util::read_file("inputs/2020/day23-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("149245887792", part2(input));
     }
 
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2020/day23.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("131152940564", part2(input));
     }
 }
