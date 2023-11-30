@@ -22,6 +22,7 @@ pub trait CircularList<T: Copy> {
     fn pushn(&self, next: Rc<RefCell<Node<T>>>, n: usize);
     fn popn(&self, n: usize) -> Rc<RefCell<Node<T>>>;
     fn get_n_values(&self, n: usize) -> Vec<T>;
+    fn set_n_values(&self, n: usize, vec: &mut Vec<T>);
 }
 
 impl<T: Copy> CircularList<T> for Rc<RefCell<Node<T>>> {
@@ -70,5 +71,14 @@ impl<T: Copy> CircularList<T> for Rc<RefCell<Node<T>>> {
         }
 
         values
+    }
+
+    fn set_n_values(&self, n: usize, vec: &mut Vec<T>) {
+        let mut curr = self.clone();
+
+        for i in 0..n {
+            vec[i] = curr.borrow().n;
+            curr = curr.clone().borrow().next.as_ref().unwrap().clone();
+        }
     }
 }

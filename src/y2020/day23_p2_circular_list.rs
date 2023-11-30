@@ -37,10 +37,11 @@ pub fn part2(input: String) -> String {
     }
 
     curr = head;
+	let mut taken_n = vec![0, 0, 0];
 
     for _ in 0..N * 10 {
         let taken = curr.popn(3);
-        let taken_n = taken.get_n_values(3);
+        taken.set_n_values(3, &mut taken_n);
 
         let mut current_label = curr.borrow().n - 1;
         if current_label == 0 {
@@ -58,8 +59,8 @@ pub fn part2(input: String) -> String {
         curr = curr.next().unwrap();
     }
 
-    let values = nodes[1].as_ref().unwrap().get_n_values(3);
-    (values[1] * values[2]).to_string()
+    nodes[1].as_ref().unwrap().set_n_values(3, &mut taken_n);
+    (taken_n[1] * taken_n[2]).to_string()
 }
 
 #[allow(dead_code)]
