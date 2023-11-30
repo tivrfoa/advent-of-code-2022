@@ -125,17 +125,17 @@ pub fn part1(input: String) -> String {
 
 #[derive(Clone, Debug)]
 struct Node {
-    next: Cell<usize>,
+    next: Cell<u32>,
 }
 
 impl Node {
-	fn new(n: usize) -> Self {
+	fn new(n: u32) -> Self {
 		Self {
 			next: n.into(),
 		}
 	}
 
-	fn append(&self, n: usize) -> Self {
+	fn append(&self, n: u32) -> Self {
 		let new_node = Node::new(n);
 		new_node.next.replace(self.next.get());
 		self.next.replace(n);
@@ -143,12 +143,12 @@ impl Node {
 		new_node
 	}
 
-    fn popn(&self, nodes: &[Node], n: usize) -> usize {
-        let mut next: usize = self.next.get();
+    fn popn(&self, nodes: &[Node], n: usize) -> u32 {
+        let mut next = self.next.get();
         let taken = next;
 
         for _ in 0..n {
-            next = nodes[next].next.get();
+            next = nodes[next as usize].next.get();
         }
         self.next.replace(next);
 
@@ -156,10 +156,10 @@ impl Node {
     }
 
     fn pushn(&self, nodes: &[Node], node: usize, n: usize) {
-        let head = node;
+        let head = node as u32;
         let mut next: usize = node;
         for _ in 0..n - 1 {
-            next = nodes[next].next.get();
+            next = nodes[next].next.get() as usize;
         }
         nodes[next].next.replace(self.next.get());
         self.next.replace(head);
@@ -168,30 +168,28 @@ impl Node {
 
 pub fn part2(input: String) -> String {
 	let mut cups: Vec<Node> = vec![Node { next: 0.into() }; 1_000_001];
-	let mut chars = input.lines().next().unwrap().chars();
-	let mut current = chars.next().unwrap().to_decimal();
-	cups[current] = Node::new(current);
+	let mut bytes = input.trim().as_bytes();
+	let mut current = (bytes[0] - b'0') as usize;
+	cups[current] = Node::new(current as u32);
 	let mut prev = current;
-	for c in chars {
-		let n = c.to_decimal();
-		cups[n] = cups[prev].append(n);
+	for c in &bytes[1..] {
+		let n = (c - b'0') as usize;
+		cups[n] = cups[prev].append(n as u32);
 		prev = n;
 	}
 
 	const N: usize = 1_000_000;
 
-	for i in 10..=N {
-		cups[i] = cups[prev].append(i);
-		prev = i;
+	cups[10] = cups[prev].append(10);
+	for i in 11..=N {
+		cups[i] = cups[i - 1].append(i as u32);
 	}
-
-	dbg!(&cups[0..11], &cups[current], &cups[N]);
 
 	for _ in 0..N * 10 {
 		let taken = cups[current].popn(&cups, 3);
 		let taken_n = {
-			let taken2 = cups[taken].next.get();
-			let taken3 = cups[taken2].next.get();
+			let taken2 = cups[taken as usize].next.get();
+			let taken3 = cups[taken2 as usize].next.get();
 			[taken, taken2, taken3]
 		};
 
@@ -199,20 +197,20 @@ pub fn part2(input: String) -> String {
 		if current_label == 0 {
 			current_label = N;
 		}
-		while taken_n.contains(&current_label) {
+		while taken_n.contains(&(current_label as u32)) {
 			current_label -= 1;
 			if current_label == 0 {
 				current_label = N;
 			}
 		}
 
-		cups[current_label].pushn(&cups, taken, 3);
+		cups[current_label].pushn(&cups, taken as usize, 3);
 
-		current = cups[current].next.get();
+		current = cups[current].next.get() as usize;
 	}
 
-	let star1 = cups[1].next.get();
-	let star2 = cups[star1].next.get();
+	let star1 = cups[1].next.get() as usize;
+	let star2 = cups[star1].next.get() as usize;
 	(star1 * star2).to_string()
 }
 
