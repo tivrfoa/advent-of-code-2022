@@ -43,7 +43,7 @@ pub fn part2(input: String) -> String {
 	let mut digits: [(usize, u32); 2] = [(0, 0); 2];
 	for line in input.lines() {
 		let mut idx = 0;
-		digits[1].1 = 10;
+		digits[1] = (0, 10);
 		for (i, c) in line.chars().enumerate() {
 			match c.to_digit(10) {
 				Some(n) => {
@@ -60,10 +60,6 @@ pub fn part2(input: String) -> String {
 		if idx == 0 {
 			digits[0] = (line.len(), 0);
 			digits[1] = (0, 0);
-		}
-
-		if digits[1].1 == 10 {
-			digits[1] = digits[0];
 		}
 
 		const DIGITS: [&str; 9] = [
@@ -83,7 +79,6 @@ pub fn part2(input: String) -> String {
 
 		let mut second = digits[1].0;
 		for (i, d) in DIGITS.iter().enumerate() {
-			dbg!(&line[digits[1].0+1..], d);
 			if let Some(p) = line[digits[1].0+1..].find(d) {
 				let p = p + digits[1].0+1;
 				println!("Found {p}, second = {}, i = {i}", second);
@@ -94,6 +89,10 @@ pub fn part2(input: String) -> String {
 			}
 		}
 		dbg!(&digits);
+
+		if digits[1].1 == 10 {
+			digits[1] = digits[0];
+		}
 
 		sum += digits[0].1 * 10 + digits[1].1;
 	}
