@@ -10,7 +10,43 @@ use std::iter::zip;
 use util::*;
 
 pub fn part1(input: String) -> String {
-    "todo".into()
+	let mut black_up: HashSet<(i16, i16)> = HashSet::new();
+
+	for line in input.lines() {
+		let (mut x, mut y) = (0, 0);
+		let mut idx = 0;
+		while idx < line.len() {
+			if line[idx..].starts_with("e") {
+				x += 2;
+				idx += 1;
+			} else if line[idx..].starts_with("w") {
+				x -= 2;
+				idx += 1;
+			} else if line[idx..].starts_with("nw") {
+				x -= 1;
+				y += 1;
+				idx += 2;
+			} else if line[idx..].starts_with("ne") {
+				x += 1;
+				y += 1;
+				idx += 2;
+			} else if line[idx..].starts_with("se") {
+				x += 1;
+				y -= 1;
+				idx += 2;
+			} else if line[idx..].starts_with("sw") {
+				x -= 1;
+				y -= 1;
+				idx += 2;
+			}
+		}
+
+		if !black_up.insert((x, y)) {
+			black_up.remove(&(x, y));
+		}
+	}
+
+	black_up.len().to_string()
 }
 
 pub fn part2(input: String) -> String {
@@ -44,7 +80,7 @@ mod tests {
     #[test]
     fn p1s() {
         let input = util::read_file("inputs/2020/day24-sample.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("10", part1(input));
     }
 
     #[test]

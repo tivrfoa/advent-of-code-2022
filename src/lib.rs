@@ -6,4 +6,4 @@
 mod aoc;
 mod util;
 mod circular_list;
-pub mod y2023;
+pub mod y2020;
