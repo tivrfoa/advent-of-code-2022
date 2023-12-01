@@ -39,6 +39,16 @@ pub fn part1(input: String) -> String {
 }
 
 pub fn part2(input: String) -> String {
+	let mut sum = 0;
+	for (lidx, line) in input.lines().enumerate() {
+		let num = get_two_digits(line);
+		println!("line = {lidx} - {}", num);
+		sum += num;
+	}
+	sum.to_string()
+}
+
+fn get_two_digits(s: &str) -> u32 {
 	const DIGITS: [(&str, u32); 18] = [
 		("1", 1),
 		("2", 2),
@@ -59,38 +69,33 @@ pub fn part2(input: String) -> String {
 		("eight", 8),
 		("nine", 9),
 	];
-	let mut sum = 0;
-	for line in input.lines() {
-		let mut idx = 0;
-		let mut digits: [(usize, u32); 2] = [(0, 10); 2];
+	let mut digits: [(usize, u32); 2] = [(0, 0); 2];
 
-		let mut first = line.len();
-		for (sval, val) in DIGITS {
-			if let Some(p) = line.find(sval) {
-				if p < first {
-					first = p;
-					digits[0] = (p, val);
-				}
+	let mut first = s.len();
+	for (sval, val) in DIGITS {
+		if let Some(p) = s.find(sval) {
+			if p < first {
+				first = p;
+				digits[0] = (p, val);
 			}
 		}
-		digits[1] = digits[0];
-
-		let mut second = first + 1;
-		for (sval, val) in DIGITS {
-			if let Some(p) = line[second..].find(sval) {
-				let p = p + second;
-				if p > second {
-					second = p;
-					digits[1] = (p, val);
-				}
-			}
-		}
-		dbg!(&digits);
-
-		sum += digits[0].1 * 10 + digits[1].1;
 	}
-	sum.to_string()
+	digits[1] = digits[0];
+
+	let mut second = first;
+	for (sval, val) in DIGITS {
+		if let Some(p) = s[second..].rfind(sval) {
+			let p = p + second;
+			if p > second {
+				second = p;
+				digits[1] = (p, val);
+			}
+		}
+	}
+
+	digits[0].1 * 10 + digits[1].1
 }
+
 
 #[allow(dead_code)]
 #[derive(Clone, Eq, PartialEq)]
@@ -137,6 +142,11 @@ mod tests {
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2023/day1.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("52834", part2(input));
+    }
+
+    #[test]
+    fn test_get_two_digits() {
+		assert_eq!(42, get_two_digits("41t279zsgmzmjk12"));
     }
 }
