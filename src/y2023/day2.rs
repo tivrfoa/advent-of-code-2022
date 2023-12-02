@@ -20,9 +20,6 @@ fn max(color: &str) -> u32 {
 
 pub fn part1(input: String) -> String {
 	let mut sum = 0;
-	// split ': '
-	// split '; '
-	// split ', '
 	'l:
 	for (i, line) in input.lines().enumerate() {
 		let game = i + 1;
@@ -42,7 +39,26 @@ pub fn part1(input: String) -> String {
 }
 
 pub fn part2(input: String) -> String {
-    "".into()
+	let mut sum = 0;
+	for line in input.lines() {
+		let (mut max_blue, mut max_red, mut max_green) = (1, 1, 1);
+		let (_, cubes) = line.split_once(": ").unwrap();
+		for set in cubes.split("; ") {
+			for cube in set.split(", ") {
+				let (qt, color) = cube.split_once(' ').unwrap();
+				let qt = qt.parse::<u32>().unwrap();
+				match color {
+					"red" => max_red = max_red.max(qt),
+					"green" => max_green = max_green.max(qt),
+					"blue" => max_blue = max_blue.max(qt),
+					_ => panic!("{color}"),
+				};
+			}
+		}
+		sum += max_blue * max_red * max_green;
+	}
+
+	sum.to_string()
 }
 
 #[allow(dead_code)]
@@ -84,12 +100,12 @@ mod tests {
     #[test]
     fn p2s() {
         let input = util::read_file("inputs/2023/day2-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("2286", part2(input));
     }
 
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2023/day2.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("70768", part2(input));
     }
 }
