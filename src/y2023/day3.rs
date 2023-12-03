@@ -9,20 +9,104 @@ use std::iter::zip;
 
 use util::*;
 
+struct Num {
+	v: String,
+	l: usize,
+	r: usize,
+}
+
+const SYMBOLS: [char; 4] = [
+	'*',
+	'+',
+	'$',
+	'#',
+];
+
+fn has_adjacent_symbol(grid: &[Vec<char>], row: usize, l: usize, r: usize) -> bool {
+	let rows = grid.len();
+	let cols = grid[0].len();
+
+	// left
+	if l > 0 && SYMBOLS.contains(&grid[row][l - 1]) {
+		return true;
+	}
+
+	// right
+	if r + 1 < cols && SYMBOLS.contains(&grid[row][r + 1]) {
+		return true;
+	}
+
+	// top left
+	if l > 0 && row > 0 && SYMBOLS.contains(&grid[row - 1][l - 1]) {
+		return true;
+	}
+
+	// top right
+	if r + 1 < cols && row > 0 && SYMBOLS.contains(&grid[row - 1][r + 1]) {
+		return true;
+	}
+
+	// bottom left
+	if l > 0 && row + 1 < rows && SYMBOLS.contains(&grid[row + 1][l - 1]) {
+		return true;
+	}
+
+	// bottom right
+	if r + 1 < cols && row + 1 < rows && SYMBOLS.contains(&grid[row + 1][r + 1]) {
+		return true;
+	}
+
+	// top bottom
+	for col in l..=r {
+		// top
+		if row > 0 && SYMBOLS.contains(&grid[row - 1][col]) {
+			return true;
+		}
+		// bottom
+		if row + 1 < rows && SYMBOLS.contains(&grid[row + 1][col]) {
+			return true;
+		}
+	}
+
+	false
+}
+
 pub fn part1(input: String) -> String {
 	let mut sum: i32 = 0;
+	let mut grid: Vec<Vec<char>> = vec![];
 
 	for line in input.lines() {
-		let mut num = String::new();
-		for c in line.chars() {
-			if '0' <= c && c <= '9' {
-				num.push(c);
+		grid.push(line.chars().collect());
+	}
+	let rows = grid.len();
+	let cols = grid[0].len();
+
+	let mut num = Num {
+		v: String::new(),
+		l: 0,
+		r: 0,
+	};
+	for r in 0..rows {
+		for c in 0..cols {
+			let v = grid[r][c];
+			if '0' <= v && v <= '9' {
+				if num.v.is_empty() {
+					num.l = c;
+				}
+				num.r = c;
+				num.v.push(v);
 			} else {
-				if !num.is_empty() {
-					let n: i32 = num.parse().unwrap();
+				if !num.v.is_empty() {
+					let n: i32 = num.v.parse().unwrap();
 					dbg!(n);
-					sum += n;
-					num = String::new();
+					if has_adjacent_symbol(&grid, r, num.l, num.r) {
+						sum += n;
+					}
+					num = Num {
+						v: String::new(),
+						l: 0,
+						r: 0,
+					};
 				}
 			}
 		}
