@@ -72,7 +72,7 @@ fn has_adjacent_symbol(grid: &[Vec<char>], row: usize, l: usize, r: usize) -> bo
 }
 
 pub fn part1(input: String) -> String {
-	let mut sum: i32 = 0;
+	let mut sum: i64 = 0;
 	let mut grid: Vec<Vec<char>> = vec![];
 
 	for line in input.lines() {
@@ -97,9 +97,10 @@ pub fn part1(input: String) -> String {
 				num.v.push(v);
 			} else {
 				if !num.v.is_empty() {
-					let n: i32 = num.v.parse().unwrap();
-					dbg!(n);
+					let n: i64 = num.v.parse().unwrap();
+					println!("{} - {} = {}", num.l, num.r, num.v);
 					if has_adjacent_symbol(&grid, r, num.l, num.r) {
+						println!("adding");
 						sum += n;
 					}
 					num = Num {
@@ -109,6 +110,22 @@ pub fn part1(input: String) -> String {
 					};
 				}
 			}
+		}
+		if !num.v.is_empty() {
+			let n: i64 = num.v.parse().unwrap();
+			println!("{} - {} = {}", num.l, num.r, num.v);
+			if has_adjacent_symbol(&grid, r, num.l, num.r) {
+				println!("adding");
+				sum += n;
+			}
+		}
+	}
+	if !num.v.is_empty() {
+		let n: i64 = num.v.parse().unwrap();
+		println!("{} - {} = {}", num.l, num.r, num.v);
+		if has_adjacent_symbol(&grid, rows - 1, num.l, num.r) {
+			println!("adding");
+			sum += n;
 		}
 	}
 
