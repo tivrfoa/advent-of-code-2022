@@ -9,11 +9,11 @@ use std::iter::zip;
 
 use util::*;
 
-pub fn part1(input: String) -> String {
+pub fn part1(input: &str) -> String {
     "todo".into()
 }
 
-pub fn part2(input: String) -> String {
+pub fn part2(input: &str) -> String {
     "".into()
 }
 
@@ -43,25 +43,25 @@ mod tests {
 
     #[test]
     fn p1s() {
-        let input = util::read_file("inputs/dayX-sample.txt");
+        let input = include_str!("../../inputs/dayX-sample.txt");
         assert_eq!("", part1(input));
     }
 
     #[test]
     fn p1() {
-        let input = util::read_file("inputs/dayX.txt");
+        let input = include_str!("../../inputs/dayX.txt");
         assert_eq!("", part1(input));
     }
 
     #[test]
     fn p2s() {
-        let input = util::read_file("inputs/dayX-sample.txt");
+        let input = include_str!("../../inputs/dayX-sample.txt");
         assert_eq!("", part2(input));
     }
 
     #[test]
     fn p2() {
-        let input = util::read_file("inputs/dayX.txt");
+        let input = include_str!("../../inputs/dayX.txt");
         assert_eq!("", part2(input));
     }
 }

@@ -99,7 +99,7 @@ pub fn part1(input: String) -> String {
 	sum.to_string()
 }
 
-pub fn part2(input: String) -> String {
+pub fn part2(input: &str) -> String {
 	let mut grid: Vec<Vec<char>> = vec![];
 	let mut parts: Vec<(usize, Num)> = vec![]; // (row, Num)
 	let mut parts_map: HashMap<(usize, usize), &Num> = HashMap::new();
@@ -196,13 +196,13 @@ mod tests {
 
     #[test]
     fn p2s() {
-        let input = util::read_file("inputs/2023/day3-sample.txt");
+        let input = include_str!("../../inputs/2023/day3-sample.txt");
         assert_eq!("467835", part2(input));
     }
 
     #[test]
     fn p2() {
-        let input = util::read_file("inputs/2023/day3.txt");
+        let input = include_str!("../../inputs/2023/day3.txt");
         assert_eq!("84495585", part2(input));
     }
 }
