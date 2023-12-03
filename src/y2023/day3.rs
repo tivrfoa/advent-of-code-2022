@@ -28,12 +28,12 @@ fn has_adjacent_symbol(grid: &[Vec<char>], row: usize, l: usize, r: usize) -> bo
 	let cols = grid[0].len();
 
 	let dirs: [(bool, usize, usize); 6] = [
-		(l > 0, row, l - 1),
-		(r + 1 < cols, row, r + 1),
-		(l > 0 && row > 0, row - 1, l - 1),
-		(r + 1 < cols && row > 0, row - 1, r + 1),
-		(l > 0 && row + 1 < rows, row + 1, l - 1),
-		(r + 1 < cols && row + 1 < rows, row + 1, r + 1),
+		(l > 0, row, l - 1), // left
+		(r + 1 < cols, row, r + 1), // right
+		(l > 0 && row > 0, row - 1, l - 1), // top left
+		(r + 1 < cols && row > 0, row - 1, r + 1), // top right
+		(l > 0 && row + 1 < rows, row + 1, l - 1), // bottom left
+		(r + 1 < cols && row + 1 < rows, row + 1, r + 1), // bottom right
 	];
 
 	for (cond, row, col) in dirs {
@@ -48,14 +48,14 @@ fn has_adjacent_symbol(grid: &[Vec<char>], row: usize, l: usize, r: usize) -> bo
 	// top bottom
 	for col in l..=r {
 		// top
-		if row > 0 && SYMBOLS.contains(&grid[row - 1][col]) {
+		if row > 0 {
 			let v = grid[row - 1][col];
 			if v != '.' && !('0' <= v && v <= '9') {
 				return true;
 			}
 		}
 		// bottom
-		if row + 1 < rows && SYMBOLS.contains(&grid[row + 1][col]) {
+		if row + 1 < rows {
 			let v = grid[row + 1][col];
 			if v != '.' && !('0' <= v && v <= '9') {
 				return true;
@@ -76,12 +76,12 @@ pub fn part1(input: String) -> String {
 	let rows = grid.len();
 	let cols = grid[0].len();
 
-	let mut num = Num {
-		v: String::new(),
-		l: 0,
-		r: 0,
-	};
 	for r in 0..rows {
+		let mut num = Num {
+			v: String::new(),
+			l: 0,
+			r: 0,
+		};
 		for c in 0..cols {
 			let v = grid[r][c];
 			if '0' <= v && v <= '9' {
@@ -93,7 +93,7 @@ pub fn part1(input: String) -> String {
 			} else {
 				if !num.v.is_empty() {
 					let n: i64 = num.v.parse().unwrap();
-					// println!("{} - {} = {}", num.l, num.r, num.v);
+					println!("{} - {} = {}", num.l, num.r, num.v);
 					if has_adjacent_symbol(&grid, r, num.l, num.r) {
 						println!("adding");
 						sum += n;
@@ -108,19 +108,11 @@ pub fn part1(input: String) -> String {
 		}
 		if !num.v.is_empty() {
 			let n: i64 = num.v.parse().unwrap();
-			// println!("{} - {} = {}", num.l, num.r, num.v);
+			println!("{} - {} = {}", num.l, num.r, num.v);
 			if has_adjacent_symbol(&grid, r, num.l, num.r) {
 				println!("adding");
 				sum += n;
 			}
-		}
-	}
-	if !num.v.is_empty() {
-		let n: i64 = num.v.parse().unwrap();
-		// println!("{} - {} = {}", num.l, num.r, num.v);
-		if has_adjacent_symbol(&grid, rows - 1, num.l, num.r) {
-			println!("adding");
-			sum += n;
 		}
 	}
 
@@ -164,7 +156,7 @@ mod tests {
     #[test]
     fn p1() {
         let input = util::read_file("inputs/2023/day3.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("544664", part1(input));
     }
 
     #[test]
