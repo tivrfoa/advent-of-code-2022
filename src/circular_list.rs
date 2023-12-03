@@ -9,6 +9,7 @@ pub struct Node<T: Copy> {
 }
 
 impl<T: Copy> Node<T> {
+    #[allow(dead_code)]
     pub fn new_rc_node(n: T) -> Rc<RefCell<Node<T>>> {
         let node = Rc::new(RefCell::new(Node { n, next: None }));
         node.borrow_mut().next = Some(node.clone());
