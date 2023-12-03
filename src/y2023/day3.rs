@@ -16,6 +16,16 @@ struct Num {
 	r: usize,
 }
 
+impl Num {
+	fn new() -> Self {
+		Self {
+			v: String::new(),
+			l: 0,
+			r: 0,
+		}
+	}
+}
+
 fn get_adjacent_part_numbers<'a>(rows: usize, cols: usize, row: usize, col: usize,
 		parts: &'a HashMap<(usize, usize), &'a Num>) -> HashSet<&'a Num> {
 	let mut nums = HashSet::new();
@@ -54,7 +64,6 @@ fn has_adjacent_symbol(grid: &[Vec<char>], row: usize, l: usize, r: usize) -> bo
 pub fn part1(input: String) -> String {
 	let mut sum: i64 = 0;
 	let mut grid: Vec<Vec<char>> = vec![];
-
 	for line in input.lines() {
 		grid.push(line.chars().collect());
 	}
@@ -62,11 +71,7 @@ pub fn part1(input: String) -> String {
 	let cols = grid[0].len();
 
 	for r in 0..rows {
-		let mut num = Num {
-			v: String::new(),
-			l: 0,
-			r: 0,
-		};
+		let mut num = Num::new();
 		for c in 0..cols {
 			let v = grid[r][c];
 			if '0' <= v && v <= '9' {
@@ -77,22 +82,16 @@ pub fn part1(input: String) -> String {
 				num.v.push(v);
 			} else {
 				if !num.v.is_empty() {
-					let n: i64 = num.v.parse().unwrap();
 					if has_adjacent_symbol(&grid, r, num.l, num.r) {
-						sum += n;
+						sum += num.v.parse::<i64>().unwrap();
 					}
-					num = Num {
-						v: String::new(),
-						l: 0,
-						r: 0,
-					};
+					num = Num::new();
 				}
 			}
 		}
 		if !num.v.is_empty() {
-			let n: i64 = num.v.parse().unwrap();
 			if has_adjacent_symbol(&grid, r, num.l, num.r) {
-				sum += n;
+				sum += num.v.parse::<i64>().unwrap();
 			}
 		}
 	}
@@ -104,7 +103,6 @@ pub fn part2(input: String) -> String {
 	let mut grid: Vec<Vec<char>> = vec![];
 	let mut parts: Vec<(usize, Num)> = vec![]; // (row, Num)
 	let mut parts_map: HashMap<(usize, usize), &Num> = HashMap::new();
-
 	for line in input.lines() {
 		grid.push(line.chars().collect());
 	}
@@ -112,11 +110,7 @@ pub fn part2(input: String) -> String {
 	let cols = grid[0].len();
 
 	for r in 0..rows {
-		let mut num = Num {
-			v: String::new(),
-			l: 0,
-			r: 0,
-		};
+		let mut num = Num::new();
 		for c in 0..cols {
 			let v = grid[r][c];
 			if '0' <= v && v <= '9' {
@@ -130,11 +124,7 @@ pub fn part2(input: String) -> String {
 					if has_adjacent_symbol(&grid, r, num.l, num.r) {
 						parts.push((r, num));
 					}
-					num = Num {
-						v: String::new(),
-						l: 0,
-						r: 0,
-					};
+					num = Num::new();
 				}
 			}
 		}
