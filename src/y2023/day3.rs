@@ -9,6 +9,7 @@ use std::iter::zip;
 
 use util::*;
 
+#[derive(Clone, Eq, Hash, PartialEq)]
 struct Num {
 	v: String,
 	l: usize,
@@ -21,6 +22,32 @@ const SYMBOLS: [char; 4] = [
 	'$',
 	'#',
 ];
+
+fn get_adjacent_part_numbers<'a>(row: usize, col: usize,
+		parts: &'a HashMap<(usize, usize), Num>) -> HashSet<&'a Num> {
+	let mut nums = HashSet::new();
+
+	let dirs: [(bool, usize, usize); 8] = [
+		(row > 0, row - 1, col), // top
+		(true, row + 1, col), // bottom
+		(col > 0, row, col - 1), // left
+		(true, row, col + 1), // right
+		(col > 0 && row > 0, row - 1, col - 1), // top left
+		(row > 0, row - 1, col + 1), // top right
+		(col > 0, row + 1, col - 1), // bottom left
+		(true, row + 1, col + 1), // bottom right
+	];
+
+	for (cond, r, c) in dirs {
+		if cond {
+			if let Some(num) = parts.get(&(r, c)) {
+				nums.insert(num);
+			}
+		}
+	}
+
+	nums
+}
 
 
 fn has_adjacent_symbol(grid: &[Vec<char>], row: usize, l: usize, r: usize) -> bool {
@@ -120,7 +147,71 @@ pub fn part1(input: String) -> String {
 }
 
 pub fn part2(input: String) -> String {
-    "".into()
+	let mut grid: Vec<Vec<char>> = vec![];
+	let mut parts: HashMap<(usize, usize), Num> = HashMap::new();
+
+	for line in input.lines() {
+		grid.push(line.chars().collect());
+	}
+	let rows = grid.len();
+	let cols = grid[0].len();
+
+	for r in 0..rows {
+		let mut num = Num {
+			v: String::new(),
+			l: 0,
+			r: 0,
+		};
+		for c in 0..cols {
+			let v = grid[r][c];
+			if '0' <= v && v <= '9' {
+				if num.v.is_empty() {
+					num.l = c;
+				}
+				num.r = c;
+				num.v.push(v);
+			} else {
+				if !num.v.is_empty() {
+					let n: u64 = num.v.parse().unwrap();
+					if has_adjacent_symbol(&grid, r, num.l, num.r) {
+						for col in num.l..=num.r {
+							parts.insert((r, col), num.clone());
+						}
+					}
+					num = Num {
+						v: String::new(),
+						l: 0,
+						r: 0,
+					};
+				}
+			}
+		}
+		if !num.v.is_empty() {
+			let n: u64 = num.v.parse().unwrap();
+			if has_adjacent_symbol(&grid, r, num.l, num.r) {
+				for col in num.l..=num.r {
+					parts.insert((r, col), num.clone());
+				}
+			}
+		}
+	}
+
+	let mut sum: u64 = 0;
+	for r in 0..rows {
+		for c in 0..cols {
+			let v = grid[r][c];
+			if v != '*' { continue; }
+			let adj = get_adjacent_part_numbers(r, c, &parts);
+			if adj.len() == 2 {
+				// sum += adj[0] * adj[1];
+				sum += adj
+					.iter()
+					.map(|num| num.v.parse::<u64>().unwrap())
+					.product::<u64>();
+			}
+		}
+	}
+	sum.to_string()
 }
 
 #[allow(dead_code)]
@@ -162,12 +253,12 @@ mod tests {
     #[test]
     fn p2s() {
         let input = util::read_file("inputs/2023/day3-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("467835", part2(input));
     }
 
     #[test]
     fn p2() {
         let input = util::read_file("inputs/2023/day3.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("84495585", part2(input));
     }
 }
