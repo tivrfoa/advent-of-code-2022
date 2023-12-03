@@ -16,15 +16,8 @@ struct Num {
 	r: usize,
 }
 
-const SYMBOLS: [char; 4] = [
-	'*',
-	'+',
-	'$',
-	'#',
-];
-
 fn get_adjacent_part_numbers<'a>(row: usize, col: usize,
-		parts: &'a HashMap<(usize, usize), Num>) -> HashSet<&'a Num> {
+		parts: &'a HashMap<(usize, usize), &'a Num>) -> HashSet<&'a Num> {
 	let mut nums = HashSet::new();
 
 	let dirs: [(bool, usize, usize); 8] = [
@@ -41,7 +34,7 @@ fn get_adjacent_part_numbers<'a>(row: usize, col: usize,
 	for (cond, r, c) in dirs {
 		if cond {
 			if let Some(num) = parts.get(&(r, c)) {
-				nums.insert(num);
+				nums.insert(*num);
 			}
 		}
 	}
@@ -120,9 +113,7 @@ pub fn part1(input: String) -> String {
 			} else {
 				if !num.v.is_empty() {
 					let n: i64 = num.v.parse().unwrap();
-					println!("{} - {} = {}", num.l, num.r, num.v);
 					if has_adjacent_symbol(&grid, r, num.l, num.r) {
-						println!("adding");
 						sum += n;
 					}
 					num = Num {
@@ -135,9 +126,7 @@ pub fn part1(input: String) -> String {
 		}
 		if !num.v.is_empty() {
 			let n: i64 = num.v.parse().unwrap();
-			println!("{} - {} = {}", num.l, num.r, num.v);
 			if has_adjacent_symbol(&grid, r, num.l, num.r) {
-				println!("adding");
 				sum += n;
 			}
 		}
@@ -148,7 +137,8 @@ pub fn part1(input: String) -> String {
 
 pub fn part2(input: String) -> String {
 	let mut grid: Vec<Vec<char>> = vec![];
-	let mut parts: HashMap<(usize, usize), Num> = HashMap::new();
+	let mut parts: Vec<(usize, Num)> = vec![]; // (row, Num)
+	let mut parts_map: HashMap<(usize, usize), &Num> = HashMap::new();
 
 	for line in input.lines() {
 		grid.push(line.chars().collect());
@@ -172,11 +162,8 @@ pub fn part2(input: String) -> String {
 				num.v.push(v);
 			} else {
 				if !num.v.is_empty() {
-					let n: u64 = num.v.parse().unwrap();
 					if has_adjacent_symbol(&grid, r, num.l, num.r) {
-						for col in num.l..=num.r {
-							parts.insert((r, col), num.clone());
-						}
+						parts.push((r, num));
 					}
 					num = Num {
 						v: String::new(),
@@ -187,12 +174,15 @@ pub fn part2(input: String) -> String {
 			}
 		}
 		if !num.v.is_empty() {
-			let n: u64 = num.v.parse().unwrap();
 			if has_adjacent_symbol(&grid, r, num.l, num.r) {
-				for col in num.l..=num.r {
-					parts.insert((r, col), num.clone());
-				}
+				parts.push((r, num));
 			}
+		}
+	}
+
+	for (row, num) in &parts {
+		for col in num.l..=num.r {
+			parts_map.insert((*row, col), num);
 		}
 	}
 
@@ -201,9 +191,8 @@ pub fn part2(input: String) -> String {
 		for c in 0..cols {
 			let v = grid[r][c];
 			if v != '*' { continue; }
-			let adj = get_adjacent_part_numbers(r, c, &parts);
+			let adj = get_adjacent_part_numbers(r, c, &parts_map);
 			if adj.len() == 2 {
-				// sum += adj[0] * adj[1];
 				sum += adj
 					.iter()
 					.map(|num| num.v.parse::<u64>().unwrap())
