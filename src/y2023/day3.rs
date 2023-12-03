@@ -16,25 +16,16 @@ struct Num {
 	r: usize,
 }
 
-fn get_adjacent_part_numbers<'a>(row: usize, col: usize,
+fn get_adjacent_part_numbers<'a>(rows: usize, cols: usize, row: usize, col: usize,
 		parts: &'a HashMap<(usize, usize), &'a Num>) -> HashSet<&'a Num> {
 	let mut nums = HashSet::new();
 
-	let dirs: [(bool, usize, usize); 8] = [
-		(row > 0, row - 1, col), // top
-		(true, row + 1, col), // bottom
-		(col > 0, row, col - 1), // left
-		(true, row, col + 1), // right
-		(col > 0 && row > 0, row - 1, col - 1), // top left
-		(row > 0, row - 1, col + 1), // top right
-		(col > 0, row + 1, col - 1), // bottom left
-		(true, row + 1, col + 1), // bottom right
-	];
-
-	for (cond, r, c) in dirs {
-		if cond {
-			if let Some(num) = parts.get(&(r, c)) {
-				nums.insert(*num);
+	for y in row as i32 - 1..=row as i32 + 1 {
+		for x in col as i32 - 1..=col as i32 + 1 {
+			if 0 <= y && y < rows as i32 && 0 <= x && x < cols as i32 {
+				if let Some(num) = parts.get(&(y as usize, x as usize)) {
+					nums.insert(*num);
+				}
 			}
 		}
 	}
@@ -42,43 +33,17 @@ fn get_adjacent_part_numbers<'a>(row: usize, col: usize,
 	nums
 }
 
-
 fn has_adjacent_symbol(grid: &[Vec<char>], row: usize, l: usize, r: usize) -> bool {
-	let rows = grid.len();
-	let cols = grid[0].len();
+	let rows = grid.len() as i32;
+	let cols = grid[0].len() as i32;
 
-	let dirs: [(bool, usize, usize); 6] = [
-		(l > 0, row, l - 1), // left
-		(r + 1 < cols, row, r + 1), // right
-		(l > 0 && row > 0, row - 1, l - 1), // top left
-		(r + 1 < cols && row > 0, row - 1, r + 1), // top right
-		(l > 0 && row + 1 < rows, row + 1, l - 1), // bottom left
-		(r + 1 < cols && row + 1 < rows, row + 1, r + 1), // bottom right
-	];
-
-	for (cond, row, col) in dirs {
-		if cond {
-			let v = grid[row][col];
-			if v != '.' && !('0' <= v && v <= '9') {
-				return true;
-			}
-		}
-	}
-
-	// top bottom
-	for col in l..=r {
-		// top
-		if row > 0 {
-			let v = grid[row - 1][col];
-			if v != '.' && !('0' <= v && v <= '9') {
-				return true;
-			}
-		}
-		// bottom
-		if row + 1 < rows {
-			let v = grid[row + 1][col];
-			if v != '.' && !('0' <= v && v <= '9') {
-				return true;
+	for y in row as i32 - 1..=row as i32 + 1 {
+		for x in l as i32 - 1..=r as i32 + 1 {
+			if 0 <= y && y < rows && 0 <= x && x < cols {
+				let v = grid[y as usize][x as usize];
+				if v != '.' && !('0' <= v && v <= '9') {
+					return true;
+				}
 			}
 		}
 	}
@@ -191,7 +156,7 @@ pub fn part2(input: String) -> String {
 		for c in 0..cols {
 			let v = grid[r][c];
 			if v != '*' { continue; }
-			let adj = get_adjacent_part_numbers(r, c, &parts_map);
+			let adj = get_adjacent_part_numbers(rows, cols, r, c, &parts_map);
 			if adj.len() == 2 {
 				sum += adj
 					.iter()
