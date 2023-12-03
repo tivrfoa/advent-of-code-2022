@@ -1,0 +1,4 @@
+javac -d classes/ src/y2023/day3-jerrinot.java
+
+java -cp classes/ info.jerrinot.aoc2023.Day3
+

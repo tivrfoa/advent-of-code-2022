@@ -99,8 +99,8 @@ class Day3 {
         int partNumbers() {
             return touchedSymbols
                     .values()
-                    .stream()
-                    .flatMapToInt(l -> l.stream().mapToInt(Integer::intValue))
+                    .parallelStream()
+                    .mapToInt(l -> l.stream().reduce(0, (a, b) -> a + b))
                     .sum();
         }
 
