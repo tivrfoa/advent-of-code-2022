@@ -22,49 +22,44 @@ const SYMBOLS: [char; 4] = [
 	'#',
 ];
 
+
 fn has_adjacent_symbol(grid: &[Vec<char>], row: usize, l: usize, r: usize) -> bool {
 	let rows = grid.len();
 	let cols = grid[0].len();
 
-	// left
-	if l > 0 && SYMBOLS.contains(&grid[row][l - 1]) {
-		return true;
-	}
+	let dirs: [(bool, usize, usize); 6] = [
+		(l > 0, row, l - 1),
+		(r + 1 < cols, row, r + 1),
+		(l > 0 && row > 0, row - 1, l - 1),
+		(r + 1 < cols && row > 0, row - 1, r + 1),
+		(l > 0 && row + 1 < rows, row + 1, l - 1),
+		(r + 1 < cols && row + 1 < rows, row + 1, r + 1),
+	];
 
-	// right
-	if r + 1 < cols && SYMBOLS.contains(&grid[row][r + 1]) {
-		return true;
-	}
-
-	// top left
-	if l > 0 && row > 0 && SYMBOLS.contains(&grid[row - 1][l - 1]) {
-		return true;
-	}
-
-	// top right
-	if r + 1 < cols && row > 0 && SYMBOLS.contains(&grid[row - 1][r + 1]) {
-		return true;
-	}
-
-	// bottom left
-	if l > 0 && row + 1 < rows && SYMBOLS.contains(&grid[row + 1][l - 1]) {
-		return true;
-	}
-
-	// bottom right
-	if r + 1 < cols && row + 1 < rows && SYMBOLS.contains(&grid[row + 1][r + 1]) {
-		return true;
+	for (cond, row, col) in dirs {
+		if cond {
+			let v = grid[row][col];
+			if v != '.' && !('0' <= v && v <= '9') {
+				return true;
+			}
+		}
 	}
 
 	// top bottom
 	for col in l..=r {
 		// top
 		if row > 0 && SYMBOLS.contains(&grid[row - 1][col]) {
-			return true;
+			let v = grid[row - 1][col];
+			if v != '.' && !('0' <= v && v <= '9') {
+				return true;
+			}
 		}
 		// bottom
 		if row + 1 < rows && SYMBOLS.contains(&grid[row + 1][col]) {
-			return true;
+			let v = grid[row + 1][col];
+			if v != '.' && !('0' <= v && v <= '9') {
+				return true;
+			}
 		}
 	}
 
@@ -98,7 +93,7 @@ pub fn part1(input: String) -> String {
 			} else {
 				if !num.v.is_empty() {
 					let n: i64 = num.v.parse().unwrap();
-					println!("{} - {} = {}", num.l, num.r, num.v);
+					// println!("{} - {} = {}", num.l, num.r, num.v);
 					if has_adjacent_symbol(&grid, r, num.l, num.r) {
 						println!("adding");
 						sum += n;
@@ -113,7 +108,7 @@ pub fn part1(input: String) -> String {
 		}
 		if !num.v.is_empty() {
 			let n: i64 = num.v.parse().unwrap();
-			println!("{} - {} = {}", num.l, num.r, num.v);
+			// println!("{} - {} = {}", num.l, num.r, num.v);
 			if has_adjacent_symbol(&grid, r, num.l, num.r) {
 				println!("adding");
 				sum += n;
@@ -122,7 +117,7 @@ pub fn part1(input: String) -> String {
 	}
 	if !num.v.is_empty() {
 		let n: i64 = num.v.parse().unwrap();
-		println!("{} - {} = {}", num.l, num.r, num.v);
+		// println!("{} - {} = {}", num.l, num.r, num.v);
 		if has_adjacent_symbol(&grid, rows - 1, num.l, num.r) {
 			println!("adding");
 			sum += n;
