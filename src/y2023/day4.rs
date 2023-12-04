@@ -46,11 +46,7 @@ pub fn part2(input: String) -> String {
 		let win = win.split_space();
 		let my = my.split_space();
 
-		for n in my {
-			if win.contains(&n) {
-				qt += 1;
-			}
-		}
+		qt += my.iter().filter(|n| win.contains(n)).count();
 
 		for j in i+1..=i+qt {
 			num_cards[j] += num_cards[i];
