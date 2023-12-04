@@ -13,7 +13,6 @@ pub fn part1(input: String) -> String {
 	let mut sum = 0;
 
 	for line in input.lines() {
-		let mut used = HashSet::new();
 		let mut qt = 0;
 		let mut p = 1;
 		let (_, points) = line.split_once(": ").unwrap();
@@ -22,12 +21,11 @@ pub fn part1(input: String) -> String {
 		let my: Vec<u32> = my.split_to_nums(' ');
 
 		for n in my {
-			if win.contains(&n) && !used.contains(&n) {
+			if win.contains(&n) {
 				qt += 1;
 				if qt > 1 {
 					p *= 2;
 				}
-				used.insert(n);
 			}
 		}
 
@@ -42,7 +40,6 @@ pub fn part2(input: String) -> String {
 	let mut num_cards: Vec<u32> = vec![1; 200];
 
 	for (i, line) in input.lines().enumerate() {
-		let mut used = HashSet::new();
 		let mut qt = 0;
 		let (_, points) = line.split_once(": ").unwrap();
 		let (win, my) = points.split_once(" | ").unwrap();
@@ -50,9 +47,8 @@ pub fn part2(input: String) -> String {
 		let my: Vec<u32> = my.split_to_nums(' ');
 
 		for n in my {
-			if win.contains(&n) && !used.contains(&n) {
+			if win.contains(&n) {
 				qt += 1;
-				used.insert(n);
 			}
 		}
 
