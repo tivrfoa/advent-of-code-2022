@@ -17,8 +17,8 @@ pub fn part1(input: String) -> String {
 		let mut p = 1;
 		let (_, points) = line.split_once(": ").unwrap();
 		let (win, my) = points.split_once(" | ").unwrap();
-		let win: Vec<u32> = win.split_to_nums(' ');
-		let my: Vec<u32> = my.split_to_nums(' ');
+		let win = win.split_space();
+		let my = my.split_space();
 
 		for n in my {
 			if win.contains(&n) {
@@ -43,8 +43,8 @@ pub fn part2(input: String) -> String {
 		let mut qt = 0;
 		let (_, points) = line.split_once(": ").unwrap();
 		let (win, my) = points.split_once(" | ").unwrap();
-		let win: Vec<u32> = win.split_to_nums(' ');
-		let my: Vec<u32> = my.split_to_nums(' ');
+		let win = win.split_space();
+		let my = my.split_space();
 
 		for n in my {
 			if win.contains(&n) {
