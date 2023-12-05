@@ -67,7 +67,7 @@ impl Map {
 		for i in 0..self.ds.len() {
 			let ss = self.ss[i];
 			if ss <= sv && sv < ss + self.len[i] {
-				let mut d = sv - ss;
+				let d = sv - ss;
 				return self.ds[i] + d
 			}
 		}
@@ -105,7 +105,34 @@ pub fn part1(input: &str) -> String {
 }
 
 pub fn part2(input: &str) -> String {
-    "".into()
+	let mut lowest = u64::MAX;
+
+	let (seeds, maps_in) = input.split_once("\n\n").unwrap();
+	let seeds = seeds.split_once(": ").unwrap().1;
+	let seeds: Vec<u64> = seeds.split_to_nums(' ');
+	let mut maps: Vec<Map> = vec![];
+
+	for map in maps_in.split("\n\n") {
+		let mut new_map = Map::new();
+		for line in map.lines().skip(1) {
+			new_map.add_line(line);
+		}
+		maps.push(new_map);
+	}
+
+	for si in (0..seeds.len()).step_by(2) {
+		for seed in seeds[si]..seeds[si] + seeds[si + 1] {
+			let mut sv = seed;
+			for map in &maps {
+				sv = map.find_destination_value(sv);
+			}
+			if sv < lowest {
+				lowest = sv;
+			}
+		}
+	}
+
+	lowest.to_string()
 }
 
 #[allow(dead_code)]
@@ -147,12 +174,12 @@ mod tests {
     #[test]
     fn p2s() {
         let input = include_str!("../../inputs/2023/day5-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("46", part2(input));
     }
 
     #[test]
     fn p2() {
         let input = include_str!("../../inputs/2023/day5.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("6472060", part2(input));
     }
 }
