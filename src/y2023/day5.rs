@@ -7,6 +7,8 @@ use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::iter::zip;
 
+use rayon::prelude::*;
+
 use util::*;
 
 /*
@@ -104,12 +106,32 @@ pub fn part1(input: &str) -> String {
 	lowest.to_string()
 }
 
+fn merge(seeds_in: Vec<u64>) -> Vec<(u64, u64)> {
+	let mut seeds: Vec<(u64, u64)> = Vec::with_capacity(seeds_in.len() / 2);
+	for i in (0..seeds_in.len()).step_by(2) {
+		seeds.push((seeds_in[i], seeds_in[i] + seeds_in[i + 1] - 1));
+	}
+	seeds.sort();
+	let mut idx = 0;
+	while idx + 1 < seeds.len() {
+		if seeds[idx].1 < seeds[idx + 1].0 {
+			idx += 1;
+			continue;
+		}
+		println!("Merging!");
+		seeds[idx].1 = seeds[idx + 1].1;
+		seeds.remove(idx + 1);
+	}
+	seeds
+}
+
 pub fn part2(input: &str) -> String {
 	let mut lowest = u64::MAX;
 
 	let (seeds, maps_in) = input.split_once("\n\n").unwrap();
 	let seeds = seeds.split_once(": ").unwrap().1;
 	let seeds: Vec<u64> = seeds.split_to_nums(' ');
+	let seeds: Vec<(u64, u64)> = merge(seeds);
 	let mut maps: Vec<Map> = vec![];
 
 	for map in maps_in.split("\n\n") {
@@ -120,8 +142,9 @@ pub fn part2(input: &str) -> String {
 		maps.push(new_map);
 	}
 
-	for si in (0..seeds.len()).step_by(2) {
-		for seed in seeds[si]..seeds[si] + seeds[si + 1] {
+	for (l, r) in seeds {
+		's:
+		for seed in l..=r {
 			let mut sv = seed;
 			for map in &maps {
 				sv = map.find_destination_value(sv);
