@@ -88,6 +88,10 @@ pub fn part2(input: &str) -> String {
 		let dist = (t - c) * c;
 		if dist > d {
 			qt += 1;
+		} else {
+			if qt > 1 {
+				break;
+			}
 		}
 	}
 
