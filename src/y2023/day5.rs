@@ -126,36 +126,36 @@ fn merge(seeds_in: Vec<u64>) -> Vec<(u64, u64)> {
 }
 
 pub fn part2(input: &str) -> String {
-	let mut lowest = u64::MAX;
-
 	let (seeds, maps_in) = input.split_once("\n\n").unwrap();
 	let seeds = seeds.split_once(": ").unwrap().1;
 	let seeds: Vec<u64> = seeds.split_to_nums(' ');
 	let seeds: Vec<(u64, u64)> = merge(seeds);
-	let mut maps: Vec<Map> = vec![];
-
-	for map in maps_in.split("\n\n") {
-		let mut new_map = Map::new();
-		for line in map.lines().skip(1) {
-			new_map.add_line(line);
-		}
-		maps.push(new_map);
-	}
-
-	for (l, r) in seeds {
-		's:
-		for seed in l..=r {
-			let mut sv = seed;
-			for map in &maps {
-				sv = map.find_destination_value(sv);
+	let maps: Vec<Map> = {
+		let mut maps: Vec<Map> = vec![];
+		for map in maps_in.split("\n\n") {
+			let mut new_map = Map::new();
+			for line in map.lines().skip(1) {
+				new_map.add_line(line);
 			}
-			if sv < lowest {
-				lowest = sv;
-			}
+			maps.push(new_map);
 		}
-	}
+		maps
+	};
 
-	lowest.to_string()
+	seeds.par_iter()
+		.map(|(l, r)| {
+			let mut lowest = u64::MAX;
+			for seed in *l..=*r {
+				let mut sv = seed;
+				for map in &maps {
+					sv = map.find_destination_value(sv);
+				}
+				if sv < lowest {
+					lowest = sv;
+				}
+			}
+			lowest
+		}).min().unwrap().to_string()
 }
 
 #[allow(dead_code)]
