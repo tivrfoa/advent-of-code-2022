@@ -37,8 +37,6 @@ pub fn part1(input: &str) -> String {
 	let mut ways = 1;
 	let races = t.len();
 	for i in 0..races {
-		// let top_speed = d[i] / t[i];
-		// brute force first ...
 		let mut qt = 0;
 		for c in 1..t[i] {
 			let dist = (t[i] - c) * c;
@@ -60,13 +58,7 @@ pub fn part2(input: &str) -> String {
 		.split_once(':')
 		.unwrap()
 		.1
-		.split(' ')
-		.map(|s| s.trim())
-		.filter(|s| !s.is_empty())
-		.fold(String::new(), |mut a, b| {
-			a.push_str(b);
-			a
-		})
+		.replace(' ', "")
 		.parse::<u64>().unwrap();
 	let d: u64 = lines
 		.next()
@@ -74,13 +66,7 @@ pub fn part2(input: &str) -> String {
 		.split_once(':')
 		.unwrap()
 		.1
-		.split(' ')
-		.map(|s| s.trim())
-		.filter(|s| !s.is_empty())
-		.fold(String::new(), |mut a, b| {
-			a.push_str(b);
-			a
-		})
+		.replace(' ', "")
 		.parse::<u64>().unwrap();
 
 	let mut qt = 0;
