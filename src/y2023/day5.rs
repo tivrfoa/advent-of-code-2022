@@ -75,6 +75,17 @@ impl Map {
 		}
 		sv
 	}
+
+	fn find_destination_value_reverse(&self, sv: u64) -> u64 {
+		for i in 0..self.ds.len() {
+			let ds = self.ds[i];
+			if ds <= sv && sv < ds + self.len[i] {
+				let d = sv - ds;
+				return self.ss[i] + d
+			}
+		}
+		sv
+	}
 }
 
 pub fn part1(input: &str) -> String {
@@ -126,6 +137,38 @@ fn merge(seeds_in: Vec<u64>) -> Vec<(u64, u64)> {
 }
 
 pub fn part2(input: &str) -> String {
+	let (seeds, maps_in) = input.split_once("\n\n").unwrap();
+	let seeds = seeds.split_once(": ").unwrap().1;
+	let seeds: Vec<u64> = seeds.split_to_nums(' ');
+	let seeds: Vec<(u64, u64)> = merge(seeds);
+	let maps: Vec<Map> = {
+		let mut maps: Vec<Map> = vec![];
+		for map in maps_in.split("\n\n") {
+			let mut new_map = Map::new();
+			for line in map.lines().skip(1) {
+				new_map.add_line(line);
+			}
+			maps.push(new_map);
+		}
+		maps
+	};
+
+	for lowest in 0.. {
+		let mut sv = lowest;
+		for map in maps.iter().rev() {
+			sv = map.find_destination_value_reverse(sv);
+		}
+		for (l, r) in seeds.iter() {
+			if *l <= sv && sv <= *r {
+				return lowest.to_string();
+			}
+		}
+	}
+
+	panic!("Mission failed");
+}
+
+pub fn part2_rayon(input: &str) -> String {
 	let (seeds, maps_in) = input.split_once("\n\n").unwrap();
 	let seeds = seeds.split_once(": ").unwrap().1;
 	let seeds: Vec<u64> = seeds.split_to_nums(' ');
