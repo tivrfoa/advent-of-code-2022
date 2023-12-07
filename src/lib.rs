@@ -4,6 +4,6 @@
 #![feature(test)]
 #![allow(unused_imports)]
 mod aoc;
-mod util;
 mod circular_list;
+mod util;
 pub mod y2023;

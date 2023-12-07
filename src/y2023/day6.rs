@@ -2,7 +2,7 @@ use crate::util;
 
 use std::cell::Cell;
 use std::cmp::Ordering;
-use std::collections::{BinaryHeap, BTreeMap, HashMap, HashSet, VecDeque};
+use std::collections::{BTreeMap, BinaryHeap, HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::iter::zip;
@@ -10,78 +10,104 @@ use std::iter::zip;
 use util::*;
 
 pub fn part1(input: &str) -> String {
-	let mut lines = input.lines();
-	let t: Vec<u32> = lines
-		.next()
-		.unwrap()
-		.split_once(':')
-		.unwrap()
-		.1
-		.split(' ')
-		.map(|s| s.trim())
-		.filter(|s| !s.is_empty())
-		.map(|s| s.parse::<u32>().unwrap())
-		.collect();
-	let d: Vec<u32> = lines
-		.next()
-		.unwrap()
-		.split_once(':')
-		.unwrap()
-		.1
-		.split(' ')
-		.map(|s| s.trim())
-		.filter(|s| !s.is_empty())
-		.map(|s| s.parse::<u32>().unwrap())
-		.collect();
+    let mut lines = input.lines();
+    let t: Vec<u32> = lines
+        .next()
+        .unwrap()
+        .split_once(':')
+        .unwrap()
+        .1
+        .split(' ')
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .map(|s| s.parse::<u32>().unwrap())
+        .collect();
+    let d: Vec<u32> = lines
+        .next()
+        .unwrap()
+        .split_once(':')
+        .unwrap()
+        .1
+        .split(' ')
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .map(|s| s.parse::<u32>().unwrap())
+        .collect();
 
-	let mut ways = 1;
-	let races = t.len();
-	for i in 0..races {
-		let mut qt = 0;
-		for c in 1..t[i] {
-			let dist = (t[i] - c) * c;
-			if dist > d[i] {
-				qt += 1;
-			}
-		}
-		ways *= qt;
-	}
+    let mut ways = 1;
+    let races = t.len();
+    for i in 0..races {
+        let mut qt = 0;
+        for c in 1..t[i] {
+            let dist = (t[i] - c) * c;
+            if dist > d[i] {
+                qt += 1;
+            }
+        }
+        ways *= qt;
+    }
 
-	ways.to_string()
+    ways.to_string()
+}
+
+// the way this is implemented only works if t / 2
+// and t / 2 + 1 are better times
+fn binary_search(t: u64, d: u64) -> u64 {
+    let half = t / 2;
+
+    // lowest t
+    let mut lo = 0;
+    let mut hi = half;
+    while lo <= hi {
+        let md = lo + (hi - lo) / 2;
+        let dist = (t - md) * md;
+        if dist > d {
+            hi = md - 1;
+        } else {
+            lo = md + 1;
+        }
+    }
+
+    let left = lo;
+
+    // highest t
+    let mut lo = half + 1;
+    let mut hi = t - 1;
+    while lo <= hi {
+        let md = lo + (hi - lo) / 2;
+        let dist = (t - md) * md;
+        if dist > d {
+            lo = md + 1;
+        } else {
+            hi = md - 1;
+        }
+    }
+
+    hi - left + 1
 }
 
 pub fn part2(input: &str) -> String {
-	let mut lines = input.lines();
-	let t: u64 = lines
-		.next()
-		.unwrap()
-		.split_once(':')
-		.unwrap()
-		.1
-		.replace(' ', "")
-		.parse::<u64>().unwrap();
-	let d: u64 = lines
-		.next()
-		.unwrap()
-		.split_once(':')
-		.unwrap()
-		.1
-		.replace(' ', "")
-		.parse::<u64>().unwrap();
+    let mut lines = input.lines();
+    let t: u64 = lines
+        .next()
+        .unwrap()
+        .split_once(':')
+        .unwrap()
+        .1
+        .replace(' ', "")
+        .parse::<u64>()
+        .unwrap();
+    let d: u64 = lines
+        .next()
+        .unwrap()
+        .split_once(':')
+        .unwrap()
+        .1
+        .replace(' ', "")
+        .parse::<u64>()
+        .unwrap();
 
-	let mut qt = 0;
-	for c in 1..t {
-		let dist = (t - c) * c;
-		if dist > d {
-			qt += 1;
-		} else {
-			if qt > 1 {
-				break;
-			}
-		}
-	}
-
-	qt.to_string()
+    binary_search(t, d).to_string()
 }
 
 #[allow(dead_code)]
@@ -93,7 +119,9 @@ struct State {
 
 impl Ord for State {
     fn cmp(&self, other: &Self) -> Ordering {
-        other.cost.cmp(&self.cost)
+        other
+            .cost
+            .cmp(&self.cost)
             .then_with(|| self.position.cmp(&other.position))
     }
 }
