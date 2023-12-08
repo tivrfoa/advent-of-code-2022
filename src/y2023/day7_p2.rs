@@ -77,19 +77,15 @@ use HandType::*;
 impl HandType {
     fn get(cards: &[Card; 5]) -> Self {
         let mut map: HashMap<&Card, u8> = HashMap::new();
-        let mut max = 1;
         for c in cards {
-            if let Some(q) = map.get_mut(c) {
-                *q += 1;
-                if *q > max {
-                    max = *q;
-                }
-            } else {
-                map.insert(c, 1);
-            }
+            let qt = map.entry(c).or_insert(0);
+            *qt += 1;
         }
-
-        let qt_j = if let Some(qt) = map.get(&J) { *qt } else { 0 };
+        let qt_pairs = map.iter().filter(|(_, qt)| **qt == 2).count();
+        let qt_j = *map.get(&J).unwrap_or(&0);
+        // let max = map.into_iter().filter(|(k, v)| k != J).map(|(_, v)| v).max();
+        let max = map.into_iter().map(|(_, v)| v).max().unwrap();
+        // let qt_j = if let Some(qt) = map.get(&J) { *qt } else { 0 };
         match max {
             5 => FiveOfKind,
             4 => {
@@ -101,7 +97,7 @@ impl HandType {
             }
             3 => {
                 if qt_j == 3 {
-                    if map.iter().filter(|(_, qt)| **qt == 2).count() == 1 {
+                    if qt_pairs == 1 {
                         FiveOfKind
                     } else {
                         FourOfKind
@@ -110,20 +106,13 @@ impl HandType {
                     FiveOfKind
                 } else if qt_j == 1 {
                     FourOfKind
-                } else if map.iter().filter(|(_, qt)| **qt == 2).count() == 1 {
+                } else if qt_pairs == 1 {
                     FullHouse
                 } else {
                     ThreeOfKind
                 }
             }
             2 => {
-                let mut qt_pairs = 0;
-                for (_, qt) in map {
-                    if qt == 2 {
-                        qt_pairs += 1;
-                    }
-                }
-
                 if qt_j == 2 {
                     if qt_pairs == 1 {
                         ThreeOfKind
