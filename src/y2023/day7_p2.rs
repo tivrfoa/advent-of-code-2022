@@ -94,6 +94,7 @@ impl HandType {
         } else {
             0
         };
+        dbg!(qt_j);
         match max {
             5 => FiveOfKind,
             4 => {
@@ -148,7 +149,7 @@ impl HandType {
             }
             _ => {
                 if qt_j == 1 {
-                    TwoPairs
+                    OnePair
                 } else {
                     HighCard
                 }
@@ -172,7 +173,7 @@ impl Ord for HandType {
 #[derive(Debug, Eq)]
 struct Hand {
     cards: [Card; 5],
-    bid: u32,
+    bid: u64,
     hand_type: HandType,
 }
 
@@ -218,8 +219,7 @@ impl PartialOrd for Hand {
 
 impl PartialEq for Hand {
     fn eq(&self, other: &Self) -> bool {
-        // TODO probably it does not need to compare cards here ...
-        self.hand_type == other.hand_type
+        self.hand_type == other.hand_type && self.cards == other.cards
     }
 }
 
@@ -232,7 +232,7 @@ pub fn part2(input: &str) -> String {
 
     let mut ans = 0;
     for (i, h) in hands.into_iter().enumerate() {
-        ans += (i as u32 + 1) * h.bid;
+        ans += (i as u64 + 1) * h.bid;
     }
 
     ans.to_string()
