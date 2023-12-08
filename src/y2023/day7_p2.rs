@@ -85,11 +85,10 @@ impl HandType {
         let qt_j = *map.get(&J).unwrap_or(&0);
         // let max = map.into_iter().filter(|(k, v)| k != J).map(|(_, v)| v).max();
         let max = map.into_iter().map(|(_, v)| v).max().unwrap();
-        // let qt_j = if let Some(qt) = map.get(&J) { *qt } else { 0 };
         match max {
             5 => FiveOfKind,
             4 => {
-                if qt_j == 1 || qt_j == 4 {
+                if qt_j >= 1 {
                     FiveOfKind
                 } else {
                     FourOfKind
