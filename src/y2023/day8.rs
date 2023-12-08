@@ -44,7 +44,6 @@ pub fn part1(input: &str) -> String {
 
 pub fn part2(input: &str) -> String {
     let mut lines = input.lines();
-    let mut dir_idx = 0;
     let dirs: Vec<char> = lines.next().unwrap().chars().collect();
     lines.next();
     let mut map: HashMap<&str, (&str, &str)> = HashMap::new();
@@ -96,9 +95,14 @@ pub fn part2(input: &str) -> String {
             }
         }
     }
-    dbg!(zs_times);
 
-    "1".into()
+    dbg!(&zs_times);
+    let mut lcm = zs_times[0][0];
+    for i in 1..zs_times.len() {
+        lcm = util::lcm(lcm, zs_times[i][0]);
+    }
+
+    lcm.to_string()
 }
 
 #[allow(dead_code)]
