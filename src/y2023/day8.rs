@@ -43,7 +43,52 @@ pub fn part1(input: &str) -> String {
 }
 
 pub fn part2(input: &str) -> String {
-    "".into()
+    let mut lines = input.lines();
+    let mut dir_idx = 0;
+    let dirs: Vec<char> = lines.next().unwrap().chars().collect();
+    lines.next();
+    let mut map: HashMap<&str, (&str, &str)> = HashMap::new();
+    let mut curr: Vec<&str> = vec![];
+
+    for line in lines {
+        let (k, v) = line.split_once(" = ").unwrap();
+        let (l, r) = v[1..v.len() - 1].split_once(", ").unwrap();
+        map.insert(k, (l, r));
+        if &k[2..] == "A" {
+            curr.push(k);
+        }
+    }
+
+    let mut steps = 0;
+    loop {
+        steps += 1;
+        let mut qt_z = 0;
+
+        if dirs[dir_idx] == 'L' {
+            for i in 0..curr.len() {
+                curr[i] = map[curr[i]].0;
+                if &curr[i][2..] == "Z" {
+                    qt_z += 1;
+                }
+            }
+        } else {
+            for i in 0..curr.len() {
+                curr[i] = map[curr[i]].1;
+                if &curr[i][2..] == "Z" {
+                    qt_z += 1;
+                }
+            }
+        }
+
+        if qt_z == curr.len() {
+            return steps.to_string();
+        }
+
+        dir_idx += 1;
+        if dir_idx == dirs.len() {
+            dir_idx = 0;
+        }
+    }
 }
 
 #[allow(dead_code)]
@@ -90,8 +135,8 @@ mod tests {
 
     #[test]
     fn p2s() {
-        let input = include_str!("../../inputs/2023/day8-sample.txt");
-        assert_eq!("", part2(input));
+        let input = include_str!("../../inputs/2023/day8-p2-sample.txt");
+        assert_eq!("6", part2(input));
     }
 
     #[test]
