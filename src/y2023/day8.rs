@@ -59,25 +59,21 @@ pub fn part2(input: &str) -> String {
     }
 
     dbg!(&curr);
-    // curr.split_off(1);
 
     let mut zs_times: Vec<Vec<u64>> = vec![vec![]; curr.len()];
     // solve all possible Zs for each start until a loop
-
     for (p, start) in curr.iter().enumerate() {
         let mut steps = 0;
         let mut pos = *start;
         let mut dir_idx = 0;
         let mut visited: HashSet<(usize, &str)> = HashSet::new();
         loop {
+            steps += 1;
             if visited.contains(&(dir_idx, pos)) {
-                // save steps that loop was detected
                 println!("Loop detected for {pos} at {dir_idx} with {steps} steps.");
                 break;
             }
             visited.insert((dir_idx, pos));
-
-            steps += 1;
 
             if dirs[dir_idx] == 'L' {
                 pos = map[pos].0;
