@@ -89,39 +89,34 @@ impl HandType {
             }
         }
 
-        let qt_j = if let Some(qt) = map.get(&J) {
-            *qt
-        } else {
-            0
-        };
-        dbg!(qt_j);
+        let qt_j = if let Some(qt) = map.get(&J) { *qt } else { 0 };
         match max {
             5 => FiveOfKind,
             4 => {
-                if qt_j == 1 {
+                if qt_j == 1 || qt_j == 4 {
                     FiveOfKind
                 } else {
                     FourOfKind
                 }
             }
             3 => {
-                if qt_j == 2 {
-                    return FiveOfKind;
-                }
-                if qt_j == 1 {
-                    return FourOfKind;
-                }
-
-                // check if there's a pair
-                // TODO use find ?
-                if map.iter().filter(|(_, qt)| **qt == 2).count() == 1 {
+                if qt_j == 3 {
+                    if map.iter().filter(|(_, qt)| **qt == 2).count() == 1 {
+                        FiveOfKind
+                    } else {
+                        FourOfKind
+                    }
+                } else if qt_j == 2 {
+                    FiveOfKind
+                } else if qt_j == 1 {
+                    FourOfKind
+                } else if map.iter().filter(|(_, qt)| **qt == 2).count() == 1 {
                     FullHouse
                 } else {
                     ThreeOfKind
                 }
             }
             2 => {
-                // count pairs
                 let mut qt_pairs = 0;
                 for (_, qt) in map {
                     if qt == 2 {
@@ -131,7 +126,7 @@ impl HandType {
 
                 if qt_j == 2 {
                     if qt_pairs == 1 {
-                        OnePair
+                        ThreeOfKind
                     } else {
                         FourOfKind
                     }
@@ -153,7 +148,7 @@ impl HandType {
                 } else {
                     HighCard
                 }
-            },
+            }
         }
     }
 }
@@ -206,7 +201,8 @@ impl Hand {
 
 impl Ord for Hand {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.hand_type.cmp(&other.hand_type)
+        self.hand_type
+            .cmp(&other.hand_type)
             .then(self.compare_cards(&other.cards))
     }
 }
@@ -224,6 +220,7 @@ impl PartialEq for Hand {
 }
 
 pub fn part2(input: &str) -> String {
+    assert!(J < N2);
     let mut hands: Vec<Hand> = vec![];
     for line in input.lines() {
         hands.push(Hand::parse(line));
@@ -232,10 +229,36 @@ pub fn part2(input: &str) -> String {
 
     let mut ans = 0;
     for (i, h) in hands.into_iter().enumerate() {
+        // println!("{:?}", h);
+        print(&h.cards);
         ans += (i as u64 + 1) * h.bid;
     }
 
     ans.to_string()
+}
+
+fn print(cards: &[Card; 5]) {
+    print!("[");
+    for c in cards {
+        let c = match c {
+            J => 74,
+            N2 => 50,
+            N3 => 51,
+            N4 => 52,
+            N5 => 53,
+            N6 => 54,
+            N7 => 55,
+            N8 => 56,
+            N9 => 57,
+            T => 84,
+            Q => 81,
+            K => 75,
+            A => 65,
+        };
+        print!("{} ", c);
+    }
+
+    println!("]");
 }
 
 #[allow(dead_code)]
@@ -273,6 +296,30 @@ mod tests {
     #[test]
     fn p2() {
         let input = include_str!("../../inputs/2023/day7.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("248750699", part2(input));
+    }
+
+    #[test]
+    fn test200() {
+        let input = include_str!("../../inputs/2023/day7-test200.txt");
+        assert_eq!("9446128", part2(input));
+    }
+
+    #[test]
+    fn test400() {
+        let input = include_str!("../../inputs/2023/day7-test400.txt");
+        assert_eq!("38071640", part2(input));
+    }
+
+    #[test]
+    fn test500() {
+        let input = include_str!("../../inputs/2023/day7-test500.txt");
+        assert_eq!("61215331", part2(input));
+    }
+
+    #[test]
+    fn test400to500() {
+        let input = include_str!("../../inputs/2023/day7-test400to500.txt");
+        assert_eq!("2806430", part2(input));
     }
 }
