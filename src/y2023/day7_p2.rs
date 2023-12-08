@@ -11,6 +11,7 @@ use util::*;
 
 #[derive(Debug, Eq, Hash, PartialEq, PartialOrd)]
 enum Card {
+    J,
     N2,
     N3,
     N4,
@@ -23,7 +24,6 @@ enum Card {
     Q,
     K,
     A,
-    J,
 }
 
 impl Card {
