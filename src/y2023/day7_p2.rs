@@ -77,66 +77,33 @@ use HandType::*;
 impl HandType {
     fn get(cards: &[Card; 5]) -> Self {
         let mut map: HashMap<&Card, u8> = HashMap::new();
+        let mut qt_j = 0;
         for c in cards {
-            let qt = map.entry(c).or_insert(0);
-            *qt += 1;
-        }
-        let qt_pairs = map.iter().filter(|(_, qt)| **qt == 2).count();
-        let qt_j = *map.get(&J).unwrap_or(&0);
-        // let max = map.into_iter().filter(|(k, v)| k != J).map(|(_, v)| v).max();
-        let max = map.into_iter().map(|(_, v)| v).max().unwrap();
-        match max {
-            5 => FiveOfKind,
-            4 => {
-                if qt_j >= 1 {
-                    FiveOfKind
-                } else {
-                    FourOfKind
-                }
+            if *c == J { qt_j += 1; }
+            else {
+                let qt = map.entry(c).or_insert(0);
+                *qt += 1;
             }
-            3 => {
-                if qt_j == 3 {
-                    if qt_pairs == 1 {
-                        FiveOfKind
-                    } else {
-                        FourOfKind
-                    }
-                } else if qt_j == 2 {
-                    FiveOfKind
-                } else if qt_j == 1 {
-                    FourOfKind
-                } else if qt_pairs == 1 {
+        }
+        if qt_j == 5 { return FiveOfKind; }
+        let mut qts: Vec<u8> = map.values().cloned().collect();
+        qts.sort_by(|a, b| b.cmp(a));
+        qts[0] += qt_j;
+        let qt_pairs = qts.iter().filter(|qt| **qt == 2).count();
+        match qts[0] {
+            5 => FiveOfKind,
+            4 => FourOfKind,
+            3 => if qt_pairs == 1 {
                     FullHouse
                 } else {
                     ThreeOfKind
                 }
-            }
-            2 => {
-                if qt_j == 2 {
-                    if qt_pairs == 1 {
-                        ThreeOfKind
-                    } else {
-                        FourOfKind
-                    }
-                } else if qt_j == 1 {
-                    if qt_pairs == 1 {
-                        ThreeOfKind
-                    } else {
-                        FullHouse
-                    }
-                } else if qt_pairs == 1 {
+            2 => if qt_pairs == 1 {
                     OnePair
                 } else {
                     TwoPairs
                 }
-            }
-            _ => {
-                if qt_j == 1 {
-                    OnePair
-                } else {
-                    HighCard
-                }
-            }
+            _ => HighCard,
         }
     }
 }
