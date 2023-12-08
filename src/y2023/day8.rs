@@ -59,36 +59,46 @@ pub fn part2(input: &str) -> String {
         }
     }
 
-    let mut steps = 0;
-    loop {
-        steps += 1;
-        let mut qt_z = 0;
+    dbg!(&curr);
+    // curr.split_off(1);
 
-        if dirs[dir_idx] == 'L' {
-            for i in 0..curr.len() {
-                curr[i] = map[curr[i]].0;
-                if &curr[i][2..] == "Z" {
-                    qt_z += 1;
-                }
+    let mut zs_times: Vec<Vec<u64>> = vec![vec![]; curr.len()];
+    // solve all possible Zs for each start until a loop
+
+    for (p, start) in curr.iter().enumerate() {
+        let mut steps = 0;
+        let mut pos = *start;
+        let mut dir_idx = 0;
+        let mut visited: HashSet<(usize, &str)> = HashSet::new();
+        loop {
+            if visited.contains(&(dir_idx, pos)) {
+                // save steps that loop was detected
+                println!("Loop detected for {pos} at {dir_idx} with {steps} steps.");
+                break;
             }
-        } else {
-            for i in 0..curr.len() {
-                curr[i] = map[curr[i]].1;
-                if &curr[i][2..] == "Z" {
-                    qt_z += 1;
-                }
+            visited.insert((dir_idx, pos));
+
+            steps += 1;
+
+            if dirs[dir_idx] == 'L' {
+                pos = map[pos].0;
+            } else {
+                pos = map[pos].1;
             }
-        }
+            if &pos[2..] == "Z" {
+                println!("{start} arrived at {pos}");
+                zs_times[p].push(steps);
+            }
 
-        if qt_z == curr.len() {
-            return steps.to_string();
-        }
-
-        dir_idx += 1;
-        if dir_idx == dirs.len() {
-            dir_idx = 0;
+            dir_idx += 1;
+            if dir_idx == dirs.len() {
+                dir_idx = 0;
+            }
         }
     }
+    dbg!(zs_times);
+
+    "1".into()
 }
 
 #[allow(dead_code)]
@@ -142,6 +152,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = include_str!("../../inputs/2023/day8.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("12357789728873", part2(input));
     }
 }
