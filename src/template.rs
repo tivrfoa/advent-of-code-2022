@@ -2,7 +2,7 @@ use crate::util;
 
 use std::cell::Cell;
 use std::cmp::Ordering;
-use std::collections::{BinaryHeap, BTreeMap, HashMap, HashSet, VecDeque};
+use std::collections::{BTreeMap, BinaryHeap, HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::iter::zip;
@@ -26,7 +26,9 @@ struct State {
 
 impl Ord for State {
     fn cmp(&self, other: &Self) -> Ordering {
-        other.cost.cmp(&self.cost)
+        other
+            .cost
+            .cmp(&self.cost)
             .then_with(|| self.position.cmp(&other.position))
     }
 }
