@@ -9,21 +9,22 @@ use std::iter::zip;
 
 use util::*;
 
-fn solve_p1(nums: &[i32]) -> i32 {
-    let mut seqs: Vec<Vec<i32>> = vec![];
-    seqs.push(nums.to_vec());
-    while seqs[seqs.len() - 1].iter().find(|&&e| e != 0).is_some() {
-        let mut new_seq = Vec::with_capacity(nums.len() - 1);
-        let last = &seqs[seqs.len() - 1];
-        for i in 0..last.len() - 1 {
-            new_seq.push(last[i + 1] - last[i]);
+fn solve_p1(mut nums: &[i32]) -> i32 {
+    let mut seqs: Vec<i32> = vec![];
+    let mut seq: Vec<i32> = nums.to_vec();
+    seqs.push(nums[nums.len() - 1]);
+    while seq.iter().find(|&&e| e != 0).is_some() {
+        let mut new_seq = Vec::with_capacity(seq.len() - 1);
+        for i in 0..seq.len() - 1 {
+            new_seq.push(seq[i + 1] - seq[i]);
         }
-        seqs.push(new_seq);
+        seqs.push(new_seq[new_seq.len() - 1]);
+        seq = new_seq;
     }
 
     let mut n = 0;
     for i in (0..seqs.len() - 1).rev() {
-        n = n + seqs[i][seqs[i].len() - 1];
+        n = n + seqs[i];
     }
 
     n
@@ -40,20 +41,21 @@ pub fn part1(input: &str) -> String {
 }
 
 fn solve_p2(nums: &[i32]) -> i32 {
-    let mut seqs: Vec<Vec<i32>> = vec![];
-    seqs.push(nums.to_vec());
-    while seqs[seqs.len() - 1].iter().find(|&&e| e != 0).is_some() {
-        let mut new_seq = Vec::with_capacity(nums.len() - 1);
-        let last = &seqs[seqs.len() - 1];
-        for i in 0..last.len() - 1 {
-            new_seq.push(last[i + 1] - last[i]);
+    let mut seqs: Vec<i32> = vec![];
+    let mut seq: Vec<i32> = nums.to_vec();
+    seqs.push(nums[0]);
+    while seq.iter().find(|&&e| e != 0).is_some() {
+        let mut new_seq = Vec::with_capacity(seq.len() - 1);
+        for i in 0..seq.len() - 1 {
+            new_seq.push(seq[i + 1] - seq[i]);
         }
-        seqs.push(new_seq);
+        seqs.push(new_seq[0]);
+        seq = new_seq;
     }
 
     let mut n = 0;
     for i in (0..seqs.len() - 1).rev() {
-        n = seqs[i][0] - n;
+        n = seqs[i] - n;
     }
 
     n
