@@ -31,13 +31,11 @@ fn solve_p1(mut nums: &[i32]) -> i32 {
 }
 
 pub fn part1(input: &str) -> String {
-    let mut sum = 0;
-
-    for line in input.lines() {
-        sum += solve_p1(&line.split_to_nums(' '));
-    }
-
-    sum.to_string()
+    input
+        .lines()
+        .map(|line| solve_p1(&line.split_to_nums(' ')))
+        .sum::<i32>()
+        .to_string()
 }
 
 fn solve_p2(nums: &[i32]) -> i32 {
