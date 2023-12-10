@@ -329,6 +329,35 @@ fn can_go_outside(grid: &[Vec<char>], lp: &[Pos], r: usize, c: usize,
                             }
                         }
                     }
+
+                    // horizontal squeeze
+                    if dy == 0 {
+                        loop {
+                            let d = grid[r2][c2];
+                            if d == '-' || d == 'L' || d == 'J' {
+                                if !lp.contains(&(r2 + 1, c2)) {
+                                    if can_go_outside(grid, lp, r2 + 1, c2, visited, enclosed, escaped) {
+                                        escaped.insert((r, c));
+                                        return true;
+                                    } else {
+                                        break;
+                                    }
+                                }
+                                let below = grid[r2 + 1][c2];
+                                if below == '-' || below == '7' || below == 'F' {
+                                    if (dx == 1 && c2 + 1 == cols) || c2 == 0 {
+                                        escaped.insert((r, c));
+                                        return true;
+                                    }
+                                    c2 = (c2 as i32 + dx) as usize;
+                                } else {
+                                    break;
+                                }
+                            } else {
+                                break;
+                            }
+                        }
+                    }
                 } else {
                     if can_go_outside(grid, lp,
                             r2,
