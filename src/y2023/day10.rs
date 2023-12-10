@@ -225,6 +225,9 @@ pub fn part2(input: &str) -> String {
     for pipe in PIPES {
         grid[start.0][start.1] = pipe;
         if let Some(lp) = solve_p2(&grid, start.0, start.1) {
+            //for (r, c) in &lp {
+            //    grid[*r][*c] = 'T';
+            //}
             let qt = count_enclosed(&mut grid, lp).to_string();
             dbg_grid(&grid);
             return qt;
@@ -237,27 +240,39 @@ pub fn part2(input: &str) -> String {
 fn count_enclosed(grid: &mut Vec<Vec<char>>, lp: Vec<Pos>) -> usize {
     let rows = grid.len();
     let cols = grid[0].len();
+    let mut escaped: HashSet<Pos> = HashSet::new();
     let mut qt = 0;
 
     for r in 0..rows {
         for c in 0..cols {
             if lp.contains(&(r, c)) { continue; }
             let mut visited: HashSet<Pos> = HashSet::new();
-            if !can_go_outside(grid, &lp, r, c, &mut visited) {
+            if !can_go_outside(grid, &lp, r, c, &mut visited, &mut escaped) {
                 qt += 1;
-                grid[r][c] = 'I';
+                // grid[r][c] = 'I';
             } else {
-                grid[r][c] = 'O';
+                // grid[r][c] = 'O';
             }
         }
+    }
+
+    // for (r, c) in enclosed {
+    //     grid[r][c] = 'I';
+    // }
+
+    for (r, c) in escaped {
+        grid[r][c] = 'O';
     }
 
     qt
 }
 
 fn can_go_outside(grid: &[Vec<char>], lp: &[Pos], r: usize, c: usize,
-        visited: &mut HashSet<Pos>) -> bool {
-    if !visited.insert((r, c)) || lp.contains(&(r, c)) { return false; }
+        visited: &mut HashSet<Pos>,
+        escaped: &mut HashSet<Pos>) -> bool {
+    if escaped.contains(&(r, c)) { return true; }
+    // if enclosed.contains(&(r, c)) { return false; }
+    if lp.contains(&(r, c)) || !visited.insert((r, c)) { return false; }
     let rows = grid.len();
     let cols = grid[0].len();
     if r == 0 || r + 1 == rows || c == 0 || c + 1 == cols {
@@ -266,9 +281,58 @@ fn can_go_outside(grid: &[Vec<char>], lp: &[Pos], r: usize, c: usize,
 
     for dy in -1..=1 {
         for dx in -1..=1 {
-            if !(dy == 0 && dx == 0) &&
-                    can_go_outside(grid, lp, (r as i32 + dy) as usize, ((c as i32) + dx) as usize, visited) {
-                return true;
+            if dy != 0 || dx != 0 {
+                let mut r2 = (r as i32 + dy) as usize;
+                let mut c2 = (c as i32 + dx) as usize;
+                if lp.contains(&(r2, c2)) {
+                    // check if it can squeeze ...
+                    // JL, 7L, ||, 7F, JF, =, ...
+                    // basically need to check if it can go to its neighbors
+                    // this implementation supposes squeeze does NOT make
+                    // turns ...
+
+                    if dy != 0 && dx != 0 {
+                        continue;
+                    }
+
+                    // vertical squeeze
+                    if dx == 0 {
+                        loop {
+                            let d = grid[r2][c2];
+                            if d == '7' || d == '|' || d == 'J' {
+                                let right = grid[r2][c2 + 1];
+                                if right == '.' {
+                                    if can_go_outside(grid, lp, r2, c2 + 1, visited, escaped) {
+                                        escaped.insert((r, c));
+                                        return true;
+                                    } else {
+                                        break;
+                                    }
+                                }
+                                if right == '|' || right == 'L' || right == 'F' {
+                                    if (dy == 1 && r2 + 1 == rows) || r2 == 0 {
+                                        escaped.insert((r, c));
+                                        return true;
+                                    }
+                                    r2 = (r2 as i32 + dy) as usize;
+                                } else {
+                                    break;
+                                }
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    if can_go_outside(grid, lp,
+                            r2,
+                            c2,
+                            visited,
+                            escaped) {
+                        escaped.insert((r, c));
+                        return true;
+                    }
+                }
             }
         }
     }
