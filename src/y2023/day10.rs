@@ -237,7 +237,7 @@ pub fn part2(input: &str) -> String {
     "failed".into()
 }
 
-fn count_enclosed(grid: &mut Vec<Vec<char>>, lp: Vec<Pos>) -> usize {
+fn count_enclosed(grid: &mut Vec<Vec<char>>, lp: HashSet<Pos>) -> usize {
     let rows = grid.len();
     let cols = grid[0].len();
     let mut enclosed: HashSet<Pos> = HashSet::new();
@@ -269,7 +269,7 @@ fn count_enclosed(grid: &mut Vec<Vec<char>>, lp: Vec<Pos>) -> usize {
     qt
 }
 
-fn can_go_outside(grid: &[Vec<char>], lp: &[Pos], r: usize, c: usize,
+fn can_go_outside(grid: &[Vec<char>], lp: &HashSet<Pos>, r: usize, c: usize,
         visited: &mut HashSet<Pos>,
         enclosed: &mut HashSet<Pos>,
         escaped: &mut HashSet<Pos>) -> bool {
@@ -334,17 +334,17 @@ fn can_go_outside(grid: &[Vec<char>], lp: &[Pos], r: usize, c: usize,
                     if dy == 0 {
                         loop {
                             let d = grid[r2][c2];
-                            if d == '-' || d == 'L' || d == 'J' {
+                            if d == '-' || d == 'L' || d == 'J' || d == '.' {
                                 if !lp.contains(&(r2 + 1, c2)) {
                                     if can_go_outside(grid, lp, r2 + 1, c2, visited, enclosed, escaped) {
                                         escaped.insert((r, c));
                                         return true;
                                     } else {
-                                        break;
+                                        // break;
                                     }
                                 }
                                 let below = grid[r2 + 1][c2];
-                                if below == '-' || below == '7' || below == 'F' {
+                                if below == '-' || below == '7' || below == 'F' || below == '.' {
                                     if (dx == 1 && c2 + 1 == cols) || c2 == 0 {
                                         escaped.insert((r, c));
                                         return true;
@@ -376,20 +376,20 @@ fn can_go_outside(grid: &[Vec<char>], lp: &[Pos], r: usize, c: usize,
     false
 }
 
-fn solve_p2(grid: &[Vec<char>], start_row: usize, start_col: usize) -> Option<Vec<(usize, usize)>> {
+fn solve_p2(grid: &[Vec<char>], start_row: usize, start_col: usize) -> Option<HashSet<(usize, usize)>> {
     let rows = grid.len();
     let cols = grid[0].len();
     let mut visited: HashSet<(usize, usize)> = HashSet::new();
     let mut r = start_row;
     let mut c = start_col;
     let mut from = (r, c);
-    let mut lp = vec![];
+    let mut lp = HashSet::new();
 
     loop {
         if !visited.insert((r, c)) {
             return None;
         }
-        lp.push((r, c));
+        lp.insert((r, c));
 
         match grid[r][c] {
             '|' => {
@@ -593,6 +593,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = include_str!("../../inputs/2023/day10.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("443", part2(input));
     }
 }
