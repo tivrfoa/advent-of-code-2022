@@ -197,6 +197,8 @@ pub fn part1(input: &str) -> String {
     "failed".into()
 }
 
+type Pos = (usize, usize);
+
 pub fn part2(input: &str) -> String {
     // lp: mark positions that belong to the main loop
     // for every other position, try to make it go outside without
@@ -223,14 +225,35 @@ pub fn part2(input: &str) -> String {
     for pipe in PIPES {
         grid[start.0][start.1] = pipe;
         if let Some(lp) = solve_p2(&grid, start.0, start.1) {
-            return count_enclosed(&grid, lp).to_string();
+            let qt = count_enclosed(&mut grid, lp).to_string();
+            dbg_grid(&grid);
+            return qt;
         }
     }
 
     "failed".into()
 }
 
-type Pos = (usize, usize);
+fn count_enclosed(grid: &mut Vec<Vec<char>>, lp: Vec<Pos>) -> usize {
+    let rows = grid.len();
+    let cols = grid[0].len();
+    let mut qt = 0;
+
+    for r in 0..rows {
+        for c in 0..cols {
+            if lp.contains(&(r, c)) { continue; }
+            let mut visited: HashSet<Pos> = HashSet::new();
+            if !can_go_outside(grid, &lp, r, c, &mut visited) {
+                qt += 1;
+                grid[r][c] = 'I';
+            } else {
+                grid[r][c] = 'O';
+            }
+        }
+    }
+
+    qt
+}
 
 fn can_go_outside(grid: &[Vec<char>], lp: &[Pos], r: usize, c: usize,
         visited: &mut HashSet<Pos>) -> bool {
@@ -243,31 +266,14 @@ fn can_go_outside(grid: &[Vec<char>], lp: &[Pos], r: usize, c: usize,
 
     for dy in -1..=1 {
         for dx in -1..=1 {
-            if can_go_outside(grid, lp, (r as i32 + dy) as usize, ((c as i32) + dx) as usize, visited) {
+            if !(dy == 0 && dx == 0) &&
+                    can_go_outside(grid, lp, (r as i32 + dy) as usize, ((c as i32) + dx) as usize, visited) {
                 return true;
             }
         }
     }
 
     false
-}
-
-fn count_enclosed(grid: &[Vec<char>], lp: Vec<Pos>) -> usize {
-    let rows = grid.len();
-    let cols = grid[0].len();
-    let mut qt = 0;
-
-    for r in 0..rows {
-        for c in 0..cols {
-            if lp.contains(&(r, c)) { continue; }
-            let mut visited: HashSet<Pos> = HashSet::new();
-            if !can_go_outside(grid, &lp, r, c, &mut visited) {
-                qt += 1;
-            }
-        }
-    }
-
-    qt
 }
 
 fn solve_p2(grid: &[Vec<char>], start_row: usize, start_col: usize) -> Option<Vec<(usize, usize)>> {
@@ -464,6 +470,18 @@ mod tests {
     fn p1() {
         let input = include_str!("../../inputs/2023/day10.txt");
         assert_eq!("6979", part1(input));
+    }
+
+    #[test]
+    fn p200() {
+        let input = include_str!("../../inputs/2023/day10-sample-p2-00.txt");
+        assert_eq!("8", part2(input));
+    }
+
+    #[test]
+    fn p202() {
+        let input = include_str!("../../inputs/2023/day10-sample-p2-02.txt");
+        assert_eq!("4", part2(input));
     }
 
     #[test]
