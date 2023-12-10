@@ -240,6 +240,7 @@ pub fn part2(input: &str) -> String {
 fn count_enclosed(grid: &mut Vec<Vec<char>>, lp: Vec<Pos>) -> usize {
     let rows = grid.len();
     let cols = grid[0].len();
+    let mut enclosed: HashSet<Pos> = HashSet::new();
     let mut escaped: HashSet<Pos> = HashSet::new();
     let mut qt = 0;
 
@@ -247,8 +248,9 @@ fn count_enclosed(grid: &mut Vec<Vec<char>>, lp: Vec<Pos>) -> usize {
         for c in 0..cols {
             if lp.contains(&(r, c)) { continue; }
             let mut visited: HashSet<Pos> = HashSet::new();
-            if !can_go_outside(grid, &lp, r, c, &mut visited, &mut escaped) {
+            if !can_go_outside(grid, &lp, r, c, &mut visited, &mut enclosed, &mut escaped) {
                 qt += 1;
+                enclosed.insert((r, c));
                 // grid[r][c] = 'I';
             } else {
                 // grid[r][c] = 'O';
@@ -256,9 +258,9 @@ fn count_enclosed(grid: &mut Vec<Vec<char>>, lp: Vec<Pos>) -> usize {
         }
     }
 
-    // for (r, c) in enclosed {
-    //     grid[r][c] = 'I';
-    // }
+    for (r, c) in enclosed {
+        grid[r][c] = 'I';
+    }
 
     for (r, c) in escaped {
         grid[r][c] = 'O';
@@ -269,15 +271,18 @@ fn count_enclosed(grid: &mut Vec<Vec<char>>, lp: Vec<Pos>) -> usize {
 
 fn can_go_outside(grid: &[Vec<char>], lp: &[Pos], r: usize, c: usize,
         visited: &mut HashSet<Pos>,
+        enclosed: &mut HashSet<Pos>,
         escaped: &mut HashSet<Pos>) -> bool {
     if escaped.contains(&(r, c)) { return true; }
-    // if enclosed.contains(&(r, c)) { return false; }
-    if lp.contains(&(r, c)) || !visited.insert((r, c)) { return false; }
+    if enclosed.contains(&(r, c)) { return false; }
+    if lp.contains(&(r, c)) { return false; }
     let rows = grid.len();
     let cols = grid[0].len();
     if r == 0 || r + 1 == rows || c == 0 || c + 1 == cols {
+        escaped.insert((r, c));
         return true;
     }
+    if !visited.insert((r, c)) { return false; }
 
     for dy in -1..=1 {
         for dx in -1..=1 {
@@ -301,8 +306,9 @@ fn can_go_outside(grid: &[Vec<char>], lp: &[Pos], r: usize, c: usize,
                             let d = grid[r2][c2];
                             if d == '7' || d == '|' || d == 'J' {
                                 let right = grid[r2][c2 + 1];
-                                if right == '.' {
-                                    if can_go_outside(grid, lp, r2, c2 + 1, visited, escaped) {
+                                // if right == '.' {
+                                if !lp.contains(&(r2, c2+1)) {
+                                    if can_go_outside(grid, lp, r2, c2 + 1, visited, enclosed, escaped) {
                                         escaped.insert((r, c));
                                         return true;
                                     } else {
@@ -328,6 +334,7 @@ fn can_go_outside(grid: &[Vec<char>], lp: &[Pos], r: usize, c: usize,
                             r2,
                             c2,
                             visited,
+                            enclosed,
                             escaped) {
                         escaped.insert((r, c));
                         return true;
