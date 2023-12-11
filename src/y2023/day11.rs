@@ -83,8 +83,87 @@ pub fn part1(input: &str) -> String {
     sum.to_string()
 }
 
+const EXPANSION: usize = 1_000_000;
+
 pub fn part2(input: &str) -> String {
-    "".into()
+    let mut sum = 0;
+    let grid = input.to_char_grid();
+    // find empty rows and cols
+    let (empty_rows, empty_cols) = {
+        let mut empty_rows = vec![];
+        'r:
+        for r in 0..grid.len() {
+            for c in 0..grid[0].len() {
+                if grid[r][c] != '.' {
+                    continue 'r;
+                }
+            }
+            empty_rows.push(r);
+        }
+        let mut empty_cols = vec![];
+        'c:
+        for c in 0..grid[0].len() {
+            for r in 0..grid.len() {
+                if grid[r][c] != '.' {
+                    continue 'c;
+                }
+            }
+            empty_cols.push(c);
+        }
+
+        (empty_rows, empty_cols)
+    };
+    let rows = grid.len();
+    let cols = grid[0].len();
+    let galaxies = {
+        let mut g = vec![];
+        for r in 0..rows {
+            for c in 0..cols {
+                if grid[r][c] == '#' {
+                    g.push((r, c));
+                }
+            }
+        }
+        g
+    };
+
+    let glen = galaxies.len();
+    for i in 0..glen - 1 {
+        for j in i+1..galaxies.len() {
+            let (mut r1, mut c1) = (galaxies[i].0, galaxies[i].1);
+            let (mut r2, mut c2) = (galaxies[j].0, galaxies[j].1);
+            if r1 > r2 {
+                let tmp = r2;
+                r2 = r1;
+                r1 = r2;
+            }
+            if c1 > c2 {
+                let tmp = c2;
+                c2 = c1;
+                c1 = c2;
+            }
+            let mut rows = 0;
+            for r in r1..=r2 {
+                if empty_rows.contains(&r) {
+                    rows += EXPANSION;
+                } else {
+                    rows += 1;
+                }
+            }
+            let mut cols = 0;
+            for c in c1..=c2 {
+                if empty_cols.contains(&c) {
+                    cols += EXPANSION;
+                } else {
+                    cols += 1;
+                }
+            }
+
+            sum += rows + cols;
+        }
+    }
+
+    sum.to_string()
 }
 
 #[allow(dead_code)]
