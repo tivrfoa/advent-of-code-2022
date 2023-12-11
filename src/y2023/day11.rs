@@ -83,10 +83,10 @@ pub fn part1(input: &str) -> String {
     sum.to_string()
 }
 
-const EXPANSION: usize = 1_000_000;
+const EXPANSION: u128 = 1_000_000;
 
 pub fn part2(input: &str) -> String {
-    let mut sum = 0;
+    let mut sum = 0u128;
     let grid = input.to_char_grid();
     // find empty rows and cols
     let (empty_rows, empty_cols) = {
@@ -135,12 +135,12 @@ pub fn part2(input: &str) -> String {
             if r1 > r2 {
                 let tmp = r2;
                 r2 = r1;
-                r1 = r2;
+                r1 = tmp;
             }
             if c1 > c2 {
                 let tmp = c2;
                 c2 = c1;
-                c1 = c2;
+                c1 = tmp;
             }
             let mut rows = 0;
             for r in r1..=r2 {
