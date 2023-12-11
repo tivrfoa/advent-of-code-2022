@@ -87,33 +87,32 @@ pub fn part1(input: &str) -> String {
 pub fn part2(input: &str, expansion: u64) -> String {
     let mut sum = 0u64;
     let grid = input.to_char_grid();
-    // find empty rows and cols
-    let (empty_rows, empty_cols) = {
-        let mut empty_rows = vec![];
-        'r:
-        for r in 0..grid.len() {
-            for c in 0..grid[0].len() {
-                if grid[r][c] != '.' {
-                    continue 'r;
-                }
-            }
-            empty_rows.push(r);
-        }
-        let mut empty_cols = vec![];
-        'c:
-        for c in 0..grid[0].len() {
-            for r in 0..grid.len() {
-                if grid[r][c] != '.' {
-                    continue 'c;
-                }
-            }
-            empty_cols.push(c);
-        }
-
-        (empty_rows, empty_cols)
-    };
     let rows = grid.len();
     let cols = grid[0].len();
+    let mut empty_rows = vec![false; rows];
+    let mut empty_cols = vec![false; cols];
+
+    // find empty rows and cols
+    'r:
+    for r in 0..grid.len() {
+        for c in 0..grid[0].len() {
+            if grid[r][c] != '.' {
+                continue 'r;
+            }
+        }
+        empty_rows[r] = true;
+    }
+
+    'c:
+    for c in 0..grid[0].len() {
+        for r in 0..grid.len() {
+            if grid[r][c] != '.' {
+                continue 'c;
+            }
+        }
+        empty_cols[c] = true;
+    }
+
     let galaxies = {
         let mut g = vec![];
         for r in 0..rows {
@@ -143,7 +142,7 @@ pub fn part2(input: &str, expansion: u64) -> String {
             }
             let mut rows = 0;
             for r in r1+1..=r2 {
-                if empty_rows.contains(&r) {
+                if empty_rows[r] {
                     rows += expansion;
                 } else {
                     rows += 1;
@@ -151,7 +150,7 @@ pub fn part2(input: &str, expansion: u64) -> String {
             }
             let mut cols = 0;
             for c in c1+1..=c2 {
-                if empty_cols.contains(&c) {
+                if empty_cols[c] {
                     cols += expansion;
                 } else {
                     cols += 1;
