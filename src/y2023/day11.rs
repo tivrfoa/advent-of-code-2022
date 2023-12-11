@@ -84,8 +84,8 @@ pub fn part1(input: &str) -> String {
 }
 
 
-pub fn part2(input: &str, expansion: u128) -> String {
-    let mut sum = 0u128;
+pub fn part2(input: &str, expansion: u64) -> String {
+    let mut sum = 0u64;
     let grid = input.to_char_grid();
     // find empty rows and cols
     let (empty_rows, empty_cols) = {
@@ -205,21 +205,21 @@ mod tests {
 
     #[test]
     fn p2_10() {
-        const EXPANSION: u128 = 10;
+        const EXPANSION: u64 = 10;
         let input = include_str!("../../inputs/2023/day11-sample.txt");
         assert_eq!("1030", part2(input, EXPANSION));
     }
 
     #[test]
     fn p2s() {
-        const EXPANSION: u128 = 100;
+        const EXPANSION: u64 = 100;
         let input = include_str!("../../inputs/2023/day11-sample.txt");
         assert_eq!("8410", part2(input, EXPANSION));
     }
 
     #[test]
     fn p2() {
-        const EXPANSION: u128 = 1_000_000;
+        const EXPANSION: u64 = 1_000_000;
         let input = include_str!("../../inputs/2023/day11.txt");
         assert_eq!("625243292686", part2(input, EXPANSION));
     }
