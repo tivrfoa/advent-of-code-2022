@@ -128,27 +128,10 @@ pub fn part2(input: &str, expansion: u64) -> String {
     let glen = galaxies.len();
     for i in 0..glen - 1 {
         for j in i+1..galaxies.len() {
-            let (mut r1, mut c1) = (galaxies[i].0, galaxies[i].1);
-            let (mut r2, mut c2) = (galaxies[j].0, galaxies[j].1);
-            if r1 > r2 {
-                let tmp = r2;
-                r2 = r1;
-                r1 = tmp;
-            }
-            if c1 > c2 {
-                let tmp = c2;
-                c2 = c1;
-                c1 = tmp;
-            }
-            let mut rows = 0;
-            for r in r1+1..=r2 {
-                rows += rows_factor[r];
-            }
-            let mut cols = 0;
-            for c in c1+1..=c2 {
-                cols += cols_factor[c];
-            }
-
+            let (r1, c1) = (galaxies[i].0, galaxies[i].1);
+            let (r2, c2) = (galaxies[j].0, galaxies[j].1);
+            let rows: u64 = rows_factor[r1.min(r2)+1..=r1.max(r2)].iter().sum();
+            let cols: u64 = cols_factor[c1.min(c2)+1..=c1.max(c2)].iter().sum();
             sum += rows + cols;
         }
     }
