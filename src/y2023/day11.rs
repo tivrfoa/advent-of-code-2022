@@ -83,9 +83,8 @@ pub fn part1(input: &str) -> String {
     sum.to_string()
 }
 
-const EXPANSION: u128 = 1_000_000;
 
-pub fn part2(input: &str) -> String {
+pub fn part2(input: &str, expansion: u128) -> String {
     let mut sum = 0u128;
     let grid = input.to_char_grid();
     // find empty rows and cols
@@ -143,17 +142,17 @@ pub fn part2(input: &str) -> String {
                 c1 = tmp;
             }
             let mut rows = 0;
-            for r in r1..=r2 {
+            for r in r1+1..=r2 {
                 if empty_rows.contains(&r) {
-                    rows += EXPANSION;
+                    rows += expansion;
                 } else {
                     rows += 1;
                 }
             }
             let mut cols = 0;
-            for c in c1..=c2 {
+            for c in c1+1..=c2 {
                 if empty_cols.contains(&c) {
-                    cols += EXPANSION;
+                    cols += expansion;
                 } else {
                     cols += 1;
                 }
@@ -205,14 +204,23 @@ mod tests {
     }
 
     #[test]
-    fn p2s() {
+    fn p2_10() {
+        const EXPANSION: u128 = 10;
         let input = include_str!("../../inputs/2023/day11-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("1030", part2(input, EXPANSION));
+    }
+
+    #[test]
+    fn p2s() {
+        const EXPANSION: u128 = 100;
+        let input = include_str!("../../inputs/2023/day11-sample.txt");
+        assert_eq!("8410", part2(input, EXPANSION));
     }
 
     #[test]
     fn p2() {
+        const EXPANSION: u128 = 1_000_000;
         let input = include_str!("../../inputs/2023/day11.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("625243292686", part2(input, EXPANSION));
     }
 }
