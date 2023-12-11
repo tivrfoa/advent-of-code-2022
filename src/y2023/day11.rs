@@ -89,8 +89,8 @@ pub fn part2(input: &str, expansion: u64) -> String {
     let grid = input.to_char_grid();
     let rows = grid.len();
     let cols = grid[0].len();
-    let mut empty_rows = vec![false; rows];
-    let mut empty_cols = vec![false; cols];
+    let mut rows_factor = vec![1; rows];
+    let mut cols_factor = vec![1; cols];
 
     // find empty rows and cols
     'r:
@@ -100,7 +100,7 @@ pub fn part2(input: &str, expansion: u64) -> String {
                 continue 'r;
             }
         }
-        empty_rows[r] = true;
+        rows_factor[r] = expansion;
     }
 
     'c:
@@ -110,7 +110,7 @@ pub fn part2(input: &str, expansion: u64) -> String {
                 continue 'c;
             }
         }
-        empty_cols[c] = true;
+        cols_factor[c] = expansion;
     }
 
     let galaxies = {
@@ -142,19 +142,11 @@ pub fn part2(input: &str, expansion: u64) -> String {
             }
             let mut rows = 0;
             for r in r1+1..=r2 {
-                if empty_rows[r] {
-                    rows += expansion;
-                } else {
-                    rows += 1;
-                }
+                rows += rows_factor[r];
             }
             let mut cols = 0;
             for c in c1+1..=c2 {
-                if empty_cols[c] {
-                    cols += expansion;
-                } else {
-                    cols += 1;
-                }
+                cols += cols_factor[c];
             }
 
             sum += rows + cols;
