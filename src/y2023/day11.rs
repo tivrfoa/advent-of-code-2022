@@ -126,12 +126,10 @@ pub fn part2(input: &str, expansion: u64) -> String {
     };
 
     let glen = galaxies.len();
-    for i in 0..glen - 1 {
-        for j in i+1..galaxies.len() {
-            let (r1, c1) = (galaxies[i].0, galaxies[i].1);
-            let (r2, c2) = (galaxies[j].0, galaxies[j].1);
-            let rows: u64 = rows_factor[r1.min(r2)+1..=r1.max(r2)].iter().sum();
-            let cols: u64 = cols_factor[c1.min(c2)+1..=c1.max(c2)].iter().sum();
+    for (i, (r1, c1)) in galaxies.iter().enumerate().take(glen - 1) {
+        for (r2, c2) in galaxies.iter().skip(i+1) {
+            let rows: u64 = rows_factor[(*r1).min(*r2)+1..=(*r1).max(*r2)].iter().sum();
+            let cols: u64 = cols_factor[(*c1).min(*c2)+1..=(*c1).max(*c2)].iter().sum();
             sum += rows + cols;
         }
     }
