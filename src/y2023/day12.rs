@@ -33,8 +33,7 @@ impl State {
     }
 }
 
-fn dfs(state: State, mem: &mut HashMap<State, u64>, row: &[u8],
-        groups: &[u8]) -> u64 {
+fn dfs(state: State, mem: &mut HashMap<State, u64>, row: &[u8], groups: &[u8]) -> u64 {
     let rlen = row.len() as u8;
     let glen = groups.len() as u8;
 
@@ -71,7 +70,7 @@ fn dfs(state: State, mem: &mut HashMap<State, u64>, row: &[u8],
                 mem.insert(state, 0);
                 return 0;
             }
-            let mut new_state = state.add(b'.');
+            let new_state = state.add(b'.');
             dfs(new_state, mem, row, groups)
         }
         b'#' => {
@@ -114,7 +113,7 @@ fn dfs(state: State, mem: &mut HashMap<State, u64>, row: &[u8],
                     }
 
                     // '.'
-                    let mut new_state = state.add(b'.');
+                    let new_state = state.add(b'.');
                     qt += dfs(new_state, mem, row, groups);
 
                     qt
@@ -167,7 +166,7 @@ pub fn part1(input: &str) -> String {
 fn expand_row(srow: &str) -> Vec<u8> {
     let mut row = srow.as_bytes().to_vec();
     let init_row = row.clone();
-    for i in 0..4 {
+    for _ in 0..4 {
         row.push(b'?');
         row.append(&mut init_row.clone());
     }
@@ -176,7 +175,7 @@ fn expand_row(srow: &str) -> Vec<u8> {
 
 fn expand_groups(mut group: Vec<u8>) -> Vec<u8> {
     let init_group = group.clone();
-    for i in 0..4 {
+    for _ in 0..4 {
         group.append(&mut init_group.clone());
     }
     group
