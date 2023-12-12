@@ -33,8 +33,8 @@ impl State {
     }
 }
 
-fn dfs(state: State, mem: &mut HashMap<State, u32>, row: &[u8],
-        groups: &[u8]) -> u32 {
+fn dfs(state: State, mem: &mut HashMap<State, u64>, row: &[u8],
+        groups: &[u8]) -> u64 {
     let rlen = row.len() as u8;
     let glen = groups.len() as u8;
 
@@ -150,7 +150,7 @@ pub fn part1(input: &str) -> String {
         let (l, r) = line.split_once(' ').unwrap();
         let row: &[u8] = l.as_bytes();
         let groups: Vec<u8> = r.split_to_nums(',');
-        let mut mem: HashMap<State, u32> = HashMap::new();
+        let mut mem: HashMap<State, u64> = HashMap::new();
         let start_state = State {
             cont: 0,
             row_idx: 0,
@@ -189,7 +189,7 @@ pub fn part2(input: &str) -> String {
         let (l, r) = line.split_once(' ').unwrap();
         let row: Vec<u8> = expand_row(l);
         let groups: Vec<u8> = expand_groups(r.split_to_nums(','));
-        let mut mem: HashMap<State, u32> = HashMap::new();
+        let mut mem: HashMap<State, u64> = HashMap::new();
         let start_state = State {
             cont: 0,
             row_idx: 0,
@@ -228,6 +228,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = include_str!("../../inputs/2023/day12.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("13012052341533", part2(input));
     }
 }
