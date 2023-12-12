@@ -11,21 +11,19 @@ use util::*;
 
 #[derive(Debug, Eq, Hash, PartialEq)]
 struct State {
-    cont: u16,
-    row_idx: usize,
-    group_idx: usize,
-    seq: Vec<u8>
+    row_idx: u8,
+    group_idx: u8,
+    cont: u8,
+    prev: u8,
 }
 
 impl State {
     fn add(&self, c: u8) -> Self {
-        let mut seq = self.seq.clone();
-        seq.push(c);
         State {
             cont: if c == b'#' { self.cont + 1 } else { 0 },
             row_idx: self.row_idx + 1,
             group_idx: self.group_idx,
-            seq,
+            prev: c,
         }
     }
 
@@ -36,9 +34,9 @@ impl State {
 }
 
 fn dfs(state: State, mem: &mut HashMap<State, u32>, row: &[u8],
-        groups: &[u16]) -> u32 {
-    let rlen = row.len();
-    let glen = groups.len();
+        groups: &[u8]) -> u32 {
+    let rlen = row.len() as u8;
+    let glen = groups.len() as u8;
 
     if state.row_idx == rlen {
         return if state.group_idx == glen { 1 } else { 0 };
@@ -52,7 +50,7 @@ fn dfs(state: State, mem: &mut HashMap<State, u32>, row: &[u8],
         // all groups were satisfied. Check if the remaining string
         // is valid
         for i in state.row_idx..rlen {
-            if row[i] == b'#' {
+            if row[i as usize] == b'#' {
                 // invalid arrangement
                 mem.insert(state, 0);
                 return 0;
@@ -62,12 +60,12 @@ fn dfs(state: State, mem: &mut HashMap<State, u32>, row: &[u8],
         return 1;
     }
 
-    let target = groups[state.group_idx];
+    let target = groups[state.group_idx as usize];
 
     // Handle it in current idx, so state.cont will never be
     // == target
 
-    let qt = match row[state.row_idx] {
+    let qt = match row[state.row_idx as usize] {
         b'.' => {
             if state.cont > 0 {
                 mem.insert(state, 0);
@@ -79,7 +77,7 @@ fn dfs(state: State, mem: &mut HashMap<State, u32>, row: &[u8],
         b'#' => {
             if state.cont + 1 == target {
                 // end of group
-                if state.row_idx + 1 < rlen && row[state.row_idx + 1] == b'#' {
+                if state.row_idx + 1 < rlen && row[state.row_idx as usize + 1] == b'#' {
                     mem.insert(state, 0);
                     return 0;
                 }
@@ -94,7 +92,7 @@ fn dfs(state: State, mem: &mut HashMap<State, u32>, row: &[u8],
         }
         b'?' => {
             if state.cont == 0 {
-                if state.row_idx > 0 && state.seq[state.seq.len() - 1] == b'#' {
+                if state.row_idx > 0 && state.prev == b'#' {
                     // changed group in previous state
                     // it cannot be # here
                     let new_state = state.add(b'.');
@@ -105,7 +103,7 @@ fn dfs(state: State, mem: &mut HashMap<State, u32>, row: &[u8],
                     // '#'
                     let mut qt = 0;
                     if state.cont + 1 == target {
-                        if !(state.row_idx + 1 < rlen && row[state.row_idx + 1] == b'#') {
+                        if !(state.row_idx + 1 < rlen && row[state.row_idx as usize + 1] == b'#') {
                             let mut new_state = state.add(b'#');
                             new_state.advance_group();
                             qt += dfs(new_state, mem, row, groups);
@@ -125,7 +123,7 @@ fn dfs(state: State, mem: &mut HashMap<State, u32>, row: &[u8],
                 // this ? can only be a '#' because we still need to match
                 // current group
                 if state.cont + 1 == target {
-                    if state.row_idx + 1 < rlen && row[state.row_idx + 1] == b'#' {
+                    if state.row_idx + 1 < rlen && row[state.row_idx as usize + 1] == b'#' {
                         mem.insert(state, 0);
                         return 0;
                     }
@@ -151,13 +149,13 @@ pub fn part1(input: &str) -> String {
     for line in input.lines() {
         let (l, r) = line.split_once(' ').unwrap();
         let row: &[u8] = l.as_bytes();
-        let groups: Vec<u16> = r.split_to_nums(',');
+        let groups: Vec<u8> = r.split_to_nums(',');
         let mut mem: HashMap<State, u32> = HashMap::new();
         let start_state = State {
             cont: 0,
             row_idx: 0,
             group_idx: 0,
-            seq: vec![],
+            prev: b' ',
         };
         let qt = dfs(start_state, &mut mem, row, &groups);
         sum += qt;
@@ -176,7 +174,7 @@ fn expand_row(srow: &str) -> Vec<u8> {
     row
 }
 
-fn expand_groups(mut group: Vec<u16>) -> Vec<u16> {
+fn expand_groups(mut group: Vec<u8>) -> Vec<u8> {
     let init_group = group.clone();
     for i in 0..4 {
         group.append(&mut init_group.clone());
@@ -187,15 +185,16 @@ fn expand_groups(mut group: Vec<u16>) -> Vec<u16> {
 pub fn part2(input: &str) -> String {
     let mut sum = 0;
     for line in input.lines() {
+        println!("{line}");
         let (l, r) = line.split_once(' ').unwrap();
         let row: Vec<u8> = expand_row(l);
-        let groups: Vec<u16> = expand_groups(r.split_to_nums(','));
+        let groups: Vec<u8> = expand_groups(r.split_to_nums(','));
         let mut mem: HashMap<State, u32> = HashMap::new();
         let start_state = State {
             cont: 0,
             row_idx: 0,
             group_idx: 0,
-            seq: vec![],
+            prev: b' ',
         };
         let qt = dfs(start_state, &mut mem, &row, &groups);
         sum += qt;
