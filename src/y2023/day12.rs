@@ -150,7 +150,6 @@ pub fn part1(input: &str) -> String {
     let mut sum = 0;
     for line in input.lines() {
         let (l, r) = line.split_once(' ').unwrap();
-        println!("{l} {r}");
         let row: &[u8] = l.as_bytes();
         let groups: Vec<u16> = r.split_to_nums(',');
         let mut mem: HashMap<State, u32> = HashMap::new();
@@ -161,15 +160,48 @@ pub fn part1(input: &str) -> String {
             seq: vec![],
         };
         let qt = dfs(start_state, &mut mem, row, &groups);
-        println!("{qt}");
         sum += qt;
     }
 
     sum.to_string()
 }
 
+fn expand_row(srow: &str) -> Vec<u8> {
+    let mut row = srow.as_bytes().to_vec();
+    let init_row = row.clone();
+    for i in 0..4 {
+        row.push(b'?');
+        row.append(&mut init_row.clone());
+    }
+    row
+}
+
+fn expand_groups(mut group: Vec<u16>) -> Vec<u16> {
+    let init_group = group.clone();
+    for i in 0..4 {
+        group.append(&mut init_group.clone());
+    }
+    group
+}
+
 pub fn part2(input: &str) -> String {
-    "".into()
+    let mut sum = 0;
+    for line in input.lines() {
+        let (l, r) = line.split_once(' ').unwrap();
+        let row: Vec<u8> = expand_row(l);
+        let groups: Vec<u16> = expand_groups(r.split_to_nums(','));
+        let mut mem: HashMap<State, u32> = HashMap::new();
+        let start_state = State {
+            cont: 0,
+            row_idx: 0,
+            group_idx: 0,
+            seq: vec![],
+        };
+        let qt = dfs(start_state, &mut mem, &row, &groups);
+        sum += qt;
+    }
+
+    sum.to_string()
 }
 
 #[cfg(test)]
@@ -191,7 +223,7 @@ mod tests {
     #[test]
     fn p2s() {
         let input = include_str!("../../inputs/2023/day12-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("525152", part2(input));
     }
 
     #[test]
