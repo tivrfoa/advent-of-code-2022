@@ -29,60 +29,64 @@ fn are_rows_eq(grid: &[Vec<char>], t: usize, b: usize) -> bool {
 
 pub fn part1(input: &str) -> String {
     let mut total: usize = 0;
-
     for ingrid in input.split("\n\n") {
-        let prev = total;
         let grid = ingrid.to_char_grid();
-        let rows = grid.len();
-        let cols = grid[0].len();
-        dbg_grid(&grid);
-
-        // try vertical
-        'l:
-        for m in 0..cols - 1 {
-            let mut lo = m;
-            let mut hi = m + 1;
-            loop {
-                if !are_cols_eq(&grid, lo, hi) {
-                    break;
-                }
-
-                if lo == 0 || hi + 1 == cols {
-                    println!("Found vertical: {m}");
-                    total += m + 1;
-                    break 'l;
-                }
-                lo -= 1;
-                hi += 1;
-            }
-        }
-
-        // try horizontal
-        'l:
-        for m in 0..rows - 1 {
-            let mut lo = m;
-            let mut hi = m + 1;
-            loop {
-                if !are_rows_eq(&grid, lo, hi) {
-                    break;
-                }
-
-                if lo == 0 || hi + 1 == rows {
-                    println!("Found horizontal: {m}");
-                    total += (m + 1) * 100;
-                    break 'l;
-                }
-                lo -= 1;
-                hi += 1;
-            }
-        }
-
-        if prev == total {
-            println!("Did not find any reflection for this grid ...");
-        }
+        total += solve(&grid);
     }
 
     total.to_string()
+}
+
+pub fn solve(grid: &[Vec<char>]) -> usize {
+    let mut total: usize = 0;
+    let rows = grid.len();
+    let cols = grid[0].len();
+
+    // try vertical
+    'l:
+    for m in 0..cols - 1 {
+        let mut lo = m;
+        let mut hi = m + 1;
+        loop {
+            if !are_cols_eq(&grid, lo, hi) {
+                break;
+            }
+
+            if lo == 0 || hi + 1 == cols {
+                println!("Found vertical: {m}");
+                total += m + 1;
+                break 'l;
+            }
+            lo -= 1;
+            hi += 1;
+        }
+    }
+
+    // try horizontal
+    'l:
+    for m in 0..rows - 1 {
+        let mut lo = m;
+        let mut hi = m + 1;
+        loop {
+            if !are_rows_eq(&grid, lo, hi) {
+                break;
+            }
+
+            if lo == 0 || hi + 1 == rows {
+                println!("Found horizontal: {m}");
+                total += (m + 1) * 100;
+                break 'l;
+            }
+            lo -= 1;
+            hi += 1;
+        }
+    }
+
+    if total == 0 {
+        println!("Did not find any reflection for this grid ...");
+    }
+
+    total
 }
 
 pub fn part2(input: &str) -> String {
@@ -108,7 +112,7 @@ mod tests {
     #[test]
     fn p2s() {
         let input = include_str!("../../inputs/2023/day13-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("400", part2(input));
     }
 
     #[test]
