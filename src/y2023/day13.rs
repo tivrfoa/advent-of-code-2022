@@ -31,51 +31,54 @@ pub fn part1(input: &str) -> String {
     let mut total: usize = 0;
 
     for ingrid in input.split("\n\n") {
+        let prev = total;
         let grid = ingrid.to_char_grid();
+        let rows = grid.len();
+        let cols = grid[0].len();
         dbg_grid(&grid);
 
         // try vertical
-        let mut l = 0;
-        let mut r = grid[0].len() - 1;
-        if are_cols_eq(&grid, l, r) {
-            println!("left right equal");
-        } else if are_cols_eq(&grid, l + 1, r) {
-            l += 1;
-        } else {
-            r -= 1;
-        }
-        while l < r {
-            if !are_cols_eq(&grid, l, r) {
-                break;
+        'l:
+        for m in 1..cols - 1 {
+            let mut lo = m;
+            let mut hi = m + 1;
+            loop {
+                if !are_cols_eq(&grid, lo, hi) {
+                    break;
+                }
+
+                if lo == 0 || hi + 1 == cols {
+                    println!("Found vertical: {m}");
+                    total += m + 1;
+                    break 'l;
+                }
+                lo -= 1;
+                hi += 1;
             }
-            l += 1;
-            r -= 1;
-        }
-        if l > r {
-            println!("Found vertical");
-            total += l;
-            continue;
         }
 
         // try horizontal
-        let mut t = 0;
-        let mut b = grid.len() - 1;
-        if are_rows_eq(&grid, t, b) {
-            println!("top bottom equal");
-        } else if are_rows_eq(&grid, t + 1, b) {
-            t += 1;
-        } else {
-            b -= 1;
-        }
-        while t < b {
-            if !are_rows_eq(&grid, t, b) {
-                break;
+        'l:
+        for m in 1..rows - 1 {
+            let mut lo = m;
+            let mut hi = m + 1;
+            loop {
+                if !are_rows_eq(&grid, lo, hi) {
+                    break;
+                }
+
+                if lo == 0 || hi + 1 == rows {
+                    println!("Found horizontal: {m}");
+                    total += (m + 1) * 100;
+                    break 'l;
+                }
+                lo -= 1;
+                hi += 1;
             }
-            t += 1;
-            b -= 1;
         }
-        if t > b {
-            total += t * 100;
+
+        if prev == total {
+            println!("Did not find any reflection for this grid ...");
         }
     }
 
