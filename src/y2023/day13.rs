@@ -39,7 +39,7 @@ pub fn part1(input: &str) -> String {
 
         // try vertical
         'l:
-        for m in 1..cols - 1 {
+        for m in 0..cols - 1 {
             let mut lo = m;
             let mut hi = m + 1;
             loop {
@@ -59,7 +59,7 @@ pub fn part1(input: &str) -> String {
 
         // try horizontal
         'l:
-        for m in 1..rows - 1 {
+        for m in 0..rows - 1 {
             let mut lo = m;
             let mut hi = m + 1;
             loop {
@@ -102,7 +102,7 @@ mod tests {
     #[test]
     fn p1() {
         let input = include_str!("../../inputs/2023/day13.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("32035", part1(input));
     }
 
     #[test]
