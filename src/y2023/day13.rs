@@ -95,16 +95,10 @@ pub fn part2(input: &str) -> String {
     'l:
     for ingrid in input.split("\n\n") {
         let mut grid = ingrid.to_char_grid();
-        println!("Original grid:");
         dbg_grid(&grid);
-        let mut dir = 1;
-        let mut pos = 0;
-        let mut v = 0;
-        (pos, v) = solve_vertical(&grid);
-        if v == 0 {
-            (pos, v) = solve_horizontal(&grid);
-            dir = 2;
-        }
+        let rows = grid.len();
+        let cols = grid[0].len();
+        dbg!(rows, cols);
         for y in 0..grid.len() {
             for x in 0..grid[0].len() {
                 let prev = grid[y][x];
@@ -113,22 +107,30 @@ pub fn part2(input: &str) -> String {
                 } else {
                     grid[y][x] = '.';
                 }
+                let mut qt = 0;
                 let (p, v) = solve_vertical(&grid);
-                if v > 0 && !(1 == dir && p == pos) {
-                    dbg_grid(&grid);
-                    total += v;
+                if v > 0 && (x == p ||
+                        (x < p && p - x + 1 <= cols - p - 1) ||
+                        (x > p && p + 1 >= x - p)) {
+                    println!("vertical: y = {y}, x = {x}, p = {p}");
+                    qt += v;
+                }
+                dbg!(qt);
+                let (p, v) = solve_horizontal(&grid);
+                if v > 0 && (y == p ||
+                        (y < p && p - y + 1 <= rows - p - 1) ||
+                        (y > p && p + 1 >= y - p)) {
+                    println!("horizontal: y = {y}, x = {x}, p = {p}");
+                    qt += v;
+                }
+                if qt > 0 {
+                    total += qt;
                     continue 'l;
-                } else {
-                    let (p, v) = solve_horizontal(&grid);
-                    if v > 0 && !(2 == dir && p == pos) {
-                        dbg_grid(&grid);
-                        total += v;
-                        continue 'l;
-                    }
                 }
                 grid[y][x] = prev;
             }
         }
+        println!("did not find mirror for grid");
     }
 
     total.to_string()
