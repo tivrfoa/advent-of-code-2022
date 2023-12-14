@@ -31,9 +31,9 @@ pub fn part1(input: &str) -> String {
     let mut total: usize = 0;
     for ingrid in input.split("\n\n") {
         let grid = ingrid.to_char_grid();
-        let (_, mut v) = solve_vertical(&grid);
+        let (_, mut v) = solve_vertical(&grid, usize::MAX);
         if v == 0 {
-            (_, v) = solve_horizontal(&grid);
+            (_, v) = solve_horizontal(&grid, usize::MAX);
         }
         total += v;
     }
@@ -41,11 +41,11 @@ pub fn part1(input: &str) -> String {
     total.to_string()
 }
 
-pub fn solve_vertical(grid: &[Vec<char>]) -> (usize, usize) {
-    let rows = grid.len();
+pub fn solve_vertical(grid: &[Vec<char>], avoid: usize) -> (usize, usize) {
     let cols = grid[0].len();
 
     for m in 0..cols - 1 {
+        if avoid != usize::MAX && m == avoid { continue; }
         let mut lo = m;
         let mut hi = m + 1;
         loop {
@@ -54,7 +54,6 @@ pub fn solve_vertical(grid: &[Vec<char>]) -> (usize, usize) {
             }
 
             if lo == 0 || hi + 1 == cols {
-                println!("Found vertical: {m}");
                 return (m, m + 1);
             }
             lo -= 1;
@@ -65,12 +64,12 @@ pub fn solve_vertical(grid: &[Vec<char>]) -> (usize, usize) {
     (0, 0)
 }
 
-pub fn solve_horizontal(grid: &[Vec<char>]) -> (usize, usize) {
+pub fn solve_horizontal(grid: &[Vec<char>], avoid: usize) -> (usize, usize) {
     let rows = grid.len();
-    let cols = grid[0].len();
 
     // try horizontal
     for m in 0..rows - 1 {
+        if avoid != usize::MAX && m == avoid { continue; }
         let mut lo = m;
         let mut hi = m + 1;
         loop {
@@ -79,7 +78,6 @@ pub fn solve_horizontal(grid: &[Vec<char>]) -> (usize, usize) {
             }
 
             if lo == 0 || hi + 1 == rows {
-                println!("Found horizontal: {m}");
                 return (m, (m + 1) * 100);
             }
             lo -= 1;
@@ -95,36 +93,27 @@ pub fn part2(input: &str) -> String {
     'l:
     for ingrid in input.split("\n\n") {
         let mut grid = ingrid.to_char_grid();
-        dbg_grid(&grid);
         let rows = grid.len();
         let cols = grid[0].len();
-        dbg!(rows, cols);
-        for y in 0..grid.len() {
-            for x in 0..grid[0].len() {
+        let (mut oph, _) = (usize::MAX, 0);
+        let (mut opv, original_vertical) = solve_vertical(&grid, usize::MAX);
+        if original_vertical == 0 {
+            opv = usize::MAX;
+            (oph, _) = solve_horizontal(&grid, usize::MAX);
+        }
+
+        for y in 0..rows {
+            for x in 0..cols {
                 let prev = grid[y][x];
-                if prev == '.' {
-                    grid[y][x] = '#';
-                } else {
-                    grid[y][x] = '.';
+                grid[y][x] = if prev == '.' { '#' } else { '.' };
+                let (_, v) = solve_horizontal(&grid, oph);
+                if v > 0 {
+                    total += v;
+                    continue 'l;
                 }
-                let mut qt = 0;
-                let (p, v) = solve_vertical(&grid);
-                if v > 0 && (x == p ||
-                        (x < p && p - x + 1 <= cols - p - 1) ||
-                        (x > p && p + 1 >= x - p)) {
-                    println!("vertical: y = {y}, x = {x}, p = {p}");
-                    qt += v;
-                }
-                dbg!(qt);
-                let (p, v) = solve_horizontal(&grid);
-                if v > 0 && (y == p ||
-                        (y < p && p - y + 1 <= rows - p - 1) ||
-                        (y > p && p + 1 >= y - p)) {
-                    println!("horizontal: y = {y}, x = {x}, p = {p}");
-                    qt += v;
-                }
-                if qt > 0 {
-                    total += qt;
+                let (_, v) = solve_vertical(&grid, opv);
+                if v > 0 {
+                    total += v;
                     continue 'l;
                 }
                 grid[y][x] = prev;
@@ -161,6 +150,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = include_str!("../../inputs/2023/day13.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("24847", part2(input));
     }
 }
