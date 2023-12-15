@@ -9,7 +9,7 @@ use std::iter::zip;
 
 use util::*;
 
-fn tilt(mut grid: Vec<Vec<char>>) -> Vec<Vec<char>> {
+fn tilt_north(grid: &mut Vec<Vec<char>>) {
     let rows = grid.len();
     let cols = grid[0].len();
 
@@ -26,21 +26,69 @@ fn tilt(mut grid: Vec<Vec<char>>) -> Vec<Vec<char>> {
             }
         }
     }
-
-    grid
 }
 
-// let load_single_rounded_rock = rows - rock.row;
-pub fn part1(input: &str) -> String {
-    let mut total = 0;
-
-    let grid = input.to_char_grid();
-    dbg_grid(&grid);
-    let grid = tilt(grid);
-    dbg_grid(&grid);
+fn tilt_south(grid: &mut Vec<Vec<char>>) {
     let rows = grid.len();
     let cols = grid[0].len();
 
+    for y in (0..rows - 1).rev() {
+        for x in 0..cols {
+            if grid[y][x] == 'O' {
+                for row in y+1..rows {
+                    if grid[row][x] != '.' {
+                        break;
+                    }
+                    grid[row][x] = 'O';
+                    grid[row - 1][x] = '.';
+                }
+            }
+        }
+    }
+}
+
+fn tilt_west(grid: &mut Vec<Vec<char>>) {
+    let rows = grid.len();
+    let cols = grid[0].len();
+
+    for x in 1..cols {
+        for y in 0..rows {
+            if grid[y][x] == 'O' {
+                for col in (0..x).rev() {
+                    if grid[y][col] != '.' {
+                        break;
+                    }
+                    grid[y][col] = 'O';
+                    grid[y][col + 1] = '.';
+                }
+            }
+        }
+    }
+}
+
+fn tilt_east(grid: &mut Vec<Vec<char>>) {
+    let rows = grid.len();
+    let cols = grid[0].len();
+
+    for x in (0..cols - 1).rev() {
+        for y in 0..rows {
+            if grid[y][x] == 'O' {
+                for col in x+1..cols {
+                    if grid[y][col] != '.' {
+                        break;
+                    }
+                    grid[y][col] = 'O';
+                    grid[y][col - 1] = '.';
+                }
+            }
+        }
+    }
+}
+
+fn get_north_load(grid: &[Vec<char>]) -> usize {
+    let rows = grid.len();
+    let cols = grid[0].len();
+    let mut total = 0;
     for y in 0..rows {
         for x in 0..cols {
             if grid[y][x] == 'O' {
@@ -48,12 +96,36 @@ pub fn part1(input: &str) -> String {
             }
         }
     }
+    total
+}
 
-    total.to_string()
+// let load_single_rounded_rock = rows - rock.row;
+pub fn part1(input: &str) -> String {
+    let mut grid = input.to_char_grid();
+    tilt_north(&mut grid);
+    get_north_load(&grid).to_string()
 }
 
 pub fn part2(input: &str) -> String {
-    "".into()
+    let mut grid = input.to_char_grid();
+    let mut north_loads: HashSet<usize> = HashSet::new();
+
+    // for i in 0..100 {
+    for i in 0..3 {
+        tilt_north(&mut grid);
+        tilt_west(&mut grid);
+        tilt_south(&mut grid);
+        tilt_east(&mut grid);
+
+        dbg_grid(&grid);
+
+        let load = get_north_load(&grid);
+        if !north_loads.insert(load) {
+            println!("Same load at {i} - load = {load}");
+        }
+    }
+
+    "0".to_string()
 }
 
 #[allow(dead_code)]
