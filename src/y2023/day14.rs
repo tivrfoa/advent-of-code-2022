@@ -172,12 +172,12 @@ mod tests {
     #[test]
     fn p2s() {
         let input = include_str!("../../inputs/2023/day14-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("64", part2(input));
     }
 
     #[test]
     fn p2() {
         let input = include_str!("../../inputs/2023/day14.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("97241", part2(input));
     }
 }
