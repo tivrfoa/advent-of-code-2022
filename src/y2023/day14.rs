@@ -110,20 +110,23 @@ pub fn part2(input: &str) -> String {
     let mut grid = input.to_char_grid();
     let mut north_loads: HashSet<usize> = HashSet::new();
 
-    // for i in 0..100 {
-    for i in 0..3 {
+    for i in 0..1000 {
+    // for i in 0..3 {
         tilt_north(&mut grid);
         tilt_west(&mut grid);
         tilt_south(&mut grid);
         tilt_east(&mut grid);
 
-        dbg_grid(&grid);
+        // dbg_grid(&grid);
 
         let load = get_north_load(&grid);
         if !north_loads.insert(load) {
             println!("Same load at {i} - load = {load}");
         }
     }
+
+    // 1_000_000_000 % cycle_length = pos in cycle length that correponds
+    // to the north load
 
     "0".to_string()
 }
