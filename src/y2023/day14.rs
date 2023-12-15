@@ -16,13 +16,10 @@ fn tilt_north(grid: &mut Vec<Vec<char>>) {
     for y in 1..rows {
         for x in 0..cols {
             if grid[y][x] == 'O' {
-                for row in (0..y).rev() {
-                    if grid[row][x] != '.' {
-                        break;
-                    }
-                    grid[row][x] = 'O';
-                    grid[row + 1][x] = '.';
-                }
+                let mut k = y;
+                while k > 0 && grid[k - 1][x] == '.' { k -= 1; }
+                grid[y][x] = '.';
+                grid[k][x] = 'O';
             }
         }
     }
@@ -35,13 +32,10 @@ fn tilt_south(grid: &mut Vec<Vec<char>>) {
     for y in (0..rows - 1).rev() {
         for x in 0..cols {
             if grid[y][x] == 'O' {
-                for row in y+1..rows {
-                    if grid[row][x] != '.' {
-                        break;
-                    }
-                    grid[row][x] = 'O';
-                    grid[row - 1][x] = '.';
-                }
+                let mut k = y;
+                while k + 1 < rows && grid[k + 1][x] == '.' { k += 1; }
+                grid[y][x] = '.';
+                grid[k][x] = 'O';
             }
         }
     }
@@ -54,13 +48,10 @@ fn tilt_west(grid: &mut Vec<Vec<char>>) {
     for x in 1..cols {
         for y in 0..rows {
             if grid[y][x] == 'O' {
-                for col in (0..x).rev() {
-                    if grid[y][col] != '.' {
-                        break;
-                    }
-                    grid[y][col] = 'O';
-                    grid[y][col + 1] = '.';
-                }
+                let mut k = x;
+                while k > 0 && grid[y][k - 1] == '.' { k -= 1; }
+                grid[y][x] = '.';
+                grid[y][k] = 'O';
             }
         }
     }
@@ -73,13 +64,10 @@ fn tilt_east(grid: &mut Vec<Vec<char>>) {
     for x in (0..cols - 1).rev() {
         for y in 0..rows {
             if grid[y][x] == 'O' {
-                for col in x+1..cols {
-                    if grid[y][col] != '.' {
-                        break;
-                    }
-                    grid[y][col] = 'O';
-                    grid[y][col - 1] = '.';
-                }
+                let mut k = x;
+                while k + 1 < cols && grid[y][k + 1] == '.' { k += 1; }
+                grid[y][x] = '.';
+                grid[y][k] = 'O';
             }
         }
     }
@@ -119,11 +107,9 @@ pub fn part2(input: &str) -> String {
 
         let load = get_north_load(&grid);
         if !north_loads.insert(load) {
-            println!("Same load at {i} - load = {load}");
+            // println!("Same load at {i} - load = {load}");
             let len = loop_values.len();
-            if len == 0 {
-                loop_values.push((i, load));
-            } else if loop_values[len - 1].0 + 1 != i {
+            if len == 0 || loop_values[len - 1].0 + 1 != i {
                 // loop did not start yet. reset
                 loop_values = vec![(i, load)];
             } else if len > 1 && loop_values[0].1 == load {
