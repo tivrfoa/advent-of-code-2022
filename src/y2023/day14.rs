@@ -109,48 +109,37 @@ pub fn part1(input: &str) -> String {
 pub fn part2(input: &str) -> String {
     let mut grid = input.to_char_grid();
     let mut north_loads: HashSet<usize> = HashSet::new();
+    let mut loop_values: Vec<(usize, usize)> = vec![];
 
     for i in 0..1000 {
-    // for i in 0..3 {
         tilt_north(&mut grid);
         tilt_west(&mut grid);
         tilt_south(&mut grid);
         tilt_east(&mut grid);
 
-        // dbg_grid(&grid);
-
         let load = get_north_load(&grid);
         if !north_loads.insert(load) {
             println!("Same load at {i} - load = {load}");
+            let len = loop_values.len();
+            if len == 0 {
+                loop_values.push((i, load));
+            } else if loop_values[len - 1].0 + 1 != i {
+                // loop did not start yet. reset
+                loop_values = vec![(i, load)];
+            } else if len > 1 && loop_values[0].1 == load {
+                // loop completed. return answer
+                let idx = (1_000_000_000 - i - 1) % len;
+                return loop_values[idx].1.to_string();
+            } else {
+                loop_values.push((i, load));
+            }
         }
     }
 
-    // 1_000_000_000 % cycle_length = pos in cycle length that correponds
-    // to the north load
+    // (1_000_000_000 + cycles_before_loop) % loop_length = pos in loop
+    // that correponds to the north load
 
     "0".to_string()
-}
-
-#[allow(dead_code)]
-#[derive(Clone, Eq, PartialEq)]
-struct State {
-    cost: u32,
-    position: (usize, usize),
-}
-
-impl Ord for State {
-    fn cmp(&self, other: &Self) -> Ordering {
-        other
-            .cost
-            .cmp(&self.cost)
-            .then_with(|| self.position.cmp(&other.position))
-    }
-}
-
-impl PartialOrd for State {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
 }
 
 #[cfg(test)]
