@@ -101,7 +101,6 @@ pub fn part1(input: &str) -> String {
     let (workflows, ratings) = parse(input);
 
     for rating in ratings {
-        let mut rules = &workflows["in"];
         let mut v = "in";
         while v != "A" && v != "R" {
             for r in &workflows[v] {
