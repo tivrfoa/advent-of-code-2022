@@ -154,7 +154,16 @@ pub fn part1(input: &str) -> String {
 pub fn part2(input: &str) -> String {
     let mut modules = parse(input);
 
-    for i in 1..30_000 {
+    // const IN: [&str; 4] = ["qs", "sv", "pg", "sp"];
+    let mut tracker: HashMap<&str, Vec<u64>> = HashMap::from([
+        ("pg", vec![]),
+        ("qs", vec![]),
+        ("sp", vec![]),
+        ("sv", vec![]),
+    ]);
+
+    'i:
+    for i in 1..20_000 {
         let mut pulse_queue: VecDeque<Pulse> = VecDeque::new();
         pulse_queue.push_back(Pulse {
             module_name: "broadcaster",
@@ -173,9 +182,6 @@ pub fn part2(input: &str) -> String {
                         *on = !*on;
                         let pulse_type = if *on { PulseType::HIGH } else { PulseType::LOW };
                         for d in &module.destinations {
-                            if *d == "rx" && pulse_type == PulseType::LOW {
-                                return i.to_string();
-                            }
                             pulse_queue.push_back(Pulse {
                                 module_name: d,
                                 sender: pulse.module_name,
@@ -189,7 +195,12 @@ pub fn part2(input: &str) -> String {
                     // gf <- qs, sv, pg, sp
                     const IN: [&str; 4] = ["qs", "sv", "pg", "sp"];
                     if pulse.pulse_type == PulseType::HIGH && IN.contains(&pulse.sender) {
-                        eprintln!("{i} {}", pulse.sender);
+                        // eprintln!("{i} {}", pulse.sender);
+                        tracker.get_mut(pulse.sender).unwrap().push(i);
+                        if tracker.iter().filter(|(_, v)| v.len() >= 2).count() == tracker.len() {
+                            eprintln!("Tracked enough ... i = {}", i);
+                            break 'i;
+                        }
                     }
                     memory.insert(pulse.sender, pulse.pulse_type);
                     let pulse_type = if memory.iter().find(|(_k, v)| *v == &PulseType::LOW).is_none() {
@@ -198,9 +209,6 @@ pub fn part2(input: &str) -> String {
                         PulseType::HIGH
                     };
                     for d in &modules[pulse.module_name].destinations {
-                        if *d == "rx" && pulse_type == PulseType::LOW {
-                            return i.to_string();
-                        }
                         pulse_queue.push_back(Pulse {
                             module_name: d,
                             sender: pulse.module_name,
@@ -221,7 +229,13 @@ pub fn part2(input: &str) -> String {
         }
     }
 
-    panic!("Failed");
+    let mut ans = 1;
+    for (_, v) in tracker {
+        let diff = v[v.len() - 1] - v[v.len() - 2];
+        ans = lcm(ans, diff);
+    }
+
+    ans.to_string()
 }
 
 #[cfg(test)]
