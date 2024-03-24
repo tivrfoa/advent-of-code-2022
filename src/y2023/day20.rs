@@ -11,23 +11,32 @@ use util::*;
 
 #[derive(Debug)]
 struct Module<'a> {
-    module_type: ModuleType,
+    module_type: ModuleType<'a>,
     destinations: Vec<&'a str>,
 }
 
 #[derive(Clone, Debug)]
-enum ModuleType {
+enum ModuleType<'a> {
     FlipFlop { // %
         on: bool,
     },
-    Conjunction, // &
+    Conjunction {
+        memory: HashMap<&'a str, PulseType>,
+    }, // &
     Broadcast,
 }
 
 #[derive(Debug)]
 struct Pulse<'a> {
     module_name: &'a str,
-    low_intensity: bool,
+    sender: &'a str,
+    pulse_type: PulseType,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum PulseType {
+    HIGH,
+    LOW,
 }
 
 /*
@@ -64,11 +73,19 @@ fn parse(input: &str) -> (HashMap<&str, Vec<&str>>, HashMap<&str, Module>) {
             }
             "&" => {
                 modules.insert(module_name, Module {
-                    module_type: Conjunction,
+                    module_type: Conjunction { memory: HashMap::new() },
                     destinations,
                 });
             }
             _ => panic!("{l}"),
+        }
+    }
+
+    for (k, v) in modules.iter_mut() {
+        if let Conjunction { memory } = &mut v.module_type {
+            for i in &inputs[k] {
+                memory.insert(i, PulseType::LOW);
+            }
         }
     }
 
@@ -87,61 +104,55 @@ pub fn part1(input: &str) -> String {
         let mut pulse_queue: VecDeque<Pulse> = VecDeque::new();
         pulse_queue.push_back(Pulse {
             module_name: "broadcaster",
-            low_intensity: true,
+            sender: "",
+            pulse_type: PulseType::LOW,
         });
         while let Some(pulse) = pulse_queue.pop_front() {
-            if pulse.low_intensity {
-                low_pulses += 1;
-            } else {
-                high_pulses += 1;
+            match pulse.pulse_type {
+                PulseType::LOW => low_pulses += 1,
+                PulseType::HIGH => high_pulses += 1,
             }
-            println!("{} {}", if pulse.low_intensity { "low" } else { "high"}, pulse.module_name);
+            dbg!(&pulse);
             if !modules.contains_key(pulse.module_name) {
                 continue;
             }
-            match modules[pulse.module_name].module_type {
+
+            let module = modules.get_mut(pulse.module_name).unwrap();
+            match &mut module.module_type {
                 FlipFlop { on } => {
-                    if pulse.low_intensity {
-                        let module = modules.get_mut(pulse.module_name).unwrap();
-                        match &mut module.module_type {
-                            FlipFlop { on } => *on = !*on,
-                            Conjunction => panic!(),
-                            Broadcast => panic!(),
-                        }
-                        let is_on = !on;
-                        let send_low = if is_on { false } else { true };
+                    if let PulseType::LOW = pulse.pulse_type {
+                        *on = !*on;
+                        let pulse_type = if *on { PulseType::HIGH } else { PulseType::LOW };
                         for d in &module.destinations {
                             pulse_queue.push_back(Pulse {
                                 module_name: d,
-                                low_intensity: send_low,
+                                sender: pulse.module_name,
+                                pulse_type,
                             });
                         }
                     }
                 },
-                Conjunction => {
-                    let is_all_high = is_all_high(&modules, &inputs, pulse.module_name);
-                    
-                    if is_all_high {
-                        for d in &modules[pulse.module_name].destinations {
-                            pulse_queue.push_back(Pulse {
-                                module_name: d,
-                                low_intensity: true,
-                            });
-                        }
+                Conjunction { memory } => {
+                    memory.insert(pulse.sender, pulse.pulse_type);
+                    let pulse_type = if memory.iter().find(|(_k, v)| *v == &PulseType::LOW).is_none() {
+                        PulseType::LOW
                     } else {
-                        for d in &modules[pulse.module_name].destinations {
-                            pulse_queue.push_back(Pulse {
-                                module_name: d,
-                                low_intensity: false,
-                            });
-                        }
+                        PulseType::HIGH
+                    };
+                    for d in &modules[pulse.module_name].destinations {
+                        pulse_queue.push_back(Pulse {
+                            module_name: d,
+                            sender: pulse.module_name,
+                            pulse_type,
+                        });
                     }
                 },
                 Broadcast => {
                     for d in &modules[pulse.module_name].destinations {
                         pulse_queue.push_back(Pulse {
                             module_name: d,
-                            low_intensity: true,
+                            sender: "broadcaster",
+                            pulse_type: PulseType::LOW,
                         });
                     }
                 },
@@ -154,8 +165,7 @@ dbg!(low_pulses, high_pulses);
 
 fn is_all_high(modules: &HashMap<&str, Module<'_>>, inputs: &HashMap<&str, Vec<&str>>, module_name: &str) -> bool {
     for input in &inputs[module_name] {
-        let module = &modules[input];
-        match module.module_type {
+        match &modules[input].module_type {
             FlipFlop { on } => {
                 if !on {
                     return false;
@@ -188,16 +198,16 @@ mod tests {
         assert_eq!("32000000", part1(input));
     }
 
-    // #[test]
-    // fn p12s() {
-    //     let input = include_str!("../../inputs/2023/day20-sample2.txt");
-    //     assert_eq!("11687500", part1(input));
-    // }
+    #[test]
+    fn p12s() {
+        let input = include_str!("../../inputs/2023/day20-sample2.txt");
+        assert_eq!("11687500", part1(input));
+    }
 
     #[test]
     fn p1() {
         let input = include_str!("../../inputs/2023/day20.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("886347020", part1(input));
     }
 
     #[test]
