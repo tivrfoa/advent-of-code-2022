@@ -15,7 +15,7 @@ struct Module<'a> {
     destinations: Vec<&'a str>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 enum ModuleType<'a> {
     FlipFlop { // %
         on: bool,
@@ -96,8 +96,6 @@ pub fn part1(input: &str) -> String {
     let mut low_pulses = 0;
     let mut high_pulses = 0;
     let (inputs, mut modules) = parse(input);
-    dbg!(&inputs);
-    dbg!(&modules);
 
     for _ in 0..1000 {
     // for _ in 0..1 {
@@ -159,29 +157,8 @@ pub fn part1(input: &str) -> String {
             }
         }
     }
-dbg!(low_pulses, high_pulses);
+
     (low_pulses * high_pulses).to_string()
-}
-
-fn is_all_high(modules: &HashMap<&str, Module<'_>>, inputs: &HashMap<&str, Vec<&str>>, module_name: &str) -> bool {
-    for input in &inputs[module_name] {
-        match &modules[input].module_type {
-            FlipFlop { on } => {
-                if !on {
-                    return false;
-                }
-            },
-            Conjunction => {
-                // conjunction: sp rn
-                if !is_all_high(modules, inputs, input) {
-                    return false;
-                }
-            },
-            Broadcast => todo!(),
-        }
-    }
-
-    true
 }
 
 pub fn part2(input: &str) -> String {
