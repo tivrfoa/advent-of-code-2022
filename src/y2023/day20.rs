@@ -98,7 +98,6 @@ pub fn part1(input: &str) -> String {
     let mut modules = parse(input);
 
     for _ in 0..1000 {
-    // for _ in 0..1 {
         let mut pulse_queue: VecDeque<Pulse> = VecDeque::new();
         pulse_queue.push_back(Pulse {
             module_name: "broadcaster",
@@ -110,7 +109,6 @@ pub fn part1(input: &str) -> String {
                 PulseType::LOW => low_pulses += 1,
                 PulseType::HIGH => high_pulses += 1,
             }
-            dbg!(&pulse);
             if !modules.contains_key(pulse.module_name) {
                 continue;
             }
@@ -162,7 +160,70 @@ pub fn part1(input: &str) -> String {
 }
 
 pub fn part2(input: &str) -> String {
-    "".into()
+    let mut modules = parse(input);
+
+    for i in 1..1_000_000_000 {
+        let mut pulse_queue: VecDeque<Pulse> = VecDeque::new();
+        pulse_queue.push_back(Pulse {
+            module_name: "broadcaster",
+            sender: "",
+            pulse_type: PulseType::LOW,
+        });
+        while let Some(pulse) = pulse_queue.pop_front() {
+            if !modules.contains_key(pulse.module_name) {
+                continue;
+            }
+
+            let module = modules.get_mut(pulse.module_name).unwrap();
+            match &mut module.module_type {
+                FlipFlop { on } => {
+                    if let PulseType::LOW = pulse.pulse_type {
+                        *on = !*on;
+                        let pulse_type = if *on { PulseType::HIGH } else { PulseType::LOW };
+                        for d in &module.destinations {
+                            if *d == "rx" && pulse_type == PulseType::LOW {
+                                return i.to_string();
+                            }
+                            pulse_queue.push_back(Pulse {
+                                module_name: d,
+                                sender: pulse.module_name,
+                                pulse_type,
+                            });
+                        }
+                    }
+                },
+                Conjunction { memory } => {
+                    memory.insert(pulse.sender, pulse.pulse_type);
+                    let pulse_type = if memory.iter().find(|(_k, v)| *v == &PulseType::LOW).is_none() {
+                        PulseType::LOW
+                    } else {
+                        PulseType::HIGH
+                    };
+                    for d in &modules[pulse.module_name].destinations {
+                        if *d == "rx" && pulse_type == PulseType::LOW {
+                            return i.to_string();
+                        }
+                        pulse_queue.push_back(Pulse {
+                            module_name: d,
+                            sender: pulse.module_name,
+                            pulse_type,
+                        });
+                    }
+                },
+                Broadcast => {
+                    for d in &modules[pulse.module_name].destinations {
+                        pulse_queue.push_back(Pulse {
+                            module_name: d,
+                            sender: "broadcaster",
+                            pulse_type: PulseType::LOW,
+                        });
+                    }
+                },
+            }
+        }
+    }
+
+    panic!("Failed");
 }
 
 #[cfg(test)]
