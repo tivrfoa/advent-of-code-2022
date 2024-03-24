@@ -114,18 +114,14 @@ pub fn part1(input: &str) -> String {
             }
 
             let module = modules.get_mut(pulse.module_name).unwrap();
-            match &mut module.module_type {
+            if let Some((sender, pulse_type)) = match &mut module.module_type {
                 FlipFlop { on } => {
                     if let PulseType::LOW = pulse.pulse_type {
                         *on = !*on;
                         let pulse_type = if *on { PulseType::HIGH } else { PulseType::LOW };
-                        for d in &module.destinations {
-                            pulse_queue.push_back(Pulse {
-                                module_name: d,
-                                sender: pulse.module_name,
-                                pulse_type,
-                            });
-                        }
+                        Some((pulse.module_name, pulse_type))
+                    } else {
+                        None
                     }
                 },
                 Conjunction { memory } => {
@@ -135,23 +131,19 @@ pub fn part1(input: &str) -> String {
                     } else {
                         PulseType::HIGH
                     };
-                    for d in &modules[pulse.module_name].destinations {
-                        pulse_queue.push_back(Pulse {
-                            module_name: d,
-                            sender: pulse.module_name,
-                            pulse_type,
-                        });
-                    }
+                    Some((pulse.module_name, pulse_type))
                 },
                 Broadcast => {
-                    for d in &modules[pulse.module_name].destinations {
-                        pulse_queue.push_back(Pulse {
-                            module_name: d,
-                            sender: "broadcaster",
-                            pulse_type: PulseType::LOW,
-                        });
-                    }
+                    Some(("broadcaster", PulseType::LOW))
                 },
+            } {
+                for d in &modules[pulse.module_name].destinations {
+                    pulse_queue.push_back(Pulse {
+                        module_name: d,
+                        sender: pulse.module_name,
+                        pulse_type,
+                    });
+                }
             }
         }
     }
