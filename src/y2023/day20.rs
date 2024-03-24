@@ -20,9 +20,9 @@ enum ModuleType<'a> {
     FlipFlop { // %
         on: bool,
     },
-    Conjunction {
+    Conjunction { // &
         memory: HashMap<&'a str, PulseType>,
-    }, // &
+    },
     Broadcast,
 }
 
@@ -45,7 +45,7 @@ Need to use a queue!
 
 use ModuleType::*;
 
-fn parse(input: &str) -> (HashMap<&str, Vec<&str>>, HashMap<&str, Module>) {
+fn parse(input: &str) -> HashMap<&str, Module> {
     let mut inputs: HashMap<&str, Vec<&str>> = HashMap::new();
     let mut modules: HashMap<&str, Module> = HashMap::new();
 
@@ -89,13 +89,13 @@ fn parse(input: &str) -> (HashMap<&str, Vec<&str>>, HashMap<&str, Module>) {
         }
     }
 
-    (inputs, modules)
+    modules
 }
 
 pub fn part1(input: &str) -> String {
     let mut low_pulses = 0;
     let mut high_pulses = 0;
-    let (inputs, mut modules) = parse(input);
+    let mut modules = parse(input);
 
     for _ in 0..1000 {
     // for _ in 0..1 {
