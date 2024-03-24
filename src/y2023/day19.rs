@@ -170,10 +170,10 @@ fn initial_range() -> [Range; 4] {
     ]
 }
 
-fn update_range(rule_idx: usize, l: u64, r: u64, ranges: &[Range; 4]) -> [Range; 4] {
+fn update_range(idx: usize, l: u64, r: u64, ranges: &[Range; 4]) -> [Range; 4] {
     let mut new_ranges = ranges.clone();
-    new_ranges[rule_idx].l = l;
-    new_ranges[rule_idx].r = r;
+    new_ranges[idx].l = l;
+    new_ranges[idx].r = r;
 
     new_ranges
 }
