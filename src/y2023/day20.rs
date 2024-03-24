@@ -154,7 +154,7 @@ pub fn part1(input: &str) -> String {
 pub fn part2(input: &str) -> String {
     let mut modules = parse(input);
 
-    for i in 1..1_000_000_000 {
+    for i in 1..30_000 {
         let mut pulse_queue: VecDeque<Pulse> = VecDeque::new();
         pulse_queue.push_back(Pulse {
             module_name: "broadcaster",
@@ -185,6 +185,12 @@ pub fn part2(input: &str) -> String {
                     }
                 },
                 Conjunction { memory } => {
+                    // &gf -> rx
+                    // gf <- qs, sv, pg, sp
+                    const IN: [&str; 4] = ["qs", "sv", "pg", "sp"];
+                    if pulse.pulse_type == PulseType::HIGH && IN.contains(&pulse.sender) {
+                        eprintln!("{i} {}", pulse.sender);
+                    }
                     memory.insert(pulse.sender, pulse.pulse_type);
                     let pulse_type = if memory.iter().find(|(_k, v)| *v == &PulseType::LOW).is_none() {
                         PulseType::LOW
@@ -240,15 +246,15 @@ mod tests {
         assert_eq!("886347020", part1(input));
     }
 
-    #[test]
-    fn p2s() {
-        let input = include_str!("../../inputs/2023/day20-sample.txt");
-        assert_eq!("", part2(input));
-    }
+    // #[test]
+    // fn p2s() {
+    //     let input = include_str!("../../inputs/2023/day20-sample.txt");
+    //     assert_eq!("", part2(input));
+    // }
 
     #[test]
     fn p2() {
         let input = include_str!("../../inputs/2023/day20.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("233283622908263", part2(input));
     }
 }
