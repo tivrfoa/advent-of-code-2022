@@ -8,6 +8,8 @@ use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::hash::Hash;
 use std::iter::zip;
 
+use num::Integer;
+
 #[allow(dead_code)]
 pub fn get_file_contents() -> String {
     let args: Vec<String> = env::args().collect();
@@ -240,6 +242,18 @@ pub fn u32_set_zero_at(n: u32, pos: u32) -> u32 {
 #[allow(dead_code)]
 pub fn u32_set_one_at(n: u32, pos: u32) -> u32 {
     n | (1 << pos)
+}
+
+
+// trait Between {
+//     fn is_between(&self, l: Integer, r: impl Integer) -> bool
+//             where Self: Integer {
+//         &l <= self && self <= &r
+//     }
+// }
+
+pub fn is_between<I: Integer>(n: I, l: I, r: I) -> bool{
+    l <= n && n <= r
 }
 
 #[allow(dead_code)]
