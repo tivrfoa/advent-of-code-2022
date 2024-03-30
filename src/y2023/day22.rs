@@ -67,17 +67,25 @@ pub fn part1(input: &str) -> String {
                 break;
             }
         }
-        cubes[i].z1 = z1;
-        cubes[i].z2 = z2;
-        heights.entry(Reverse(z2)).or_insert(vec![]).push(i);
+
+        if cubes[i].supported_by.is_empty() {
+            let diff = cubes[i].z2 - cubes[i].z1;
+            cubes[i].z1 = 1;
+            cubes[i].z2 = 1 + diff;
+        } else {
+            cubes[i].z1 = z1;
+            cubes[i].z2 = z2;
+        }
+        heights.entry(Reverse(cubes[i].z2)).or_insert(vec![]).push(i);
     }
-    dbg!(&cubes);
+    // dbg!(&cubes);
 
     let mut qt = 0;
     for i in 0..cubes.len() {
         let mut can_desintegrate = true;
         for s in &cubes[i].supports {
             let sidx = *s;
+            assert!(!cubes[sidx].supported_by.is_empty());
             if cubes[sidx].supported_by.len() == 1 {
                 can_desintegrate = false;
                 break;
@@ -85,6 +93,14 @@ pub fn part1(input: &str) -> String {
         }
 
         if can_desintegrate {
+            println!("[{}, {}, {}, {}, {}, {}]",
+                cubes[i].x1,
+                cubes[i].y1,
+                cubes[i].z1,
+                cubes[i].x2,
+                cubes[i].y2,
+                cubes[i].z2,
+            );
             qt += 1;
         }
     }
@@ -97,7 +113,8 @@ fn parse(input: &str) -> Vec<Cube> {
     for (_id, line) in input.lines().enumerate() {
         ret.push(parse_cube(line));
     }
-    ret.sort_unstable_by(|a, b| a.z1.cmp(&b.z1).then(a.z2.cmp(&b.z2)));
+    // ret.sort_unstable_by(|a, b| a.z1.cmp(&b.z1).then(a.z2.cmp(&b.z2)));
+    ret.sort_by(|a, b| a.z1.cmp(&b.z1));
     ret
 }
 
@@ -138,7 +155,7 @@ mod tests {
     #[test]
     fn p1() {
         let input = include_str!("../../inputs/2023/day22.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("505", part1(input));
     }
 
     #[test]
