@@ -34,29 +34,31 @@ struct Cube {
     supports: Vec<usize>,
 }
 
+impl Cube {
+    fn overlaps(&self, other: &Cube) -> bool {
+        (is_between(self.x1, other.x1, other.x2) ||
+            is_between(self.x2, other.x1, other.x2) ||
+            self.x1 < other.x1 && self.x2 > other.x2) &&
+            (is_between(self.y1, other.y1, other.y2) ||
+            is_between(self.y2, other.y1, other.y2) ||
+            self.y1 < other.y1 && self.y2 > other.y2)
+
+    }
+}
+
 pub fn part1(input: &str) -> String {
     let mut cubes: Vec<Cube> = parse(input);
+    cubes.sort_unstable_by(|a, b| a.z1.cmp(&b.z1).then(a.z2.cmp(&b.z2)));
     let mut heights: BTreeMap<Reverse<i32>, Vec<usize>> = BTreeMap::new();
-    // dbg!(&cubes);
     // make them fall
-    let diff = cubes[0].z2 - cubes[0].z1;
-    cubes[0].z1 = 1;
-    cubes[0].z2 = 1 + diff;
-    // dbg!(&cubes[0]);
-    heights.insert(Reverse(cubes[0].z2), vec![0]);
-    for i in 1..cubes.len() {
+    for i in 0..cubes.len() {
         let mut z1 = cubes[i].z1;
         let mut z2 = cubes[i].z2;
         let diff = z2 - z1;
         for (h, cubes_indexes) in heights.iter() {
             for j in cubes_indexes {
                 let j = *j;
-                if (is_between(cubes[i].x1, cubes[j].x1, cubes[j].x2) ||
-                    is_between(cubes[i].x2, cubes[j].x1, cubes[j].x2) ||
-                    cubes[i].x1 < cubes[j].x1 && cubes[i].x2 > cubes[j].x2) &&
-                    (is_between(cubes[i].y1, cubes[j].y1, cubes[j].y2) ||
-                    is_between(cubes[i].y2, cubes[j].y1, cubes[j].y2) ||
-                    cubes[i].y1 < cubes[j].y1 && cubes[i].y2 > cubes[j].y2) {
+                if cubes[i].overlaps(&cubes[j]) {
                     cubes[j].supports.push(i);
                     cubes[i].supported_by.push(j);
                     z1 = h.0 + 1;
@@ -78,31 +80,15 @@ pub fn part1(input: &str) -> String {
         }
         heights.entry(Reverse(cubes[i].z2)).or_insert(vec![]).push(i);
     }
-    // dbg!(&cubes);
 
     let mut qt = 0;
-    for i in 0..cubes.len() {
-        let mut can_desintegrate = true;
+    'c: for i in 0..cubes.len() {
         for s in &cubes[i].supports {
-            let sidx = *s;
-            assert!(!cubes[sidx].supported_by.is_empty());
-            if cubes[sidx].supported_by.len() == 1 {
-                can_desintegrate = false;
-                break;
+            if cubes[*s].supported_by.len() == 1 {
+                continue 'c;
             }
         }
-
-        if can_desintegrate {
-            println!("[{}, {}, {}, {}, {}, {}]",
-                cubes[i].x1,
-                cubes[i].y1,
-                cubes[i].z1,
-                cubes[i].x2,
-                cubes[i].y2,
-                cubes[i].z2,
-            );
-            qt += 1;
-        }
+        qt += 1;
     }
 
     qt.to_string()
@@ -113,8 +99,6 @@ fn parse(input: &str) -> Vec<Cube> {
     for (_id, line) in input.lines().enumerate() {
         ret.push(parse_cube(line));
     }
-    // ret.sort_unstable_by(|a, b| a.z1.cmp(&b.z1).then(a.z2.cmp(&b.z2)));
-    ret.sort_by(|a, b| a.z1.cmp(&b.z1));
     ret
 }
 
