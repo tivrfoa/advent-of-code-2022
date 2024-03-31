@@ -123,7 +123,78 @@ fn parse_cube(line: &str) -> Cube {
 }
 
 pub fn part2(input: &str) -> String {
-    "".into()
+    let mut cubes: Vec<Cube> = parse(input);
+    cubes.sort_unstable_by(|a, b| a.z1.cmp(&b.z1).then(a.z2.cmp(&b.z2)));
+    let mut heights: BTreeMap<Reverse<i32>, Vec<usize>> = BTreeMap::new();
+    let mut supported_by: Vec<i32> = vec![0; cubes.len()];
+    // make them fall
+    for i in 0..cubes.len() {
+        let mut z1 = cubes[i].z1;
+        let mut z2 = cubes[i].z2;
+        let diff = z2 - z1;
+        for (h, cubes_indexes) in heights.iter() {
+            for j in cubes_indexes {
+                let j = *j;
+                if cubes[i].overlaps(&cubes[j]) {
+                    cubes[j].supports.push(i);
+                    cubes[i].supported_by.push(j);
+                    supported_by[i] += 1;
+                    z1 = h.0 + 1;
+                    z2 = z1 + diff;
+                }
+            }
+            if !cubes[i].supported_by.is_empty() {
+                break;
+            }
+        }
+
+        if cubes[i].supported_by.is_empty() {
+            let diff = cubes[i].z2 - cubes[i].z1;
+            cubes[i].z1 = 1;
+            cubes[i].z2 = 1 + diff;
+        } else {
+            cubes[i].z1 = z1;
+            cubes[i].z2 = z2;
+        }
+        heights.entry(Reverse(cubes[i].z2)).or_insert(vec![]).push(i);
+    }
+
+    let mut qt = 0;
+
+    let mut to_visit = vec![];
+    'c: for i in 0..cubes.len() {
+        for s in &cubes[i].supports {
+            if cubes[*s].supported_by.len() == 1 {
+                to_visit.push(i);
+                continue 'c;
+            }
+        }
+    }
+
+    for idx in to_visit {
+        let mut is_desintegrated = vec![false; cubes.len()];
+        let mut supported_by = supported_by.clone();
+        let mut next: VecDeque<usize> = VecDeque::new();
+        next.push_back(idx);
+        
+        while let Some(i) = next.pop_front() {
+            for s in &cubes[i].supports {
+                if supported_by[*s] <= 1 {
+                    for z in &cubes[*s].supports {
+                        supported_by[*z] -= 1;
+                    }
+                    if !is_desintegrated[*s] {
+                        eprintln!("{i} destroying {}", *s);
+                        is_desintegrated[*s] = true;
+                        next.push_back(*s);
+                        qt += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    qt.to_string()
 }
 
 #[cfg(test)]
@@ -145,7 +216,7 @@ mod tests {
     #[test]
     fn p2s() {
         let input = include_str!("../../inputs/2023/day22-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("7", part2(input));
     }
 
     #[test]
