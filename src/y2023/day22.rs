@@ -160,41 +160,35 @@ pub fn part2(input: &str) -> String {
     }
 
     let mut qt = 0;
-
-    let mut to_visit = vec![];
-    'c: for i in 0..cubes.len() {
-        for s in &cubes[i].supports {
-            if cubes[*s].supported_by.len() == 1 {
-                to_visit.push(i);
-                continue 'c;
+    for i in 0..cubes.len() {
+        let mut n = 0;
+        let mut to_visit = VecDeque::new();
+        for j in &cubes[i].supports {
+            if cubes[*j].supported_by.len() == 1 {
+                n += 1;
+                to_visit.push_back(*j);
             }
         }
-    }
-
-    for idx in to_visit {
-        let mut is_desintegrated = vec![false; cubes.len()];
-        let mut supported_by = supported_by.clone();
-        let mut next: VecDeque<usize> = VecDeque::new();
-        next.push_back(idx);
-        
-        while let Some(i) = next.pop_front() {
-            for s in &cubes[i].supports {
-                if supported_by[*s] <= 1 {
-                    for z in &cubes[*s].supports {
-                        supported_by[*z] -= 1;
-                    }
-                    if !is_desintegrated[*s] {
-                        eprintln!("{i} destroying {}", *s);
-                        is_desintegrated[*s] = true;
-                        next.push_back(*s);
-                        qt += 1;
-                    }
-                }
-            }
+        if n > 0 {
+            qt += n + count(&cubes, to_visit, supported_by.clone());
         }
     }
 
     qt.to_string()
+}
+
+fn count(cubes: &[Cube], mut to_visit: VecDeque<usize>, mut sby: Vec<i32>) -> i32 {
+    let mut qt = 0;
+    while let Some(i) = to_visit.pop_front() {
+        for s in &cubes[i].supports {
+            sby[*s] -= 1;
+            if sby[*s] == 0 {
+                to_visit.push_back(*s);
+                qt += 1;
+            }
+        }
+    }
+    qt
 }
 
 #[cfg(test)]
@@ -222,6 +216,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = include_str!("../../inputs/2023/day22.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("71002", part2(input));
     }
 }
