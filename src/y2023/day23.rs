@@ -44,37 +44,29 @@ fn dfs(grid: &[Vec<char>],
         '<' => {
             if c == 0 || grid[r][c - 1] == '#' {
                 None
-            } else if let Some(steps) = dfs(grid, visited, final_pos, r, c - 1) {
-                Some(steps + 1)
             } else {
-                None
+                dfs(grid, visited, final_pos, r, c - 1).map(|steps| steps + 1)
             }
         }
         '>' => {
             if c + 1 == cols || grid[r][c + 1] == '#' {
                 None
-            } else if let Some(steps) = dfs(grid, visited, final_pos, r, c + 1) {
-                Some(steps + 1)
             } else {
-                None
+                dfs(grid, visited, final_pos, r, c + 1).map(|steps| steps + 1)
             }
         }
         '^' => {
             if r == 0 || grid[r - 1][c] == '#' {
                 None
-            } else if let Some(steps) = dfs(grid, visited, final_pos, r - 1, c) {
-                Some(steps + 1)
             } else {
-                None
+                dfs(grid, visited, final_pos, r - 1, c).map(|steps| steps + 1) 
             }
         }
         'v' => {
             if r + 1 == rows || grid[r + 1][c] == '#' {
                 None
-            } else if let Some(steps) = dfs(grid, visited, final_pos, r + 1, c) {
-                Some(steps + 1)
             } else {
-                None
+                dfs(grid, visited, final_pos, r + 1, c).map(|steps| steps + 1)
             }
         }
         _ => panic!("Invalid pos: {}", grid[r][c]),
