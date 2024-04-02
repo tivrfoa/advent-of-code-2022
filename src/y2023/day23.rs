@@ -97,7 +97,7 @@ pub fn part1(input: &str) -> String {
 // Translation from hyper-neutrino
 // https://github.com/hyper-neutrino/advent-of-code/blob/main/2023/day23p2.py
 pub fn part2(input: &str) -> String {
-    let mut grid = input.to_char_grid();
+    let grid = input.to_char_grid();
     let rows = grid.len();
     let cols = grid[0].len();
     let start = Pos::from((0usize, grid[0].iter().position(|&c| c == '.').unwrap()));
@@ -146,24 +146,24 @@ pub fn part2(input: &str) -> String {
     }
     dbg!(&graph);
 
-    fn dfs(end: Pos, graph: &HashMap<Pos, HashMap<Pos, i32>>, seen: &mut HashSet<(usize, usize)>, pt: Pos) -> i32 {
+    fn dfs<'a>(end: &Pos, graph: &'a HashMap<Pos, HashMap<Pos, i32>>, seen: &mut HashSet<&'a Pos>, pt: &'a Pos) -> i32 {
         if pt == end {
             return 0;
         }
 
         let mut m = i32::MIN;
-        seen.insert((pt.row, pt.col));
+        seen.insert(pt);
         for (k, v) in &graph[&pt] {
-            if !seen.contains(&(k.row, k.col)) {
-                m = m.max(dfs(end, graph, seen, *k) + v);
+            if !seen.contains(&k) {
+                m = m.max(dfs(end, graph, seen, k) + v);
             }
         }
-        seen.remove(&(pt.row, pt.col));
+        seen.remove(&pt);
         m
     }
 
-    let mut seen: HashSet<(usize, usize)> = HashSet::new();
-    dfs(end, &graph, &mut seen, start).to_string()
+    let mut seen: HashSet<&Pos> = HashSet::new();
+    dfs(&end, &graph, &mut seen, &start).to_string()
 }
 
 #[cfg(test)]
