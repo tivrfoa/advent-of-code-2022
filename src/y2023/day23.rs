@@ -104,7 +104,9 @@ pub fn part2(input: &str) -> String {
         }
     }
 
-    dfs2(&grid, &Pos { row: rows - 1, col: cols - 2}, 0, 1).to_string()
+    // dfs2(&grid, &Pos { row: rows - 1, col: cols - 2}, 0, 1).to_string()
+    let mut visited = vec![vec![false; cols]; rows];
+    dfs(&grid, &mut visited, &Pos { row: rows - 1, col: cols - 2}, 0, 1).unwrap().to_string()
 }
 
 #[derive(PartialEq)]
@@ -187,6 +189,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = include_str!("../../inputs/2023/day23.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("6710", part2(input));
     }
 }
