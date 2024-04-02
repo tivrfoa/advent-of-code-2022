@@ -9,9 +9,15 @@ use std::iter::zip;
 
 use util::*;
 
+#[derive(Clone, PartialEq)]
 struct Pos {
     row: usize,
     col: usize,
+}
+impl Pos {
+    fn new(row: usize, col: usize) -> Pos {
+        Pos { row, col }
+    }
 }
 
 fn dfs(grid: &[Vec<char>],
@@ -98,42 +104,62 @@ pub fn part2(input: &str) -> String {
         }
     }
 
-    let mut visited = vec![vec![false; cols]; rows];
-    dfs2(&grid, &mut visited, &Pos { row: rows - 1, col: cols - 2}, 0, 1).unwrap().to_string()
+    dfs2(&grid, &Pos { row: rows - 1, col: cols - 2}, 0, 1).to_string()
 }
 
-fn dfs2(grid: &[Vec<char>],
-        visited: &mut Vec<Vec<bool>>, final_pos: &Pos, r: usize, c: usize) -> Option<u32> {
-    if r == final_pos.row && c == final_pos.col {
-        return Some(0);
+#[derive(PartialEq)]
+struct State {
+    pos: Pos,
+    steps: u32,
+    visited: Vec<Vec<bool>>,
+}
+impl State {
+    fn move_to(&self, r: usize, c: usize) -> State {
+        let mut visited = self.visited.clone();
+        visited[r][c] = true;
+        State {
+            pos: Pos {
+                row: r,
+                col: c,
+            },
+            steps: self.steps + 1,
+            visited,
+        }
     }
-    if visited[r][c] {
-        return None;
-    }
-    visited[r][c] = true;
+}
+
+fn dfs2(grid: &[Vec<char>], final_pos: &Pos, r: usize, c: usize) -> u32 {
+    let mut max_steps = 0;
     let rows = grid.len();
     let cols = grid[0].len();
-    let steps = match grid[r][c] {
-        '.' => {
-            let mut max_steps = 0;
-            for (cond, (r, c)) in get_dirs(r, c, rows, cols) {
-                if cond && grid[r][c] != '#' {
-                    if let Some(steps) = dfs2(grid, visited, final_pos, r, c) {
-                        max_steps = max_steps.max(steps + 1);
+    let mut previous: Vec<Vec<Vec<(Pos, u32)>>> = vec![vec![vec![]; cols]; rows];
+    let mut visited = vec![vec![false; cols]; rows];
+    visited[r][c] = true;
+    let mut to_visit: Vec<State> = vec![
+        State { pos: Pos { row: r, col: c }, steps: 0, visited }
+    ];
+    while let Some(state) = to_visit.pop() {
+        if state.pos == *final_pos {
+            max_steps = max_steps.max(state.steps);
+            continue;
+        }
+        'd: for (cond, (r, c)) in get_dirs(state.pos.row, state.pos.col, rows, cols) {
+            if cond && grid[r][c] != '#' && !state.visited[r][c] {
+                for p in previous[r][c].iter_mut() {
+                    if p.0 == state.pos {
+                        if state.steps + 1 > p.1 {
+                            p.1 = state.steps + 1;
+                            to_visit.push(state.move_to(r, c));
+                        }
+                        continue 'd;
                     }
                 }
-            }
-            if max_steps == 0 {
-                None
-            } else {
-                Some(max_steps)
+                previous[r][c].push((Pos::new(state.pos.row, state.pos.col), state.steps + 1));
+                to_visit.push(state.move_to(r, c));
             }
         }
-        _ => panic!("Invalid pos: {}", grid[r][c]),
-    };
-
-    visited[r][c] = false;
-    steps
+    }
+    max_steps
 }
 
 #[cfg(test)]
