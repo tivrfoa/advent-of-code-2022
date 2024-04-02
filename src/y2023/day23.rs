@@ -86,7 +86,54 @@ pub fn part1(input: &str) -> String {
 }
 
 pub fn part2(input: &str) -> String {
-    "".into()
+    let mut grid = input.to_char_grid();
+    let rows = grid.len();
+    let cols = grid[0].len();
+    const D: [char; 4] = ['>', '<', 'v', '^'];
+    for r in 0..rows {
+        for c in 0..cols {
+            if D.contains(&grid[r][c]) {
+                grid[r][c] = '.';
+            }
+        }
+    }
+
+    let mut visited = vec![vec![false; cols]; rows];
+    dfs2(&grid, &mut visited, &Pos { row: rows - 1, col: cols - 2}, 0, 1).unwrap().to_string()
+}
+
+fn dfs2(grid: &[Vec<char>],
+        visited: &mut Vec<Vec<bool>>, final_pos: &Pos, r: usize, c: usize) -> Option<u32> {
+    if r == final_pos.row && c == final_pos.col {
+        return Some(0);
+    }
+    if visited[r][c] {
+        return None;
+    }
+    visited[r][c] = true;
+    let rows = grid.len();
+    let cols = grid[0].len();
+    let steps = match grid[r][c] {
+        '.' => {
+            let mut max_steps = 0;
+            for (cond, (r, c)) in get_dirs(r, c, rows, cols) {
+                if cond && grid[r][c] != '#' {
+                    if let Some(steps) = dfs2(grid, visited, final_pos, r, c) {
+                        max_steps = max_steps.max(steps + 1);
+                    }
+                }
+            }
+            if max_steps == 0 {
+                None
+            } else {
+                Some(max_steps)
+            }
+        }
+        _ => panic!("Invalid pos: {}", grid[r][c]),
+    };
+
+    visited[r][c] = false;
+    steps
 }
 
 #[cfg(test)]
@@ -108,7 +155,7 @@ mod tests {
     #[test]
     fn p2s() {
         let input = include_str!("../../inputs/2023/day23-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("154", part2(input));
     }
 
     #[test]
