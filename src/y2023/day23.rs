@@ -9,7 +9,7 @@ use std::iter::zip;
 
 use util::*;
 
-#[derive(Clone, Copy, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Pos {
     row: usize,
     col: usize,
@@ -132,7 +132,7 @@ pub fn part2(input: &str) -> String {
         while let Some((n, r, c)) = stack.pop() {
             let p = Pos::new(r, c);
             if n != 0 && points.contains(&p) {
-                let tmp = graph.get_mut(pos).unwrap().insert(p, n);
+                graph.get_mut(pos).unwrap().insert(p, n);
                 continue;
             }
 
@@ -144,6 +144,7 @@ pub fn part2(input: &str) -> String {
             }
         }
     }
+    dbg!(&graph);
 
     fn dfs(end: Pos, graph: &HashMap<Pos, HashMap<Pos, i32>>, seen: &mut HashSet<(usize, usize)>, pt: Pos) -> i32 {
         if pt == end {
@@ -159,33 +160,11 @@ pub fn part2(input: &str) -> String {
         }
         seen.remove(&(pt.row, pt.col));
         m
-    };
+    }
 
     let mut seen: HashSet<(usize, usize)> = HashSet::new();
     dfs(end, &graph, &mut seen, start).to_string()
 }
-
-#[derive(PartialEq)]
-struct State {
-    pos: Pos,
-    steps: u32,
-    visited: Vec<Vec<bool>>,
-}
-impl State {
-    fn move_to(&self, r: usize, c: usize) -> State {
-        let mut visited = self.visited.clone();
-        visited[r][c] = true;
-        State {
-            pos: Pos {
-                row: r,
-                col: c,
-            },
-            steps: self.steps + 1,
-            visited,
-        }
-    }
-}
-
 
 #[cfg(test)]
 mod tests {
