@@ -9,7 +9,7 @@ use std::iter::zip;
 
 use util::*;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Copy, Eq, Hash, PartialEq)]
 struct Pos {
     row: usize,
     col: usize,
@@ -17,6 +17,9 @@ struct Pos {
 impl Pos {
     fn new(row: usize, col: usize) -> Pos {
         Pos { row, col }
+    }
+    fn from(p: (usize, usize)) -> Pos {
+        Pos { row: p.0, col: p.1 }
     }
 }
 
@@ -91,22 +94,75 @@ pub fn part1(input: &str) -> String {
     dfs(&grid, &mut visited, &Pos { row: rows - 1, col: cols - 2}, 0, 1).unwrap().to_string()
 }
 
+// Translation from hyper-neutrino
+// https://github.com/hyper-neutrino/advent-of-code/blob/main/2023/day23p2.py
 pub fn part2(input: &str) -> String {
     let mut grid = input.to_char_grid();
     let rows = grid.len();
     let cols = grid[0].len();
-    const D: [char; 4] = ['>', '<', 'v', '^'];
-    for r in 0..rows {
-        for c in 0..cols {
-            if D.contains(&grid[r][c]) {
-                grid[r][c] = '.';
+    let start = Pos::from((0usize, grid[0].iter().position(|&c| c == '.').unwrap()));
+    let end = Pos::from((rows - 1, grid[rows - 1].iter().position(|&c| c == '.').unwrap()));
+    let mut points: Vec<Pos> = vec![start, end];
+
+    for (r, row) in grid.iter().enumerate() {
+        for (c, ch) in row.iter().enumerate() {
+            if *ch == '#' {
+                continue;
+            }
+
+            let mut neighbors = 0;
+            for (cond, (r, c)) in get_dirs(r, c, rows, cols) {
+                if cond && grid[r][c] != '#' {
+                    neighbors += 1;
+                }
+            }
+            if neighbors >= 3 {
+                points.push(Pos::new(r, c));
             }
         }
     }
 
-    // dfs2(&grid, &Pos { row: rows - 1, col: cols - 2}, 0, 1).to_string()
-    let mut visited = vec![vec![false; cols]; rows];
-    dfs(&grid, &mut visited, &Pos { row: rows - 1, col: cols - 2}, 0, 1).unwrap().to_string()
+    let mut graph: HashMap<Pos, HashMap<Pos, i32>> = HashMap::new();
+    for pos in &points {
+        graph.insert(*pos, HashMap::new());
+        let mut stack = vec![(0, pos.row, pos.col)];
+        let mut seen = HashSet::new();
+        seen.insert((pos.row, pos.col));
+
+        while let Some((n, r, c)) = stack.pop() {
+            let p = Pos::new(r, c);
+            if n != 0 && points.contains(&p) {
+                let tmp = graph.get_mut(pos).unwrap().insert(p, n);
+                continue;
+            }
+
+            for (cond, (r, c)) in get_dirs(r, c, rows, cols) {
+                if cond && grid[r][c] != '#' && !seen.contains(&(r, c)) {
+                    stack.push((n + 1, r, c));
+                    seen.insert((r, c));
+                }
+            }
+        }
+    }
+
+    fn dfs(end: Pos, graph: &HashMap<Pos, HashMap<Pos, i32>>, seen: &mut HashSet<(usize, usize)>, pt: Pos) -> i32 {
+        if pt == end {
+            return 0;
+        }
+
+        let mut m = i32::MIN;
+        seen.insert((pt.row, pt.col));
+        for (k, v) in &graph[&pt] {
+            if !seen.contains(&(k.row, k.col)) {
+                m = m.max(dfs(end, graph, seen, *k) + v);
+            }
+        }
+        seen.remove(&(pt.row, pt.col));
+        m
+    };
+
+    let mut seen: HashSet<(usize, usize)> = HashSet::new();
+    dfs(end, &graph, &mut seen, start).to_string()
 }
 
 #[derive(PartialEq)]
@@ -130,39 +186,6 @@ impl State {
     }
 }
 
-fn dfs2(grid: &[Vec<char>], final_pos: &Pos, r: usize, c: usize) -> u32 {
-    let mut max_steps = 0;
-    let rows = grid.len();
-    let cols = grid[0].len();
-    let mut previous: Vec<Vec<Vec<(Pos, u32)>>> = vec![vec![vec![]; cols]; rows];
-    let mut visited = vec![vec![false; cols]; rows];
-    visited[r][c] = true;
-    let mut to_visit: Vec<State> = vec![
-        State { pos: Pos { row: r, col: c }, steps: 0, visited }
-    ];
-    while let Some(state) = to_visit.pop() {
-        if state.pos == *final_pos {
-            max_steps = max_steps.max(state.steps);
-            continue;
-        }
-        'd: for (cond, (r, c)) in get_dirs(state.pos.row, state.pos.col, rows, cols) {
-            if cond && grid[r][c] != '#' && !state.visited[r][c] {
-                for p in previous[r][c].iter_mut() {
-                    if p.0 == state.pos {
-                        if state.steps + 1 > p.1 {
-                            p.1 = state.steps + 1;
-                            to_visit.push(state.move_to(r, c));
-                        }
-                        continue 'd;
-                    }
-                }
-                previous[r][c].push((Pos::new(state.pos.row, state.pos.col), state.steps + 1));
-                to_visit.push(state.move_to(r, c));
-            }
-        }
-    }
-    max_steps
-}
 
 #[cfg(test)]
 mod tests {
