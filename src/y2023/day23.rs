@@ -94,6 +94,8 @@ pub fn part1(input: &str) -> String {
     dfs(&grid, &mut visited, &Pos { row: rows - 1, col: cols - 2}, 0, 1).unwrap().to_string()
 }
 
+use rayon::prelude::*;
+
 // Translation from hyper-neutrino
 // https://github.com/hyper-neutrino/advent-of-code/blob/main/2023/day23p2.py
 pub fn part2(input: &str) -> String {
@@ -122,9 +124,8 @@ pub fn part2(input: &str) -> String {
         }
     }
 
-    let mut graph: HashMap<Pos, HashMap<Pos, i32>> = HashMap::new();
-    for pos in &points {
-        graph.insert(*pos, HashMap::new());
+    let edges: Vec<_> = points.par_iter().map(|pos| {
+        let mut edges: HashMap<Pos, i32> = HashMap::new();
         let mut stack = vec![(0, pos.row, pos.col)];
         let mut seen = HashSet::new();
         seen.insert((pos.row, pos.col));
@@ -132,7 +133,7 @@ pub fn part2(input: &str) -> String {
         while let Some((n, r, c)) = stack.pop() {
             let p = Pos::new(r, c);
             if n != 0 && points.contains(&p) {
-                graph.get_mut(pos).unwrap().insert(p, n);
+                edges.insert(p, n);
                 continue;
             }
 
@@ -143,8 +144,13 @@ pub fn part2(input: &str) -> String {
                 }
             }
         }
+        (pos, edges)
+    }).collect();
+    let mut graph: HashMap<Pos, HashMap<Pos, i32>> = HashMap::new();
+    for (k, v) in edges {
+        graph.insert(*k, v);
     }
-    dbg!(&graph);
+    // dbg!(&graph);
 
     fn dfs<'a>(end: &Pos, graph: &'a HashMap<Pos, HashMap<Pos, i32>>, seen: &mut HashSet<&'a Pos>, pt: &'a Pos) -> i32 {
         if pt == end {
