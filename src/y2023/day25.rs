@@ -128,8 +128,9 @@ fn flow(input: &Input, start: usize, end: usize) -> usize {
 pub fn part1(input: &str) -> String {
     let input = parse(input);
     let start = furthest(&input, 0);
-    let end = furthest(&input, start);
-    let size = flow(&input, start, end);
+    // let end = furthest(&input, start);
+    // let size = flow(&input, start, end);
+    let size = flow(&input, 0, start);
     (size * (input.nodes.len() - size)).to_string()
 }
 
