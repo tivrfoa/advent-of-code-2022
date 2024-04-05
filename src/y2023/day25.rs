@@ -12,73 +12,59 @@ use util::*;
 // Solution copied from:
 // https://github.com/maneatingape/advent-of-code-rust/blob/main/src/year2023/day25.rs
 
-fn perfect_minimal_hash(lookup: &mut [usize], nodes: &mut Vec<Vec<usize>>, slice: &[u8]) -> usize {
+fn perfect_minimal_hash(lookup: &mut [usize], next_idx: usize, slice: &[u8]) -> usize {
     // Base 26 index.
     let hash = slice[..3].iter().fold(0, |acc, b| 26 * acc + ((b - b'a') as usize));
-    let mut index = lookup[hash];
-
-    // First time seeing this key so push a new node and return its index.
-    if index == usize::MAX {
-        index = nodes.len();
-        lookup[hash] = index;
-        nodes.push(Vec::with_capacity(10));
+    if lookup[hash] == usize::MAX {
+        lookup[hash] = next_idx;
     }
-
-    index
+    lookup[hash]
 }
 
-struct Input {
-    edges: Vec<usize>,
-    nodes: Vec<(usize, usize)>,
+struct Node {
+    connections: Vec<usize>,
 }
 
-impl Input {
-    #[inline]
-    fn neighbours(&self, node: usize) -> impl Iterator<Item = (usize, usize)> + '_ {
-        let (start, end) = self.nodes[node];
-        (start..end).map(|edge| (edge, self.edges[edge]))
-    }
-}
-
-fn parse(input: &str) -> Input {
+fn parse(input: &str) -> Vec<Node> {
     let mut lookup = vec![usize::MAX; 26 * 26 * 26];
-    let mut neighbours = Vec::with_capacity(2_000);
+    let mut nodes: Vec<Node> = Vec::with_capacity(2_000);
 
     for line in input.lines().map(str::as_bytes) {
-        let first = perfect_minimal_hash(&mut lookup, &mut neighbours, line);
+        let first = perfect_minimal_hash(&mut lookup, nodes.len(), line);
+        if first == nodes.len() {
+            nodes.push(Node {
+                connections: vec![],
+            });
+        }
 
         for chunk in line[5..].chunks(4) {
-            let second = perfect_minimal_hash(&mut lookup, &mut neighbours, chunk);
-            neighbours[first].push(second);
-            neighbours[second].push(first);
+            let second = perfect_minimal_hash(&mut lookup, nodes.len(), chunk);
+            if second == nodes.len() {
+                nodes.push(Node {
+                    connections: vec![first],
+                });
+            } else {
+                nodes[second].connections.push(first);
+            }
+            nodes[first].connections.push(second);
         }
     }
 
-    let mut edges = Vec::with_capacity(5_000);
-    let mut nodes = Vec::with_capacity(neighbours.len());
-
-    for list in neighbours {
-        let start = edges.len();
-        let end = edges.len() + list.len();
-        edges.extend(list);
-        nodes.push((start, end));
-    }
-
-    Input { edges, nodes }
+    nodes
 }
 
-fn furthest(input: &Input, start: usize) -> usize {
-    let mut todo = VecDeque::new();
-    todo.push_back(start);
-    let mut seen = vec![false; input.nodes.len()];
+fn furthest(nodes: &[Node], start: usize) -> usize {
+    let mut to_visit = VecDeque::new();
+    to_visit.push_back(start);
+    let mut seen = vec![false; nodes.len()];
     seen[start] = true;
     let mut result = start;
-    while let Some(current) = todo.pop_front() {
+    while let Some(current) = to_visit.pop_front() {
         result = current;
-        for (_, next) in input.neighbours(current) {
-            if !seen[next] {
-                todo.push_back(next);
-                seen[next] = true;
+        for next in &nodes[current].connections {
+            if !seen[*next] {
+                to_visit.push_back(*next);
+                seen[*next] = true;
             }
         }
     }
@@ -86,16 +72,16 @@ fn furthest(input: &Input, start: usize) -> usize {
     result
 }
 
-fn flow(input: &Input, start: usize, end: usize) -> usize {
+fn flow(nodes: &[Node], start: usize, end: usize) -> usize {
     let mut todo = VecDeque::new();
     let mut path = vec![];
-    let mut used = vec![false; input.edges.len()];
+    let mut used: HashSet<(usize, usize)> = HashSet::new();
     let mut result = 0;
 
     for _ in 0..4 {
         todo.push_back((start, usize::MAX));
         result = 0;
-        let mut seen = vec![false; input.nodes.len()];
+        let mut seen = vec![false; nodes.len()];
         seen[start] = true;
         while let Some((current, head)) = todo.pop_front() {
             result += 1;
@@ -103,16 +89,17 @@ fn flow(input: &Input, start: usize, end: usize) -> usize {
                 let mut index = head;
                 while index != usize::MAX {
                     let (edge, next) = path[index];
-                    used[edge] = true;
+                    used.insert(edge);
                     index = next;
                 }
                 break;
             }
 
-            for (edge, next) in input.neighbours(current) {
-                if !used[edge] && !seen[next] {
-                    seen[next] = true;
-                    todo.push_back((next, path.len()));
+            for next in &nodes[current].connections {
+                let edge = (current, *next);
+                if !used.contains(&edge) && !seen[*next] {
+                    seen[*next] = true;
+                    todo.push_back((*next, path.len()));
                     path.push((edge, head));
                 }
             }
@@ -126,16 +113,12 @@ fn flow(input: &Input, start: usize, end: usize) -> usize {
 }
 
 pub fn part1(input: &str) -> String {
-    let input = parse(input);
-    let start = furthest(&input, 0);
+    let nodes = parse(input);
+    let start = furthest(&nodes, 0);
     // let end = furthest(&input, start);
     // let size = flow(&input, start, end);
-    let size = flow(&input, 0, start);
-    (size * (input.nodes.len() - size)).to_string()
-}
-
-pub fn part2(input: &str) -> String {
-    "".into()
+    let size = flow(&nodes, 0, start);
+    (size * (nodes.len() - size)).to_string()
 }
 
 #[cfg(test)]
@@ -152,17 +135,5 @@ mod tests {
     fn p1() {
         let input = include_str!("../../inputs/2023/day25.txt");
         assert_eq!("592171", part1(input));
-    }
-
-    #[test]
-    fn p2s() {
-        let input = include_str!("../../inputs/2023/day25-sample.txt");
-        assert_eq!("", part2(input));
-    }
-
-    #[test]
-    fn p2() {
-        let input = include_str!("../../inputs/2023/day25.txt");
-        assert_eq!("", part2(input));
     }
 }
