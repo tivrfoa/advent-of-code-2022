@@ -40,50 +40,101 @@ impl Input {
     }
 }
 
-fn parse(input: &str) -> HashMap<&str, Vec<&str>> {
-    let mut ret = HashMap::new();
-    for line in input.lines() {
-        let (k, r) = line.split_once(": ").unwrap();
-        let mut connections = vec![];
-        for conn in r.split(' ') {
-            connections.push(conn);
-            ret.entry(conn).or_insert(vec![]).push(k);
+fn parse(input: &str) -> Input {
+    let mut lookup = vec![usize::MAX; 26 * 26 * 26];
+    let mut neighbours = Vec::with_capacity(2_000);
+
+    for line in input.lines().map(str::as_bytes) {
+        let first = perfect_minimal_hash(&mut lookup, &mut neighbours, line);
+
+        for chunk in line[5..].chunks(4) {
+            let second = perfect_minimal_hash(&mut lookup, &mut neighbours, chunk);
+            neighbours[first].push(second);
+            neighbours[second].push(first);
         }
-        ret.entry(k).or_insert(vec![]).append(&mut connections);
     }
-    ret
+
+    let mut edges = Vec::with_capacity(5_000);
+    let mut nodes = Vec::with_capacity(neighbours.len());
+
+    for list in neighbours {
+        let start = edges.len();
+        let end = edges.len() + list.len();
+        edges.extend(list);
+        nodes.push((start, end));
+    }
+
+    Input { edges, nodes }
+}
+
+fn furthest(input: &Input, start: usize) -> usize {
+    let mut todo = VecDeque::new();
+    todo.push_back(start);
+    let mut seen = vec![false; input.nodes.len()];
+    seen[start] = true;
+    let mut result = start;
+    while let Some(current) = todo.pop_front() {
+        result = current;
+        for (_, next) in input.neighbours(current) {
+            if !seen[next] {
+                todo.push_back(next);
+                seen[next] = true;
+            }
+        }
+    }
+
+    result
+}
+
+fn flow(input: &Input, start: usize, end: usize) -> usize {
+    let mut todo = VecDeque::new();
+    let mut path = vec![];
+    let mut used = vec![false; input.edges.len()];
+    let mut result = 0;
+
+    for _ in 0..4 {
+        todo.push_back((start, usize::MAX));
+        result = 0;
+        let mut seen = vec![false; input.nodes.len()];
+        seen[start] = true;
+        while let Some((current, head)) = todo.pop_front() {
+            result += 1;
+            if current == end {
+                let mut index = head;
+                while index != usize::MAX {
+                    let (edge, next) = path[index];
+                    used[edge] = true;
+                    index = next;
+                }
+                break;
+            }
+
+            for (edge, next) in input.neighbours(current) {
+                if !used[edge] && !seen[next] {
+                    seen[next] = true;
+                    todo.push_back((next, path.len()));
+                    path.push((edge, head));
+                }
+            }
+        }
+
+        todo.clear();
+        path.clear();
+    }
+
+    result
 }
 
 pub fn part1(input: &str) -> String {
-    let components = parse(input);
-    dbg!(components);
-    "todo".into()
+    let input = parse(input);
+    let start = furthest(&input, 0);
+    let end = furthest(&input, start);
+    let size = flow(&input, start, end);
+    (size * (input.nodes.len() - size)).to_string()
 }
 
 pub fn part2(input: &str) -> String {
     "".into()
-}
-
-#[allow(dead_code)]
-#[derive(Clone, Eq, PartialEq)]
-struct State {
-    cost: u32,
-    position: (usize, usize),
-}
-
-impl Ord for State {
-    fn cmp(&self, other: &Self) -> Ordering {
-        other
-            .cost
-            .cmp(&self.cost)
-            .then_with(|| self.position.cmp(&other.position))
-    }
-}
-
-impl PartialOrd for State {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
 }
 
 #[cfg(test)]
@@ -93,13 +144,13 @@ mod tests {
     #[test]
     fn p1s() {
         let input = include_str!("../../inputs/2023/day25-sample.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("54", part1(input));
     }
 
     #[test]
     fn p1() {
         let input = include_str!("../../inputs/2023/day25.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("592171", part1(input));
     }
 
     #[test]
