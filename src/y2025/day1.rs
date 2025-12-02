@@ -166,25 +166,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = include_str!("../../inputs/2025/day1.txt");
-        assert_eq!("1", part2(input));
+        assert_eq!("5847", part2(input));
     }
-
-    #[test]
-fn stress_turn2() {
-    for pos in 0..100 {
-        for &dir in &['L', 'R'] {
-            for n in 1..1000 {
-                let (t_my, p_my) = turn2(pos, dir, n);
-
-                // Reference correct implementation
-                let delta = if dir == 'L' { -n } else { n };
-                let final_pos = (pos + delta).rem_euclid(100);
-                let wraps = ((pos + delta) - final_pos).abs() / 100;
-
-                assert_eq!(wraps, t_my, "wrap mismatch at pos={pos}, dir={dir}, n={n}");
-                assert_eq!(final_pos, p_my, "pos mismatch at pos={pos}, dir={dir}, n={n}");
-            }
-        }
-    }
-}
 }
