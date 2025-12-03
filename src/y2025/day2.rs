@@ -45,23 +45,19 @@ pub fn part1(input: &str) -> String {
 fn is_invalid(ns: String) -> bool {
 	let len = ns.len();
 	let half = len / 2;
-	for rep_len in 1..=half {
+	'r: for rep_len in 1..=half {
 		if len % rep_len != 0 {
 			continue;
 		}
-		let mut good = true;
 		let s = &ns[0..rep_len];
 		for pos in (rep_len..=len - rep_len).step_by(rep_len) {
 			let target = &ns[pos..pos + rep_len];
 			if s != target {
-				good = false;
-				break;
+				continue 'r
 			}
 		}
-		if good {
-			println!("Good {ns}, rep length: {rep_len}, s = {s}");
-			return true;
-		}
+		// println!("Good {ns}, rep length: {rep_len}, s = {s}");
+		return true;
 	}
 	false
 }
