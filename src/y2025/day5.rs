@@ -9,6 +9,7 @@ use std::iter::zip;
 
 use util::*;
 
+#[derive(Debug)]
 struct Interval {
 	start: usize,
 	end: usize,
@@ -45,6 +46,27 @@ when search a new ID, I can simulating it is an interval, like: ID-0
 
 */
 impl Interval {
+	fn parse(input: &str) -> (Vec<Interval>, Vec<usize>) {
+		let mut intervals = vec![];
+		let mut ids = vec![];
+		let mut lines = input.lines();
+
+		while let Some(line) = lines.next() {
+			if line.is_empty() { break; }
+			let (l, r) = line.split_once('-').unwrap();
+			let l: usize = l.parse().unwrap();
+			let r: usize = r.parse().unwrap();
+			let interval = Self::new(l, r);
+			Self::add_interval(&mut intervals, interval);
+		}
+		
+		while let Some(line) = lines.next() {
+			ids.push(line.parse().unwrap());
+		}
+
+		(intervals, ids)
+	}
+
 	fn new(start: usize, end: usize) -> Self {
 		Self { start, end }
 	}
@@ -57,7 +79,6 @@ impl Interval {
 			intervals.push(new_interval);
 			return;
 		}
-		let len = intervals.len();
 		match intervals.binary_search(&new_interval) {
 			Ok(idx) => {
 				eprintln!("repeated interval {}-{}", new_interval.start,
@@ -66,32 +87,22 @@ impl Interval {
 				// intervals[idx].end = max(new_interval.end, intervals[idx].end);
 			}
 			Err(idx) => {
-				if idx == 0 {
-					if new_interval.end <= intervals[0].start {
-						intervals[0].start = new_interval.start;
-					} else {
-						intervals.insert(idx, new_interval);
-					}
-				} else idx == len {
-					if intevals[len - 1].end >= new_interval.start {
-						intervals[len - 1].end = max(intervals[len - 1].end, new_interval.end);
-					} else {
-						intervals.push(new_interval);
+				dbg!(idx);
+				// check if it merges left
+				if idx > 0 && intervals[idx - 1].end >= new_interval.start {
+					intervals[idx - 1].end = max(intervals[idx].end, new_interval.end);
+					// the end might be higher than all remaining!
+					while idx < intervals.len() && intervals[idx - 1].end >= intervals[idx].start {
+						intervals[idx - 1].end = intervals[idx].end;
+						intervals.remove(idx);
 					}
 				} else {
-					// check if it merges left
-					if intevals[idx - 1].end >= new_interval.start {
-						if new_interval.end > intervals[idx - 1].end {
-							intervals[idx - 1].end = new_interval.end;
-							// check if it now merges with the right interval
-							if intervals[idx - 1].end >= 
+					intervals.insert(idx, new_interval);
 
-						} else {
-							// do nothing
-						}
-						intervals[idx - 1].end = max(intervals[len - 1].end, new_interval.end);
-					} else {
-						intervals.push(new_interval);
+					// check if merges right
+					if idx + 1 < intervals.len() && intervals[idx].end >= intervals[idx + 1].start {
+						intervals[idx].end = intervals[idx + 1].end;
+						intervals.remove(idx + 1);
 					}
 				}
 			}
@@ -123,6 +134,8 @@ is greater than the new interval start position;
 
 */
 pub fn part1(input: &str) -> String {
+	let (intervals, ids) = Interval::parse(input);
+	dbg!(intervals, ids);
     "todo".into()
 }
 
