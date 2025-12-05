@@ -87,10 +87,9 @@ impl Interval {
 				// intervals[idx].end = max(new_interval.end, intervals[idx].end);
 			}
 			Err(idx) => {
-				dbg!(idx);
 				// check if it merges left
 				if idx > 0 && intervals[idx - 1].end >= new_interval.start {
-					intervals[idx - 1].end = max(intervals[idx].end, new_interval.end);
+					intervals[idx - 1].end = max(intervals[idx - 1].end, new_interval.end);
 					// the end might be higher than all remaining!
 					while idx < intervals.len() && intervals[idx - 1].end >= intervals[idx].start {
 						intervals[idx - 1].end = intervals[idx].end;
@@ -134,9 +133,29 @@ is greater than the new interval start position;
 
 */
 pub fn part1(input: &str) -> String {
+	let mut ans = 0;
 	let (intervals, ids) = Interval::parse(input);
-	dbg!(intervals, ids);
-    "todo".into()
+	let len = intervals.len();
+	//dbg!(&intervals, &ids);
+	for id in ids {
+		let fake_interval = Interval::new(id, usize::MAX);
+		match intervals.binary_search(&fake_interval) {
+			Ok(idx) => panic!("impossible for fake interval"),
+			Err(idx) => {
+				if idx == 0 { continue; }
+				if idx == len {
+					if intervals[len - 1].end >= id {
+						// println!("1 - {id} is fresh - idx {idx}");
+						ans += 1;
+					}
+				} else if intervals[idx - 1].start == id || intervals[idx - 1].end >= id {
+					// println!("2 - {id} is fresh - idx {idx}");
+					ans += 1;
+				}
+			}
+		}
+	}
+	ans.to_string()
 }
 
 pub fn part2(input: &str) -> String {
@@ -172,13 +191,13 @@ mod tests {
     #[test]
     fn p1s() {
         let input = include_str!("../../inputs/2025/day5-sample.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("3", part1(input));
     }
 
     #[test]
     fn p1() {
         let input = include_str!("../../inputs/2025/day5.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("640", part1(input));
     }
 
     #[test]
