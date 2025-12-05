@@ -159,7 +159,12 @@ pub fn part1(input: &str) -> String {
 }
 
 pub fn part2(input: &str) -> String {
-    "".into()
+	let mut ans = 0;
+	let (intervals, _) = Interval::parse(input);
+	for i in intervals {
+		ans += (i.end - i.start + 1);
+	}
+	ans.to_string()
 }
 
 #[allow(dead_code)]
@@ -203,7 +208,7 @@ mod tests {
     #[test]
     fn p2s() {
         let input = include_str!("../../inputs/2025/day5-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("14", part2(input));
     }
 
     #[test]
