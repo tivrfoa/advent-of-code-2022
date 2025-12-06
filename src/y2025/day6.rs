@@ -55,7 +55,6 @@ pub fn part2(input: &str) -> String {
 	let mut ans = 0;
 	let mut grid: Vec<Vec<char>> = vec![];
 	let mut operations = vec![];
-
 	for line in input.lines() {
 		if line.starts_with("+") || line.starts_with("*") {
 			for c in line.split_ascii_whitespace() {
@@ -65,47 +64,25 @@ pub fn part2(input: &str) -> String {
 			grid.push(line.chars().collect());
 		}
 	}
-	dbg!(&grid, &operations);
 	let rows = grid.len();
 	let cols = grid[0].len();
 	let mut col = 0;
 	for o in operations {
-		dbg!(o, col);
-		if o == "+" {
-			let mut res = 0;
-			while col < cols {
-				let mut all_spaces = true;
-				let mut num: usize = 0;
-				for r in 0..rows {
-					if grid[r][col] != ' ' {
-						num = num * 10 + (grid[r][col] as u8 - b'0') as usize;
-						all_spaces = false;
-					}
+		let mut res = if o == "+" { 0 } else { 1 };
+		while col < cols {
+			let mut all_spaces = true;
+			let mut num: usize = 0;
+			for r in 0..rows {
+				if grid[r][col] != ' ' {
+					num = num * 10 + (grid[r][col] as u8 - b'0') as usize;
+					all_spaces = false;
 				}
-				col += 1;
-				if all_spaces { break; }
-				println!("+ -> {num}");
-				res += num;
 			}
-			ans += res;
-		} else {
-			let mut res = 1;
-			while col < cols {
-				let mut all_spaces = true;
-				let mut num: usize = 0;
-				for r in 0..rows {
-					if grid[r][col] != ' ' {
-						num = num * 10 + (grid[r][col] as u8 - b'0') as usize;
-						all_spaces = false;
-					}
-				}
-				col += 1;
-				if all_spaces { break; }
-				println!("* -> {num}");
-				res *= num;
-			}
-			ans += res;
+			col += 1;
+			if all_spaces { break; }
+			res = if o == "+" { res + num } else { res * num };
 		}
+		ans += res;
 	}
 	ans.to_string()
 }
