@@ -1,14 +1,3 @@
-use crate::util;
-
-use std::cell::Cell;
-use std::cmp::Ordering;
-use std::collections::{BTreeMap, BinaryHeap, HashMap, HashSet, VecDeque};
-use std::fmt::{Debug, Display};
-use std::hash::Hash;
-use std::iter::zip;
-
-use util::*;
-
 /*
 What is the grand total found by adding together all of the answers
 to the individual problems?
@@ -85,28 +74,6 @@ pub fn part2(input: &str) -> String {
 		ans += res;
 	}
 	ans.to_string()
-}
-
-#[allow(dead_code)]
-#[derive(Clone, Eq, PartialEq)]
-struct State {
-    cost: u32,
-    position: (usize, usize),
-}
-
-impl Ord for State {
-    fn cmp(&self, other: &Self) -> Ordering {
-        other
-            .cost
-            .cmp(&self.cost)
-            .then_with(|| self.position.cmp(&other.position))
-    }
-}
-
-impl PartialOrd for State {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
 }
 
 #[cfg(test)]
