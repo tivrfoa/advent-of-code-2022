@@ -71,9 +71,6 @@ impl Interval {
 		Self { start, end }
 	}
 
-	fn merge(&mut self, new_interval: Interval) {
-	}
-
 	fn add_interval(intervals: &mut Vec<Interval>, new_interval: Interval) {
 		if intervals.is_empty() {
 			intervals.push(new_interval);
@@ -87,29 +84,47 @@ impl Interval {
 				// intervals[idx].end = max(new_interval.end, intervals[idx].end);
 			}
 			Err(idx) => {
-				// check if it merges left
-				if idx > 0 && intervals[idx - 1].end >= new_interval.start {
-					intervals[idx - 1].end = max(intervals[idx - 1].end, new_interval.end);
-					// the end might be higher than all remaining!
-					while idx < intervals.len() && intervals[idx - 1].end >= intervals[idx].start {
-						intervals[idx - 1].end = intervals[idx].end;
-						intervals.remove(idx);
+				if idx == 0 {
+					if new_interval.end >= intervals[idx].start {
+						intervals[idx].start = new_interval.start;
+						intervals[idx].end = max(intervals[idx].end, new_interval.end);
+						// the end might be higher than all remaining!
+						while idx + 1 < intervals.len() && intervals[idx].end >= intervals[idx + 1].start {
+							intervals[idx].end = max(intervals[idx].end, intervals[idx + 1].end);
+							intervals.remove(idx + 1);
+						}
+					} else {
+						intervals.insert(idx, new_interval);
+					}
+				} else if idx == intervals.len() {
+					if intervals[idx - 1].end >= new_interval.start {
+						intervals[idx - 1].end = max(intervals[idx - 1].end, new_interval.end);
+					} else {
+						intervals.push(new_interval);
 					}
 				} else {
-					intervals.insert(idx, new_interval);
-
-					// check if merges right
-					if idx + 1 < intervals.len() && intervals[idx].end >= intervals[idx + 1].start {
-						intervals[idx].end = intervals[idx + 1].end;
-						intervals.remove(idx + 1);
+					if intervals[idx - 1].end >= new_interval.start {
+						intervals[idx - 1].end = max(intervals[idx - 1].end, new_interval.end);
+						// the end might be higher than all remaining!
+						while idx < intervals.len() && intervals[idx - 1].end >= intervals[idx].start {
+							intervals[idx - 1].end = max(intervals[idx - 1].end, intervals[idx].end);
+							intervals.remove(idx);
+						}
+					} else if new_interval.end >= intervals[idx].start {
+						intervals[idx].start = new_interval.start;
+						intervals[idx].end = max(intervals[idx].end, new_interval.end);
+						// the end might be higher than all remaining!
+						while idx + 1 < intervals.len() && intervals[idx].end >= intervals[idx + 1].start {
+							intervals[idx].end = max(intervals[idx].end, new_interval.end);
+							intervals.remove(idx + 1);
+						}
+					} else {
+						intervals.insert(idx, new_interval);
 					}
 				}
 			}
 		}
 	}
-
-	//fn binary_search(intervals: &[Interval], interval: &Interval) -> usize {
-	//}
 }
 
 /*
@@ -162,7 +177,7 @@ pub fn part2(input: &str) -> String {
 	let mut ans = 0;
 	let (intervals, _) = Interval::parse(input);
 	for i in intervals {
-		ans += (i.end - i.start + 1);
+		ans += i.end - i.start + 1;
 	}
 	ans.to_string()
 }
@@ -214,6 +229,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = include_str!("../../inputs/2025/day5.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("365804144481581", part2(input));
     }
 }
