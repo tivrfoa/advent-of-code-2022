@@ -71,6 +71,13 @@ impl Interval {
 		Self { start, end }
 	}
 
+	fn merge_right(intervals: &mut Vec<Interval>, idx: usize) {
+		while idx + 1 < intervals.len() && intervals[idx].end >= intervals[idx + 1].start {
+			intervals[idx].end = max(intervals[idx].end, intervals[idx + 1].end);
+			intervals.remove(idx + 1);
+		}
+	}
+
 	fn add_interval(intervals: &mut Vec<Interval>, new_interval: Interval) {
 		if intervals.is_empty() {
 			intervals.push(new_interval);
@@ -80,19 +87,13 @@ impl Interval {
 			Ok(idx) => {
 				eprintln!("repeated interval {}-{}", new_interval.start,
 					new_interval.end);
-				// found same start position. Keep the highest end position
-				// intervals[idx].end = max(new_interval.end, intervals[idx].end);
 			}
 			Err(idx) => {
 				if idx == 0 {
 					if new_interval.end >= intervals[idx].start {
 						intervals[idx].start = new_interval.start;
 						intervals[idx].end = max(intervals[idx].end, new_interval.end);
-						// the end might be higher than all remaining!
-						while idx + 1 < intervals.len() && intervals[idx].end >= intervals[idx + 1].start {
-							intervals[idx].end = max(intervals[idx].end, intervals[idx + 1].end);
-							intervals.remove(idx + 1);
-						}
+						Self::merge_right(intervals, idx);
 					} else {
 						intervals.insert(idx, new_interval);
 					}
@@ -105,19 +106,11 @@ impl Interval {
 				} else {
 					if intervals[idx - 1].end >= new_interval.start {
 						intervals[idx - 1].end = max(intervals[idx - 1].end, new_interval.end);
-						// the end might be higher than all remaining!
-						while idx < intervals.len() && intervals[idx - 1].end >= intervals[idx].start {
-							intervals[idx - 1].end = max(intervals[idx - 1].end, intervals[idx].end);
-							intervals.remove(idx);
-						}
+						Self::merge_right(intervals, idx - 1);
 					} else if new_interval.end >= intervals[idx].start {
 						intervals[idx].start = new_interval.start;
 						intervals[idx].end = max(intervals[idx].end, new_interval.end);
-						// the end might be higher than all remaining!
-						while idx + 1 < intervals.len() && intervals[idx].end >= intervals[idx + 1].start {
-							intervals[idx].end = max(intervals[idx].end, new_interval.end);
-							intervals.remove(idx + 1);
-						}
+						Self::merge_right(intervals, idx);
 					} else {
 						intervals.insert(idx, new_interval);
 					}
