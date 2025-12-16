@@ -54,31 +54,39 @@ pub fn part1(input: &str) -> String {
 	solve(&mut grid, start).to_string()
 }
 
-fn solve2(grid: &[Vec<char>], (mut r, c): (usize, usize)) -> usize {
+type Pos = (usize, usize);
+
+fn solve2(grid: &[Vec<char>], mem: &mut HashMap<Pos, usize>, (r, c): (usize, usize)) -> usize {
+	if let Some(qt) = mem.get(&(r, c)) {
+		return *qt;
+	}
 	let rows = grid.len();
 	let cols = grid[0].len();
-	while r < rows {
-		if grid[r][c] == '^' {
-			let mut sum = 0;
+	let mut row = r;
+	while row < rows {
+		if grid[row][c] == '^' {
+			let mut qt = 0;
 			if c > 0 {
-				sum += solve2(grid, (r + 1, c - 1));
+				qt += solve2(grid, mem, (row + 1, c - 1));
 			}
 			if c + 1 < cols {
-				sum += solve2(grid, (r + 1, c + 1));
+				qt += solve2(grid, mem, (row + 1, c + 1));
 			}
-			return sum;
+			mem.insert((r, c), qt);
+			return qt;
 		}
-		r += 1;
+		row += 1;
 	}
 
+	mem.insert((r, c), 1);
 	1
 }
 
 pub fn part2(input: &str) -> String {
-	let mut ans = 0;
 	let grid = parse(input);
 	let start = find_start_pos(&grid);
-	solve2(&grid, start).to_string()
+ 	let mut mem = HashMap::new();
+	solve2(&grid, &mut mem, start).to_string()
 }
 
 #[cfg(test)]
@@ -106,6 +114,6 @@ mod tests {
     #[test]
     fn p2() {
         let input = include_str!("../../inputs/2025/day7.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("25592971184998", part2(input));
     }
 }
