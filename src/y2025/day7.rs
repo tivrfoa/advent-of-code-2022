@@ -23,11 +23,12 @@ fn find_start_pos(grid: &[Vec<char>]) -> (usize, usize) {
 }
 
 fn solve(grid: &mut Vec<Vec<char>>, (mut r, c): (usize, usize)) -> usize {
-	if grid[r][c] == '|' { return 0; }
 	let rows = grid.len();
 	let cols = grid[0].len();
-
 	while r < rows {
+		if grid[r][c] == '|' {
+            return 0;
+        }
 		if grid[r][c] == '^' {
 			grid[r][c] = '|';
 			let mut sum = 1;
