@@ -54,8 +54,31 @@ pub fn part1(input: &str) -> String {
 	solve(&mut grid, start).to_string()
 }
 
+fn solve2(grid: &[Vec<char>], (mut r, c): (usize, usize)) -> usize {
+	let rows = grid.len();
+	let cols = grid[0].len();
+	while r < rows {
+		if grid[r][c] == '^' {
+			let mut sum = 0;
+			if c > 0 {
+				sum += solve2(grid, (r + 1, c - 1));
+			}
+			if c + 1 < cols {
+				sum += solve2(grid, (r + 1, c + 1));
+			}
+			return sum;
+		}
+		r += 1;
+	}
+
+	1
+}
+
 pub fn part2(input: &str) -> String {
-    "".into()
+	let mut ans = 0;
+	let grid = parse(input);
+	let start = find_start_pos(&grid);
+	solve2(&grid, start).to_string()
 }
 
 #[cfg(test)]
@@ -71,13 +94,13 @@ mod tests {
     #[test]
     fn p1() {
         let input = include_str!("../../inputs/2025/day7.txt");
-        assert_eq!("", part1(input));
+        assert_eq!("1560", part1(input));
     }
 
     #[test]
     fn p2s() {
         let input = include_str!("../../inputs/2025/day7-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("40", part2(input));
     }
 
     #[test]
