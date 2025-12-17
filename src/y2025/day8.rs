@@ -126,6 +126,70 @@ fn solve(input: &mut Vec<(Point3D, CircuitId)>, max_conn: usize) -> usize {
 	circuits[0].qt * circuits[1].qt * circuits[2].qt
 }
 
+fn solve2(input: &mut Vec<(Point3D, CircuitId)>) -> usize {
+	// index is its id, and the value is the number of boxes in it
+	let num_boxes = input.len();
+	let mut circuits: Vec<Circuit> = vec![];
+	let mut dd = find_distances(input);
+	dd.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+
+	for d in dd.iter() {
+		let i = d.1;
+		let j = d.2;
+		let cid_a = input[i].1;
+		let cid_b = input[j].1;
+		// println!("{loop_id}: {i} circuit: {cid_a}, {j} circuit: {cid_b}");
+
+		if cid_a == NO_CIRCUIT && cid_b == NO_CIRCUIT {
+			// both aren't in any circuit yet
+			circuits.push(Circuit {
+				qt: 2,
+				boxes: vec![i, j],
+			});
+			input[i].1 = circuits.len() - 1;
+			input[j].1 = circuits.len() - 1;
+		} else if cid_a == NO_CIRCUIT {
+			input[i].1 = cid_b;
+			circuits[cid_b].qt += 1;
+			circuits[cid_b].boxes.push(i);
+			if circuits[cid_b].boxes.len() == num_boxes {
+				return input[i].0.x as usize * input[j].0.x as usize;
+			}
+		} else if cid_b == NO_CIRCUIT {
+			input[j].1 = cid_a;
+			circuits[cid_a].qt += 1;
+			circuits[cid_a].boxes.push(j);
+			if circuits[cid_a].boxes.len() == num_boxes {
+				return input[i].0.x as usize * input[j].0.x as usize;
+			}
+		} else {
+			// Both have circuits. Merge B into A.
+
+            // Check if they are already the same (cycle)
+			if cid_a == cid_b {
+                continue;
+            }
+
+			// Transfer count from B to A
+            circuits[cid_a].qt += circuits[cid_b].qt;
+            circuits[cid_b].qt = 0;
+			if circuits[cid_a].qt == num_boxes {
+				return input[i].0.x as usize * input[j].0.x as usize;
+			}
+
+			// Relabel all nodes in B to A
+			let old_v = std::mem::replace(&mut circuits[cid_b].boxes, Vec::new());
+			for box_id in old_v {
+				circuits[cid_a].boxes.push(box_id);
+				input[box_id].1 = cid_a;
+			}
+		}
+	}
+	circuits.sort_unstable_by(|a, b| b.qt.cmp(&a.qt));
+
+	circuits[0].qt * circuits[1].qt * circuits[2].qt
+}
+
 pub fn part1(input: &str, max_conn: usize) -> String {
 	let mut boxes = parse(input);
 	//dbg!(boxes);
@@ -133,29 +197,8 @@ pub fn part1(input: &str, max_conn: usize) -> String {
 }
 
 pub fn part2(input: &str) -> String {
-    "".into()
-}
-
-#[allow(dead_code)]
-#[derive(Clone, Eq, PartialEq)]
-struct State {
-    cost: u32,
-    position: (usize, usize),
-}
-
-impl Ord for State {
-    fn cmp(&self, other: &Self) -> Ordering {
-        other
-            .cost
-            .cmp(&self.cost)
-            .then_with(|| self.position.cmp(&other.position))
-    }
-}
-
-impl PartialOrd for State {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
+	let mut boxes = parse(input);
+	solve2(&mut boxes).to_string()
 }
 
 #[cfg(test)]
@@ -177,12 +220,12 @@ mod tests {
     #[test]
     fn p2s() {
         let input = include_str!("../../inputs/2025/day8-sample.txt");
-        assert_eq!("", part2(input));
+        assert_eq!("25272", part2(input));
     }
 
-    #[test]
-    fn p2() {
-        let input = include_str!("../../inputs/2025/day8.txt");
-        assert_eq!("", part2(input));
-    }
+    //#[test]
+    //fn p2() {
+    //    let input = include_str!("../../inputs/2025/day8.txt");
+    //    assert_eq!("", part2(input));
+    //}
 }
