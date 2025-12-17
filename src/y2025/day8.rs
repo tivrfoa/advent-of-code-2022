@@ -28,7 +28,10 @@ impl Point3D {
     }
 }
 
-fn parse(input: &str) -> Vec<Point3D> {
+type CircuitId = usize;
+const NO_CIRCUIT: usize = usize::MAX;
+
+fn parse(input: &str) -> Vec<(Point3D, CircuitId)> {
 	let mut ret = vec![];
 
 	for l in input.lines() {
@@ -36,45 +39,78 @@ fn parse(input: &str) -> Vec<Point3D> {
 		let x = vv.next().unwrap().parse::<f64>().unwrap();
 		let y = vv.next().unwrap().parse::<f64>().unwrap();
 		let z = vv.next().unwrap().parse::<f64>().unwrap();
-		ret.push(Point3D::new(x, y, z));
+		ret.push((Point3D::new(x, y, z), NO_CIRCUIT));
 	}
 
 	ret
 }
 
-struct Circuit {
-	boxes: Vec<usize>,
-}
-
-fn find_distances(input: &[Point3D]) -> Vec<(f64, usize, usize)> {
+fn find_distances(input: &[(Point3D, CircuitId)]) -> Vec<(f64, usize, usize)> {
 	let mut dd = vec![];
 
 	for (i, a) in input.iter().enumerate() {
 		for (j, b) in input.iter().enumerate().skip(i + 1) {
-			dd.push((a.distance_to(b), i, j));
+			dd.push((a.0.distance_to(&b.0), i, j));
 		}
 	}
 
 	dd
 }
 
-fn solve(input: &[Point3D], max_conn: usize) -> usize {
-	let mut circuits: Vec<Circuit> = vec![];
+fn solve(input: &mut Vec<(Point3D, CircuitId)>, max_conn: usize) -> usize {
+	// index is its id, and the value is the number of boxes in it
+	let num_boxes = input.len();
+	let mut circuits: Vec<usize> = vec![];
 	let mut dd = find_distances(input);
 	//dbg!(dd);
 	// dd.sort_unstable(); // the trait `Ord` is not implemented for `f64`
 	dd.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
-	// for i in 0..5 {
-	// 	dbg!(dd[i]);
-	// }
+	for i in 0..5 {
+		dbg!(dd[i]);
+	}
 
-	0
+	for (loop_id, d) in (0..max_conn).zip(dd.iter()) {
+		let i = d.1;
+		let j = d.2;
+		let cid_a = input[i].1;
+		let cid_b = input[j].1;
+		println!("{loop_id}: {i} circuit: {cid_a}, {j} circuit: {cid_b}");
+
+		if cid_a == NO_CIRCUIT && cid_b == NO_CIRCUIT {
+			// both aren't in any circuit yet
+			circuits.push(2);
+			input[i].1 = circuits.len() - 1;
+			input[j].1 = circuits.len() - 1;
+		} else if cid_a == NO_CIRCUIT {
+			input[i].1 = cid_b;
+			circuits[cid_b] += 1;
+		} else if cid_b == NO_CIRCUIT {
+			input[j].1 = cid_a;
+			circuits[cid_a] += 1;
+		} else {
+			// need to join circuits. Make all in circuit b be the same as a
+			// it is better to have a vec for that map
+			for i in 0..num_boxes {
+				if input[i].1 == cid_b {
+					input[i].1 == cid_a;
+					circuits[cid_a] += 1;
+					circuits[cid_b] -= 1;
+				}
+			}
+		}
+	}
+	dbg!(input);
+	dbg!(&circuits);
+	circuits.sort_unstable_by(|a, b| b.cmp(a));
+	dbg!(&circuits);
+
+	circuits[0] * circuits[1] * circuits[2]
 }
 
 pub fn part1(input: &str, max_conn: usize) -> String {
-	let boxes = parse(input);
+	let mut boxes = parse(input);
 	//dbg!(boxes);
-	solve(&boxes, max_conn).to_string()
+	solve(&mut boxes, max_conn).to_string()
 }
 
 pub fn part2(input: &str) -> String {
@@ -110,7 +146,7 @@ mod tests {
     #[test]
     fn p1s() {
         let input = include_str!("../../inputs/2025/day8-sample.txt");
-        assert_eq!("", part1(input, 10));
+        assert_eq!("40", part1(input, 10));
     }
 
     //#[test]
