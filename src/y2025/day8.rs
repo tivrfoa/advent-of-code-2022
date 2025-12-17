@@ -87,7 +87,7 @@ fn solve(input: &mut Vec<(Point3D, CircuitId)>, max_conn: usize) -> usize {
 			// it is better to have a vec for that map
 			for i in 0..num_boxes {
 				if input[i].1 == cid_b {
-					input[i].1 == cid_a;
+					input[i].1 = cid_a;
 					circuits[cid_a] += 1;
 
 					// investigate the bug, because it should always be
@@ -149,7 +149,7 @@ mod tests {
     #[test]
     fn p1() {
         let input = include_str!("../../inputs/2025/day8.txt");
-        assert_eq!("", part1(input, 1000));
+        assert_eq!("46398", part1(input, 1000));
     }
 
     #[test]
