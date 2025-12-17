@@ -223,9 +223,9 @@ mod tests {
         assert_eq!("25272", part2(input));
     }
 
-    //#[test]
-    //fn p2() {
-    //    let input = include_str!("../../inputs/2025/day8.txt");
-    //    assert_eq!("", part2(input));
-    //}
+    #[test]
+    fn p2() {
+        let input = include_str!("../../inputs/2025/day8.txt");
+        assert_eq!("8141888143", part2(input));
+    }
 }
