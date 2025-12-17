@@ -62,19 +62,14 @@ fn solve(input: &mut Vec<(Point3D, CircuitId)>, max_conn: usize) -> usize {
 	let num_boxes = input.len();
 	let mut circuits: Vec<usize> = vec![];
 	let mut dd = find_distances(input);
-	//dbg!(dd);
-	// dd.sort_unstable(); // the trait `Ord` is not implemented for `f64`
 	dd.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
-	for i in 0..5 {
-		dbg!(dd[i]);
-	}
 
 	for (loop_id, d) in (0..max_conn).zip(dd.iter()) {
 		let i = d.1;
 		let j = d.2;
 		let cid_a = input[i].1;
 		let cid_b = input[j].1;
-		println!("{loop_id}: {i} circuit: {cid_a}, {j} circuit: {cid_b}");
+		// println!("{loop_id}: {i} circuit: {cid_a}, {j} circuit: {cid_b}");
 
 		if cid_a == NO_CIRCUIT && cid_b == NO_CIRCUIT {
 			// both aren't in any circuit yet
@@ -94,15 +89,17 @@ fn solve(input: &mut Vec<(Point3D, CircuitId)>, max_conn: usize) -> usize {
 				if input[i].1 == cid_b {
 					input[i].1 == cid_a;
 					circuits[cid_a] += 1;
-					circuits[cid_b] -= 1;
+
+					// investigate the bug, because it should always be
+					// greater than zero ...
+					if circuits[cid_b] > 0 {
+						circuits[cid_b] -= 1;
+					}
 				}
 			}
 		}
 	}
-	dbg!(input);
-	dbg!(&circuits);
 	circuits.sort_unstable_by(|a, b| b.cmp(a));
-	dbg!(&circuits);
 
 	circuits[0] * circuits[1] * circuits[2]
 }
@@ -149,11 +146,11 @@ mod tests {
         assert_eq!("40", part1(input, 10));
     }
 
-    //#[test]
-    //fn p1() {
-    //    let input = include_str!("../../inputs/2025/day8.txt");
-    //    assert_eq!("", part1(input, 1000));
-    //}
+    #[test]
+    fn p1() {
+        let input = include_str!("../../inputs/2025/day8.txt");
+        assert_eq!("", part1(input, 1000));
+    }
 
     #[test]
     fn p2s() {
