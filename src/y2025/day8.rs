@@ -83,18 +83,21 @@ fn solve(input: &mut Vec<(Point3D, CircuitId)>, max_conn: usize) -> usize {
 			input[j].1 = cid_a;
 			circuits[cid_a] += 1;
 		} else {
-			// need to join circuits. Make all in circuit b be the same as a
-			// it is better to have a vec for that map
+			// Both have circuits. Merge B into A.
+
+            // Check if they are already the same (cycle)
+			if cid_a == cid_b {
+                continue;
+            }
+
+			// Transfer count from B to A
+            circuits[cid_a] += circuits[cid_b];
+            circuits[cid_b] = 0;
+
+			// Relabel all nodes in B to A
 			for i in 0..num_boxes {
 				if input[i].1 == cid_b {
 					input[i].1 = cid_a;
-					circuits[cid_a] += 1;
-
-					// investigate the bug, because it should always be
-					// greater than zero ...
-					if circuits[cid_b] > 0 {
-						circuits[cid_b] -= 1;
-					}
 				}
 			}
 		}
