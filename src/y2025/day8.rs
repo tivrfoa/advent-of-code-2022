@@ -26,6 +26,14 @@ impl Point3D {
 
         (dx.powi(2) + dy.powi(2) + dz.powi(2)).sqrt()
     }
+
+	#[inline]
+    fn dist2(&self, other: &Point3D) -> f64 {
+        let dx = self.x - other.x;
+        let dy = self.y - other.y;
+        let dz = self.z - other.z;
+        dx * dx + dy * dy + dz * dz
+    }
 }
 
 type CircuitId = usize;
@@ -50,17 +58,23 @@ fn find_distances(input: &[(Point3D, CircuitId)]) -> Vec<(f64, usize, usize)> {
 
 	for (i, a) in input.iter().enumerate() {
 		for (j, b) in input.iter().enumerate().skip(i + 1) {
-			dd.push((a.0.distance_to(&b.0), i, j));
+			// dd.push((a.0.distance_to(&b.0), i, j));
+			dd.push((a.0.dist2(&b.0), i, j));
 		}
 	}
 
 	dd
 }
 
+struct Circuit {
+	qt: usize,
+	boxes: Vec<usize>,
+}
+
 fn solve(input: &mut Vec<(Point3D, CircuitId)>, max_conn: usize) -> usize {
 	// index is its id, and the value is the number of boxes in it
 	let num_boxes = input.len();
-	let mut circuits: Vec<usize> = vec![];
+	let mut circuits: Vec<Circuit> = vec![];
 	let mut dd = find_distances(input);
 	dd.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
@@ -73,15 +87,20 @@ fn solve(input: &mut Vec<(Point3D, CircuitId)>, max_conn: usize) -> usize {
 
 		if cid_a == NO_CIRCUIT && cid_b == NO_CIRCUIT {
 			// both aren't in any circuit yet
-			circuits.push(2);
+			circuits.push(Circuit {
+				qt: 2,
+				boxes: vec![i, j],
+			});
 			input[i].1 = circuits.len() - 1;
 			input[j].1 = circuits.len() - 1;
 		} else if cid_a == NO_CIRCUIT {
 			input[i].1 = cid_b;
-			circuits[cid_b] += 1;
+			circuits[cid_b].qt += 1;
+			circuits[cid_b].boxes.push(i);
 		} else if cid_b == NO_CIRCUIT {
 			input[j].1 = cid_a;
-			circuits[cid_a] += 1;
+			circuits[cid_a].qt += 1;
+			circuits[cid_a].boxes.push(j);
 		} else {
 			// Both have circuits. Merge B into A.
 
@@ -91,20 +110,20 @@ fn solve(input: &mut Vec<(Point3D, CircuitId)>, max_conn: usize) -> usize {
             }
 
 			// Transfer count from B to A
-            circuits[cid_a] += circuits[cid_b];
-            circuits[cid_b] = 0;
+            circuits[cid_a].qt += circuits[cid_b].qt;
+            circuits[cid_b].qt = 0;
 
 			// Relabel all nodes in B to A
-			for i in 0..num_boxes {
-				if input[i].1 == cid_b {
-					input[i].1 = cid_a;
-				}
+			let old_v = std::mem::replace(&mut circuits[cid_b].boxes, Vec::new());
+			for box_id in old_v {
+				circuits[cid_a].boxes.push(box_id);
+				input[box_id].1 = cid_a;
 			}
 		}
 	}
-	circuits.sort_unstable_by(|a, b| b.cmp(a));
+	circuits.sort_unstable_by(|a, b| b.qt.cmp(&a.qt));
 
-	circuits[0] * circuits[1] * circuits[2]
+	circuits[0].qt * circuits[1].qt * circuits[2].qt
 }
 
 pub fn part1(input: &str, max_conn: usize) -> String {
