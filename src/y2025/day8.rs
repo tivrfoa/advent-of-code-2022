@@ -72,7 +72,6 @@ struct Circuit {
 }
 
 fn solve(input: &mut Vec<(Point3D, CircuitId)>, max_conn: usize) -> usize {
-	// index is its id, and the value is the number of boxes in it
 	let num_boxes = input.len();
 	let mut circuits: Vec<Circuit> = vec![];
 	let mut dd = find_distances(input);
@@ -127,7 +126,6 @@ fn solve(input: &mut Vec<(Point3D, CircuitId)>, max_conn: usize) -> usize {
 }
 
 fn solve2(input: &mut Vec<(Point3D, CircuitId)>) -> usize {
-	// index is its id, and the value is the number of boxes in it
 	let num_boxes = input.len();
 	let mut circuits: Vec<Circuit> = vec![];
 	let mut dd = find_distances(input);
@@ -185,14 +183,11 @@ fn solve2(input: &mut Vec<(Point3D, CircuitId)>) -> usize {
 			}
 		}
 	}
-	circuits.sort_unstable_by(|a, b| b.qt.cmp(&a.qt));
-
-	circuits[0].qt * circuits[1].qt * circuits[2].qt
+	unreachable!()
 }
 
 pub fn part1(input: &str, max_conn: usize) -> String {
 	let mut boxes = parse(input);
-	//dbg!(boxes);
 	solve(&mut boxes, max_conn).to_string()
 }
 
