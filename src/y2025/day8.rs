@@ -67,7 +67,6 @@ fn find_distances(input: &[(Point3D, CircuitId)]) -> Vec<(usize, usize, usize)> 
 }
 
 struct Circuit {
-	qt: usize,
 	boxes: Vec<usize>,
 }
 
@@ -87,18 +86,15 @@ fn solve(input: &mut Vec<(Point3D, CircuitId)>, max_conn: usize) -> usize {
 		if cid_a == NO_CIRCUIT && cid_b == NO_CIRCUIT {
 			// both aren't in any circuit yet
 			circuits.push(Circuit {
-				qt: 2,
 				boxes: vec![i, j],
 			});
 			input[i].1 = circuits.len() - 1;
 			input[j].1 = circuits.len() - 1;
 		} else if cid_a == NO_CIRCUIT {
 			input[i].1 = cid_b;
-			circuits[cid_b].qt += 1;
 			circuits[cid_b].boxes.push(i);
 		} else if cid_b == NO_CIRCUIT {
 			input[j].1 = cid_a;
-			circuits[cid_a].qt += 1;
 			circuits[cid_a].boxes.push(j);
 		} else {
 			// Both have circuits. Merge B into A.
@@ -108,10 +104,6 @@ fn solve(input: &mut Vec<(Point3D, CircuitId)>, max_conn: usize) -> usize {
                 continue;
             }
 
-			// Transfer count from B to A
-            circuits[cid_a].qt += circuits[cid_b].qt;
-            circuits[cid_b].qt = 0;
-
 			// Relabel all nodes in B to A
 			let old_v = std::mem::replace(&mut circuits[cid_b].boxes, Vec::new());
 			for box_id in old_v {
@@ -120,9 +112,9 @@ fn solve(input: &mut Vec<(Point3D, CircuitId)>, max_conn: usize) -> usize {
 			}
 		}
 	}
-	circuits.sort_unstable_by(|a, b| b.qt.cmp(&a.qt));
+	circuits.sort_unstable_by(|a, b| b.boxes.len().cmp(&a.boxes.len()));
 
-	circuits[0].qt * circuits[1].qt * circuits[2].qt
+	circuits[0].boxes.len() * circuits[1].boxes.len() * circuits[2].boxes.len()
 }
 
 fn solve2(input: &mut Vec<(Point3D, CircuitId)>) -> usize {
@@ -141,21 +133,18 @@ fn solve2(input: &mut Vec<(Point3D, CircuitId)>) -> usize {
 		if cid_a == NO_CIRCUIT && cid_b == NO_CIRCUIT {
 			// both aren't in any circuit yet
 			circuits.push(Circuit {
-				qt: 2,
 				boxes: vec![i, j],
 			});
 			input[i].1 = circuits.len() - 1;
 			input[j].1 = circuits.len() - 1;
 		} else if cid_a == NO_CIRCUIT {
 			input[i].1 = cid_b;
-			circuits[cid_b].qt += 1;
 			circuits[cid_b].boxes.push(i);
 			if circuits[cid_b].boxes.len() == num_boxes {
 				return input[i].0.x as usize * input[j].0.x as usize;
 			}
 		} else if cid_b == NO_CIRCUIT {
 			input[j].1 = cid_a;
-			circuits[cid_a].qt += 1;
 			circuits[cid_a].boxes.push(j);
 			if circuits[cid_a].boxes.len() == num_boxes {
 				return input[i].0.x as usize * input[j].0.x as usize;
@@ -168,10 +157,7 @@ fn solve2(input: &mut Vec<(Point3D, CircuitId)>) -> usize {
                 continue;
             }
 
-			// Transfer count from B to A
-            circuits[cid_a].qt += circuits[cid_b].qt;
-            circuits[cid_b].qt = 0;
-			if circuits[cid_a].qt == num_boxes {
+			if circuits[cid_a].boxes.len() == num_boxes {
 				return input[i].0.x as usize * input[j].0.x as usize;
 			}
 
