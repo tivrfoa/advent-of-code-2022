@@ -13,25 +13,25 @@ use util::*;
 
 #[derive(Debug, New)]
 struct Point3D {
-    x: f64,
-    y: f64,
-    z: f64,
+    x: usize,
+    y: usize,
+    z: usize,
 }
 
 impl Point3D {
-    fn distance_to(&self, other: &Point3D) -> f64 {
-        let dx = self.x - other.x;
-        let dy = self.y - other.y;
-        let dz = self.z - other.z;
+    // fn distance_to(&self, other: &Point3D) -> usize {
+    //     let dx = self.x - other.x;
+    //     let dy = self.y - other.y;
+    //     let dz = self.z - other.z;
 
-        (dx.powi(2) + dy.powi(2) + dz.powi(2)).sqrt()
-    }
+    //     (dx.powi(2) + dy.powi(2) + dz.powi(2)).sqrt()
+    // }
 
 	#[inline]
-    fn dist2(&self, other: &Point3D) -> f64 {
-        let dx = self.x - other.x;
-        let dy = self.y - other.y;
-        let dz = self.z - other.z;
+    fn dist2(&self, other: &Point3D) -> usize {
+        let dx = self.x.abs_diff(other.x);
+        let dy = self.y.abs_diff(other.y);
+        let dz = self.z.abs_diff(other.z);
         dx * dx + dy * dy + dz * dz
     }
 }
@@ -44,16 +44,16 @@ fn parse(input: &str) -> Vec<(Point3D, CircuitId)> {
 
 	for l in input.lines() {
 		let mut vv = l.split(',');
-		let x = vv.next().unwrap().parse::<f64>().unwrap();
-		let y = vv.next().unwrap().parse::<f64>().unwrap();
-		let z = vv.next().unwrap().parse::<f64>().unwrap();
+		let x = vv.next().unwrap().parse::<usize>().unwrap();
+		let y = vv.next().unwrap().parse::<usize>().unwrap();
+		let z = vv.next().unwrap().parse::<usize>().unwrap();
 		ret.push((Point3D::new(x, y, z), NO_CIRCUIT));
 	}
 
 	ret
 }
 
-fn find_distances(input: &[(Point3D, CircuitId)]) -> Vec<(f64, usize, usize)> {
+fn find_distances(input: &[(Point3D, CircuitId)]) -> Vec<(usize, usize, usize)> {
 	let mut dd = vec![];
 
 	for (i, a) in input.iter().enumerate() {
