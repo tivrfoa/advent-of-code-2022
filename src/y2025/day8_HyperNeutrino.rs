@@ -63,7 +63,6 @@ impl Tree {
 		self.parent[a_root] = b_root;
 	}
 	fn merge_n(&mut self, edges: &[Edge], n: usize) {
-		dbg!(n);
 		for edge in edges.iter().take(n) {
 			self.merge(edge.a, edge.b);
 		}
@@ -84,17 +83,12 @@ fn edges_from_boxes(boxes: &[Point3D]) -> Vec<Edge> {
 	edges
 }
 
-fn solve(boxes: &[Point3D], max_conn: usize) -> usize {
+fn solve1(boxes: &[Point3D], max_conn: usize) -> usize {
 	let num_boxes = boxes.len();
 	let mut tree = Tree { parent: (0..num_boxes).collect() };
-	tree.print();
 	let mut edges = edges_from_boxes(boxes);
-	// edges.iter().for_each(|e| e.print());
 	edges.sort_unstable_by(|a, b| a.distance.cmp(&b.distance));
-	println!("Sorted edges");
-	edges.iter().for_each(|e| e.print());
 	tree.merge_n(&edges, max_conn);
-	tree.print();
 	let mut sizes = vec![0; num_boxes];
 	for (i, _) in boxes.iter().enumerate() {
 		sizes[tree.root(i)] += 1;
@@ -105,12 +99,29 @@ fn solve(boxes: &[Point3D], max_conn: usize) -> usize {
 }
 
 pub fn part1(input: &str, max_conn: usize) -> String {
-	let mut boxes = parse(input);
-	solve(&mut boxes, max_conn).to_string()
+	let boxes = parse(input);
+	solve1(&boxes, max_conn).to_string()
+}
+
+fn solve2(boxes: &[Point3D]) -> usize {
+	let mut num_boxes = boxes.len();
+	let mut tree = Tree { parent: (0..num_boxes).collect() };
+	let mut edges = edges_from_boxes(boxes);
+	edges.sort_unstable_by(|a, b| a.distance.cmp(&b.distance));
+	for edge in edges.iter() {
+		if tree.root(edge.a) == tree.root(edge.b) { continue; }
+		tree.merge(edge.a, edge.b);
+		num_boxes -= 1;
+		if num_boxes == 1 {
+			return boxes[edge.a].x * boxes[edge.b].x;
+		}
+	}
+	unreachable!()
 }
 
 pub fn part2(input: &str) -> String {
-	todo!()
+	let boxes = parse(input);
+	solve2(&boxes).to_string()
 }
 
 fn parse(input: &str) -> Vec<Point3D> {
@@ -143,15 +154,15 @@ mod tests {
         assert_eq!("46398", part1(input, 1000));
     }
 
-    //#[test]
-    //fn p2s() {
-    //    let input = include_str!("../../inputs/2025/day8-sample.txt");
-    //    assert_eq!("25272", part2(input));
-    //}
+    #[test]
+    fn p2s() {
+        let input = include_str!("../../inputs/2025/day8-sample.txt");
+        assert_eq!("25272", part2(input));
+    }
 
-    //#[test]
-    //fn p2() {
-    //    let input = include_str!("../../inputs/2025/day8.txt");
-    //    assert_eq!("8141888143", part2(input));
-    //}
+    #[test]
+    fn p2() {
+        let input = include_str!("../../inputs/2025/day8.txt");
+        assert_eq!("8141888143", part2(input));
+    }
 }
